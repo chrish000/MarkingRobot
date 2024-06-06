@@ -3,7 +3,8 @@
 Robot-plotter with differential drive based on BTT SKR3 EZ
 
 ## Platform
-[STM32H7](https://www.st.com/en/microcontrollers-microprocessors/stm32h743-753.html)|ARM® Cortex-M7|BigTreeTech SKR3 EZ V3.0
+BigTreeTech SKR3 EZ V3.0
+ARM® Cortex-M7  [STM32H7](https://www.st.com/en/microcontrollers-microprocessors/stm32h743-753.html)
 
 ## Supported Gcode
 - G0    Fast linear move

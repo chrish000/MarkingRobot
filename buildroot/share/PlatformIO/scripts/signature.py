@@ -86,7 +86,7 @@ def compute_build_signature(env):
     marlin_zip = build_path / 'mc.zip'
 
     # Definitions from these files will be kept
-    header_paths = [ 'Marlin/Configuration.h', 'Marlin/Configuration_adv.h' ]
+    header_paths = [ 'MarkingRobot/Configuration.h' ]
 
     # Check if we can skip processing
     hashes = ''

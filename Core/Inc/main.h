@@ -57,6 +57,16 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define Z_STEP_Pin GPIO_PIN_2
+#define Z_STEP_GPIO_Port GPIOE
+#define Z_DIR_Pin GPIO_PIN_3
+#define Z_DIR_GPIO_Port GPIOE
+#define PWRDET_Pin GPIO_PIN_15
+#define PWRDET_GPIO_Port GPIOC
+#define Z_MIN_Pin GPIO_PIN_0
+#define Z_MIN_GPIO_Port GPIOC
+#define X_MIN_Pin GPIO_PIN_1
+#define X_MIN_GPIO_Port GPIOC
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4
@@ -65,6 +75,12 @@ void Error_Handler(void);
 #define X_UART_GPIO_Port GPIOD
 #define X_EN_Pin GPIO_PIN_6
 #define X_EN_GPIO_Port GPIOD
+#define HE0_PWM_Pin GPIO_PIN_3
+#define HE0_PWM_GPIO_Port GPIOB
+#define Z_EN_Pin GPIO_PIN_0
+#define Z_EN_GPIO_Port GPIOE
+#define Z_UART_Pin GPIO_PIN_1
+#define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
 

@@ -1,3 +1,4 @@
-../Core/Src/main.c:129:6:SystemClock_Config	128	static,ignoring_inline_asm
-../Core/Src/main.c:74:5:main	80	static,ignoring_inline_asm
-../Core/Src/main.c:471:6:Error_Handler	0	static,ignoring_inline_asm
+../Core/Src/main.c:134:6:SystemClock_Config	128	static,ignoring_inline_asm
+../Core/Src/main.c:74:5:main	56	static,ignoring_inline_asm
+../Core/Src/main.c:392:6:HAL_GPIO_EXTI_Callback	0	static
+../Core/Src/main.c:434:6:Error_Handler	0	static,ignoring_inline_asm

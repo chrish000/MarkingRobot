@@ -41,7 +41,8 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
+extern uint8_t BatteryAlarm;
+extern uint16_t HomePos[2];
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -63,6 +64,7 @@ void Error_Handler(void);
 #define Z_DIR_GPIO_Port GPIOE
 #define PWRDET_Pin GPIO_PIN_15
 #define PWRDET_GPIO_Port GPIOC
+#define PWRDET_EXTI_IRQn EXTI15_10_IRQn
 #define Z_MIN_Pin GPIO_PIN_0
 #define Z_MIN_GPIO_Port GPIOC
 #define X_MIN_Pin GPIO_PIN_1
@@ -83,7 +85,10 @@ void Error_Handler(void);
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
+#define true 1
+#define false 0
 
+#define HomePosition { 0 , 0 }
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

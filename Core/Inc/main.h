@@ -38,11 +38,11 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-UART_HandleTypeDef huart8;
-UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart8;
+extern UART_HandleTypeDef huart2;
 
-volatile uint8_t BatteryAlarm;
-uint16_t HomePos[2];
+extern volatile uint8_t BatteryAlarm;
+extern uint16_t HomePos[2];
 
 /* USER CODE END EC */
 

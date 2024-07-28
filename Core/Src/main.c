@@ -19,6 +19,14 @@
  * 		Es werden trotzdem X-Y-Koordinaten verwendet.
  * 	>
  */
+
+/**
+ * TODO
+ * 	>	Funktionen Kommentieren und Dokumentation anfügen
+ * 	>	Definition weiterer Konstanten und Makros für Pin-Zustände und Verzögerungen, um den Code lesbarer und wartbarer zu machen.
+ * 	>	Aufteilung der Hauptschleife in mehrere modulare Funktionen zur Bewältigung verschiedener Aufgaben
+ * 	>
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"

@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "move.h"
 #include "homing.h"
+#include "driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,8 +49,10 @@ UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t BatteryAlarm = false;
-uint16_t HomePos[2] = HomePosition;
+volatile uint8_t BatteryAlarm = false;
+const uint16_t HomeX = 0;
+const uint16_t HomeY = 0;
+uint16_t HomePos[2] = { HomeX , HomeY };
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

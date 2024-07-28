@@ -41,7 +41,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-extern uint8_t BatteryAlarm;
+extern volatile uint8_t BatteryAlarm;
 extern uint16_t HomePos[2];
 /* USER CODE END EC */
 

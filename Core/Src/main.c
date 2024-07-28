@@ -6,15 +6,19 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
   * This software is licensed under terms that can be found in the LICENSE file
   * in the root directory of this software component.
   * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
+
+/**
+ * Wichtige Informationen für das Verständnis
+ * 	>	Aufgrund der UART-Ansteuerung werden die Treiber für X und Z benutzt.
+ * 		Es werden trotzdem X-Y-Koordinaten verwendet.
+ * 	>
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -53,6 +57,8 @@ volatile uint8_t BatteryAlarm = false;
 const uint16_t HomeX = 0;
 const uint16_t HomeY = 0;
 uint16_t HomePos[2] = { HomeX , HomeY };
+volatile int_fast16_t PosX = 0;
+volatile int_fast16_t PosY = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/

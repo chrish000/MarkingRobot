@@ -6,5 +6,5 @@
  */
 
 uint8_t Move_To_Pos(uint16_t [2]);
-uint8_t Move_Linear(uint16_t);
-uint8_t Move_Degrees(int16_t);
+uint8_t Move_Linear(float);
+uint8_t Move_Degrees(float);

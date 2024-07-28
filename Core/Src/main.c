@@ -1,17 +1,17 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 
 /**
  * Wichtige Informationen für das Verständnis
@@ -25,7 +25,7 @@
  * 	>	Funktionen Kommentieren und Dokumentation anfügen
  * 	>	Definition weiterer Konstanten und Makros für Pin-Zustände und Verzögerungen, um den Code lesbarer und wartbarer zu machen.
  * 	>	Aufteilung der Hauptschleife in mehrere modulare Funktionen zur Bewältigung verschiedener Aufgaben
- * 	>
+ * 	>	**Motoransteuerung Z**
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -57,6 +57,8 @@
 
 CRC_HandleTypeDef hcrc;
 
+TIM_HandleTypeDef htim2;
+
 UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart2;
 
@@ -65,8 +67,17 @@ volatile uint8_t BatteryAlarm = false;
 const uint16_t HomeX = 0;
 const uint16_t HomeY = 0;
 uint16_t HomePos[2] = { HomeX , HomeY };
-volatile int_fast16_t PosX = 0;
-volatile int_fast16_t PosY = 0;
+volatile float PosX = 0; //in mm
+volatile float PosY = 0; //in mm
+
+/* PWM Ansteuerung der STEP-Pins durch Interrupt */
+volatile int32_t PWMStepX = 0; // Zähler für die X PWM-Impulse
+volatile uint16_t PWMCounterX = 0; // Zähler für die PWM-Impuls-Position
+volatile uint32_t TargetStepsX = 0;
+
+volatile uint16_t PWMPeriod = 1000; // Periode des PWM-Signals in µs
+volatile uint16_t PWMPulseWidth = 500; // Breite des PWM-Impulses (Duty Cycle)
+volatile uint8_t PWMEnabledX = false; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -76,6 +87,7 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
 static void MX_UART8_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 /* USER CODE END PFP */
 
@@ -118,29 +130,28 @@ int main(void)
   MX_USART2_UART_Init();
   MX_CRC_Init();
   MX_UART8_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_RESET); //Treiber aktivieren
-  HAL_GPIO_WritePin(X_DIR_GPIO_Port, X_DIR_Pin, GPIO_PIN_SET); //Direction-Pin von Treiber X setzen
+	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_RESET); //Treiber aktivieren
+	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET); //Treiber aktivieren
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-	  if(BatteryAlarm)
-	  {
-		  //TODO gebe leeren Batteriestand auf Display aus
-		  if(Move_To_Pos(HomePos))
-			  Error_Handler();
-	  }
-	  HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_SET);
-	  HAL_Delay(1);
-	  HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_RESET);
-	  HAL_Delay(1);
+	while (1)
+	{
+		if(BatteryAlarm)
+		{
+			//TODO gebe leeren Batteriestand auf Display aus
+			if(Move_To_Pos(HomePos))
+				Error_Handler();
+		}
+		Move_Linear(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	}
   /* USER CODE END 3 */
 }
 
@@ -231,6 +242,64 @@ static void MX_CRC_Init(void)
   /* USER CODE BEGIN CRC_Init 2 */
 
   /* USER CODE END CRC_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 274;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 500;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 
@@ -408,10 +477,41 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if (GPIO_Pin == PWRDET_Pin)
-    {
-        BatteryAlarm = true;
-    }
+	if (GPIO_Pin == PWRDET_Pin)
+	{
+		BatteryAlarm = true;
+	}
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim->Instance == TIM2)
+	{
+		if (PWMEnabledX)
+		{
+			PWMCounterX++;
+			if (PWMCounterX >= PWMPeriod)
+			{
+				PWMCounterX = 0;
+				PWMStepX++;
+			}
+			if (PWMCounterX < PWMPulseWidth)
+			{
+				HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_SET);
+			}
+			else
+			{
+				HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_RESET);
+			}
+
+			// Überprüfen, ob die Ziel-Schritte erreicht sind
+			if (PWMStepX >= TargetStepsX)
+			{
+				PWMEnabledX = false;
+				HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_RESET);
+			}
+		}
+	}
 }
 /* USER CODE END 4 */
 
@@ -451,11 +551,11 @@ void MPU_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
+	/* User can add his own implementation to report the HAL error return state */
+	__disable_irq();
+	while (1)
+	{
+	}
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -470,7 +570,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
+	/* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }

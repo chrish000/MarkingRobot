@@ -43,7 +43,14 @@ extern UART_HandleTypeDef huart2;
 
 extern volatile uint8_t BatteryAlarm;
 extern uint16_t HomePos[2];
+extern volatile float PosX; //in mm
+extern volatile float PosY; //in mm
 
+extern volatile int32_t PWMStepX; // Zähler für die X PWM-Impulse
+extern volatile uint16_t PWMCounterX;
+extern volatile uint32_t TargetStepsX;
+
+extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -90,6 +97,8 @@ void Error_Handler(void);
 #define false 0
 
 #define HomePosition { 0 , 0 }
+#define StepsPerMM 100
+#define StepsPerDeg 100
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

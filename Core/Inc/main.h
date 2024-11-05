@@ -77,6 +77,8 @@ void Error_Handler(void);
 #define Z_MIN_GPIO_Port GPIOC
 #define X_MIN_Pin GPIO_PIN_1
 #define X_MIN_GPIO_Port GPIOC
+#define UART4_TEST_Pin GPIO_PIN_0
+#define UART4_TEST_GPIO_Port GPIOA
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

@@ -60,8 +60,8 @@ all: main-build
 main-build: MarkingRobot-Cube.elf secondary-outputs
 
 # Tool invocations
-MarkingRobot-Cube.elf MarkingRobot-Cube.map: $(OBJS) $(USER_OBJS) C:\Users\Chris\ Hauser\Desktop\GitHub\MarkingRobot-Cube\STM32H723VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "MarkingRobot-Cube.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\Chris Hauser\Desktop\GitHub\MarkingRobot-Cube\STM32H723VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MarkingRobot-Cube.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+MarkingRobot-Cube.elf MarkingRobot-Cube.map: $(OBJS) $(USER_OBJS) C:\Users\chris\Desktop\GitHub\MarkingRobot-Cube\STM32H723VGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "MarkingRobot-Cube.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\chris\Desktop\GitHub\MarkingRobot-Cube\STM32H723VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="MarkingRobot-Cube.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

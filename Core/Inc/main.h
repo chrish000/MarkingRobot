@@ -87,8 +87,6 @@ void Error_Handler(void);
 #define X_EN_GPIO_Port GPIOD
 #define HE0_PWM_Pin GPIO_PIN_3
 #define HE0_PWM_GPIO_Port GPIOB
-#define LED_TESTING_Pin GPIO_PIN_4
-#define LED_TESTING_GPIO_Port GPIOB
 #define Z_EN_Pin GPIO_PIN_0
 #define Z_EN_GPIO_Port GPIOE
 #define Z_UART_Pin GPIO_PIN_1

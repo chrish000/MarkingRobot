@@ -19,7 +19,7 @@
   */
 void handleTimeout()
 {
-	//TODO: ERROR
+	//TODO: Timeout-Error homing handeln
 }
 
 /**
@@ -33,10 +33,12 @@ void handleTimeout()
   */
 void home()
 {
-	/*TODO Der Roboter soll eine bestimmte Stecke fahren. Wenn innerhalb dieser Stecke ein Endschalter
+	/*TODO Homing
+	 * Der Roboter soll eine bestimmte Stecke fahren. Wenn innerhalb dieser Stecke ein Endschalter
 	 * geschalten hat, so soll der Roboter anhalten und sich drehen, bis beide Endschalter gleichzeitig schalten.
 	 * Wenn die Strecke gefahren wurde und kein Endschalter wurde getroffen, soll ein ERROR
 	 * ausgegeben werden. */
+	//TODO Lesevorgänge reduzieren (Einmaliges Einlesen) Besser: Interrupt
 	while(1)
 	{
 		if(1 /* Wenn die definierte Distanz gefahren wurde */)
@@ -47,7 +49,7 @@ void home()
 		//Kein Endschalter
 		if(!(HAL_GPIO_ReadPin(X_MIN_GPIO_Port, X_MIN_Pin) || HAL_GPIO_ReadPin(Z_MIN_GPIO_Port, Z_MIN_Pin)))
 		{
-			// TODO move
+
 		}
 		//X_MIN zuerst
 		else if(HAL_GPIO_ReadPin(X_MIN_GPIO_Port, X_MIN_Pin) && !HAL_GPIO_ReadPin(Z_MIN_GPIO_Port, Z_MIN_Pin))

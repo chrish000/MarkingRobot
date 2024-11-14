@@ -21,11 +21,10 @@
  */
 
 /**
- * TODO
- * 	>	Funktionen Kommentieren und Dokumentation anfügen
- * 	>	Definition weiterer Konstanten und Makros für Pin-Zustände und Verzögerungen, um den Code lesbarer und wartbarer zu machen.
- * 	>	Aufteilung der Hauptschleife in mehrere modulare Funktionen zur Bewältigung verschiedener Aufgaben
- * 	>	**Motoransteuerung Z**
+ * TODO Funktionen Kommentieren und Dokumentation anfügen
+ * TODO Definition weiterer Konstanten und Makros für Pin-Zustände und Verzögerungen, um den Code lesbarer und wartbarer zu machen.
+ * TODO Aufteilung der Hauptschleife in mehrere modulare Funktionen zur Bewältigung verschiedener Aufgaben
+ * TODO Motoransteuerung Z
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -37,7 +36,6 @@
 #include "homing.h"
 #include "driver.h"
 #include "uart.h"
-#include "stdio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,6 +61,8 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_uart8_tx;
+DMA_HandleTypeDef hdma_uart8_rx;
 DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
@@ -173,27 +173,19 @@ int main(void)
 				Error_Handler();
 		}
 		//*********************************************************************************************
-		uint32_t crcValue = HAL_CRC_Calculate(&hcrc, (uint32_t *)write, sizeof(write)-1);
+		//TODO UART in seperate Datei
+		write[7] = HAL_CRC_Calculate(&hcrc, (uint32_t *)write, sizeof(write)-1);
+		read[3] = HAL_CRC_Calculate(&hcrc, (uint32_t *)read, sizeof(read)-1);
 		//*********************************************************************************************
-		/*HAL_HalfDuplex_EnableTransmitter(&huart2);
+		HAL_HalfDuplex_EnableTransmitter(&huart2);
 		HAL_UART_Transmit_DMA(&huart2, write, 8);
 		HAL_HalfDuplex_EnableReceiver(&huart2);
 		HAL_Delay(1000);
 		HAL_HalfDuplex_EnableTransmitter(&huart2);
 		HAL_UART_Transmit_DMA(&huart2, read, 4);
 		HAL_HalfDuplex_EnableReceiver(&huart2);
-		HAL_Delay(1000);*/
+		HAL_Delay(1000);
 		//*********************************************************************************************
-		/*
-		 * TODO
-		 * Sende initiale Nachricht über UART
-		 * Empfange
-		 * Aktiviere/ Deaktiviere je nach empfangerner Nachricht LED (PB3)
-		 * Quittiere mit Nachricht
-		 *
-		 * - DMA möglich?
-		 * - Empfangen über Interrupt?
-		 */
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -464,6 +456,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+  /* DMA1_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
 }
 

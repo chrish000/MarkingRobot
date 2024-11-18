@@ -16,6 +16,7 @@
 //TODO CoolStep???
 /* Includes ------------------------------------------------------------------*/
 #include "TMC2209.h"
+#include "utils.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -23,23 +24,28 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private user code ---------------------------------------------------------*/
+TMC2209::TMC2209(){}
 
 void TMC2209::setup() {
 
 }
 
 void TMC2209::enable() {
-	HAL_GPIO_WritePin(this.HardwareEnablePort, this.HardwareEnablePin,
+	HAL_GPIO_WritePin(this->HardwareEnablePort, this->HardwareEnablePin,
 			GPIO_PIN_RESET);
 }
 
 void TMC2209::disable() {
-	HAL_GPIO_WritePin(this.HardwareEnablePort, this.HardwareEnablePin,
+	HAL_GPIO_WritePin(this->HardwareEnablePort, this->HardwareEnablePin,
 			GPIO_PIN_SET);
 }
 
 void TMC2209::setMicrosteps(uint16_t microstepsPerStep) {
 
+}
+
+uint16_t getMicrosteps(){
+	return 0;
 }
 
 uint8_t TMC2209::percentToCurrentSetting(uint8_t percent) {
@@ -96,9 +102,9 @@ void TMC2209::stealthChop(uint8_t state) {
 }
 
 uint8_t TMC2209::getInterfaceTransmissionCounter() {
-	return read(ADDRESS_IFCNT);
+	return 0;
 }
 
 uint16_t TMC2209::getMicrostepCounter() {
-	return read(ADDRESS_MSCNT);
+	return 0;
 }

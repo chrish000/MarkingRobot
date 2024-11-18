@@ -1,0 +1,14 @@
+../Core/Src/main.cpp:116:5:int main()	392	static
+../Core/Src/main.cpp:201:6:void SystemClock_Config()	120	static
+../Core/Src/main.cpp:261:13:void MX_CRC_Init()	16	static
+../Core/Src/main.cpp:295:13:void MX_TIM2_Init()	64	static
+../Core/Src/main.cpp:353:13:void MX_UART8_Init()	8	static
+../Core/Src/main.cpp:401:13:void MX_USART2_UART_Init()	8	static
+../Core/Src/main.cpp:447:13:void MX_DMA_Init()	16	static
+../Core/Src/main.cpp:474:13:void MX_GPIO_Init()	48	static
+../Core/Src/main.cpp:548:6:void HAL_GPIO_EXTI_Callback(uint16_t)	16	static
+../Core/Src/main.cpp:559:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	16	static
+../Core/Src/main.cpp:587:6:void HAL_UART_TxCpltCallback(UART_HandleTypeDef*)	16	static
+../Core/Src/main.cpp:599:6:void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef*, uint16_t)	16	static
+../Core/Src/main.cpp:606:6:void MPU_Config()	24	static
+../Core/Src/main.cpp:637:6:void Error_Handler()	8	static,ignoring_inline_asm

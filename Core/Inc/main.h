@@ -38,15 +38,10 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-extern UART_HandleTypeDef huart8;
-extern UART_HandleTypeDef huart2;
-
-extern volatile uint8_t BatteryAlarm;
-extern uint16_t HomePos[2];
 extern volatile float PosX; //in mm
 extern volatile float PosY; //in mm
 
-extern volatile int32_t PWMStepX; // Zähler für die X PWM-Impulse
+extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
 extern volatile uint16_t PWMCounterX;
 extern volatile uint32_t TargetStepsX;
 

@@ -75,14 +75,14 @@ uint8_t rxDatagram[32];
 volatile uint8_t BatteryAlarm = false;
 
 /* Positionsvariablen */
-const uint16_t HomeX = 0;
-const uint16_t HomeY = 0;
-uint16_t HomePos[2] = { HomeX, HomeY };
+const uint8_t HomeX = 0;
+const uint8_t HomeY = 0;
+uint8_t HomePos[2] = { HomeX, HomeY };
 volatile float PosX = 0; //in mm
 volatile float PosY = 0; //in mm
 
 /* PWM Ansteuerung der STEP-Pins durch Interrupt */
-volatile int32_t PWMStepX = 0; // Zähler für die X PWM-Impulse
+volatile uint32_t PWMStepX = 0; // Zähler für die X PWM-Impulse
 volatile uint16_t PWMCounterX = 0; // Zähler für die PWM-Impuls-Position
 volatile uint32_t TargetStepsX = 0;
 
@@ -169,8 +169,8 @@ int main(void)
 	while (1) {
 		if (BatteryAlarm) {
 			//TODO gebe leeren Batteriestand auf Display aus
-			//TODO Code in Interrupt stecken
-			if (Move_To_Pos(HomePos))
+			//TODO Code in Interrupt stecken?
+			if ( 0 /*Move_To_Pos((uint16_t*)HomePos)*/)
 				Error_Handler();
 		}
 		//*********************************************************************************************

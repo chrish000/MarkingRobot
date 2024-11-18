@@ -4,8 +4,6 @@
 // Authors:
 // Peter Polidoro peter@polidoro.io
 // ----------------------------------------------------------------------------
-#include "TMC2209.h"
-
 
 TMC2209::TMC2209()
 {
@@ -29,6 +27,7 @@ void TMC2209::setup(HardwareSerial & serial,
 
   initialize(serial_baud_rate, serial_address);
 }
+/*
 #if defined(ESP32)
 void TMC2209::setup(HardwareSerial & serial,
   long serial_baud_rate,
@@ -73,8 +72,9 @@ void TMC2209::setup(SerialUART & serial,
 
   initialize(serial_baud_rate, serial_address);
 }
-#endif
+#endif*/
 
+/*
 #if SOFTWARE_SERIAL_INCLUDED
 void TMC2209::setup(SoftwareSerial & serial,
   long serial_baud_rate,
@@ -87,6 +87,7 @@ void TMC2209::setup(SoftwareSerial & serial,
   initialize(serial_baud_rate, serial_address);
 }
 #endif
+*/
 
 // unidirectional methods
 

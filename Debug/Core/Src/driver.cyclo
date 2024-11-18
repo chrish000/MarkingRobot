@@ -1,3 +1,0 @@
-../Core/Src/driver.c:12:9:uart_calcCRC	4
-../Core/Src/driver.c:35:6:send_command_to_driver_x	1
-../Core/Src/driver.c:44:6:send_command_to_driver_z	1

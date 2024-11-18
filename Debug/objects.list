@@ -1,3 +1,4 @@
+"./Core/Src/TMC2209.o"
 "./Core/Src/driver.o"
 "./Core/Src/homing.o"
 "./Core/Src/main.o"
@@ -7,7 +8,6 @@
 "./Core/Src/syscalls.o"
 "./Core/Src/sysmem.o"
 "./Core/Src/system_stm32h7xx.o"
-"./Core/Src/uart.o"
 "./Core/Startup/startup_stm32h723vgtx.o"
 "./Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal.o"
 "./Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.o"

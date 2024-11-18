@@ -24,7 +24,9 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private user code ---------------------------------------------------------*/
-TMC2209::TMC2209(){}
+TMC2209::TMC2209(){
+	StandstillMode = 1; //default ON
+}
 
 void TMC2209::setup() {
 

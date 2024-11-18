@@ -50,49 +50,45 @@ public:
 	uint8_t getInterfaceTransmissionCounter();
 	uint16_t getMicrostepCounter();
 
-	struct Status
-		{
-			uint32_t over_temperature_warning : 1;
-			uint32_t over_temperature_shutdown : 1;
-			uint32_t short_to_ground_a : 1;
-			uint32_t short_to_ground_b : 1;
-			uint32_t low_side_short_a : 1;
-			uint32_t low_side_short_b : 1;
-			uint32_t open_load_a : 1;
-			uint32_t open_load_b : 1;
-			uint32_t over_temperature_120c : 1;
-			uint32_t over_temperature_143c : 1;
-			uint32_t over_temperature_150c : 1;
-			uint32_t over_temperature_157c : 1;
-			uint32_t reserved0 : 4;
-			uint32_t current_scaling : 5;
-			uint32_t reserved1 : 9;
-			uint32_t stealth_chop_mode : 1;
-			uint32_t standstill : 1;
-		};
+	struct Status {
+		uint32_t over_temperature_warning :1;
+		uint32_t over_temperature_shutdown :1;
+		uint32_t short_to_ground_a :1;
+		uint32_t short_to_ground_b :1;
+		uint32_t low_side_short_a :1;
+		uint32_t low_side_short_b :1;
+		uint32_t open_load_a :1;
+		uint32_t open_load_b :1;
+		uint32_t over_temperature_120c :1;
+		uint32_t over_temperature_143c :1;
+		uint32_t over_temperature_150c :1;
+		uint32_t over_temperature_157c :1;
+		uint32_t reserved0 :4;
+		uint32_t current_scaling :5;
+		uint32_t reserved1 :9;
+		uint32_t stealth_chop_mode :1;
+		uint32_t standstill :1;
+	};
 
-	struct GlobalStatus
-		{
-			uint32_t reset : 1;
-			uint32_t drv_err : 1;
-			uint32_t uv_cp : 1;
-			uint32_t reserved : 29;
-		};
+	struct GlobalStatus {
+		uint32_t reset :1;
+		uint32_t drv_err :1;
+		uint32_t uv_cp :1;
+		uint32_t reserved :29;
+	};
 private:
 	// Datagrams
 	const static uint8_t WRITE_READ_REPLY_DATAGRAM_SIZE = 8;
 	const static uint8_t DATA_SIZE = 4;
-	union WriteReadReplyDatagram
-	{
-		struct
-		{
-			uint64_t sync : 4;
-			uint64_t reserved : 4;
-			uint64_t serial_address : 8;
-			uint64_t register_address : 7;
-			uint64_t rw : 1;
-			uint64_t data : 32;
-			uint64_t crc : 8;
+	union WriteReadReplyDatagram {
+		struct {
+			uint64_t sync :4;
+			uint64_t reserved :4;
+			uint64_t serial_address :8;
+			uint64_t register_address :7;
+			uint64_t rw :1;
+			uint64_t data :32;
+			uint64_t crc :8;
 		};
 		uint64_t bytes;
 	};
@@ -103,47 +99,41 @@ private:
 	const static uint8_t READ_REPLY_SERIAL_ADDRESS = 0b11111111;
 
 	const static uint8_t READ_REQUEST_DATAGRAM_SIZE = 4;
-	union ReadRequestDatagram
-	{
-		struct
-		{
-			uint32_t sync : 4;
-			uint32_t reserved : 4;
-			uint32_t serial_address : 8;
-			uint32_t register_address : 7;
-			uint32_t rw : 1;
-			uint32_t crc : 8;
+	union ReadRequestDatagram {
+		struct {
+			uint32_t sync :4;
+			uint32_t reserved :4;
+			uint32_t serial_address :8;
+			uint32_t register_address :7;
+			uint32_t rw :1;
+			uint32_t crc :8;
 		};
 		uint32_t bytes;
 	};
 
 	// General Configuration Registers
 	const static uint8_t ADDRESS_GCONF = 0x00;
-	union GlobalConfig
-	{
-		struct
-		{
-			uint32_t i_scale_analog : 1;
-			uint32_t internal_rsense : 1;
-			uint32_t enable_spread_cycle : 1;
-			uint32_t shaft : 1;
-			uint32_t index_otpw : 1;
-			uint32_t index_step : 1;
-			uint32_t pdn_disable : 1;
-			uint32_t mstep_reg_select : 1;
-			uint32_t multistep_filt : 1;
-			uint32_t test_mode : 1;
-			uint32_t reserved : 22;
+	union GlobalConfig {
+		struct {
+			uint32_t i_scale_analog :1;
+			uint32_t internal_rsense :1;
+			uint32_t enable_spread_cycle :1;
+			uint32_t shaft :1;
+			uint32_t index_otpw :1;
+			uint32_t index_step :1;
+			uint32_t pdn_disable :1;
+			uint32_t mstep_reg_select :1;
+			uint32_t multistep_filt :1;
+			uint32_t test_mode :1;
+			uint32_t reserved :22;
 		};
 		uint32_t bytes;
 	};
 	GlobalConfig global_config_;
 
 	const static uint8_t ADDRESS_GSTAT = 0x01;
-	union GlobalStatusUnion
-	{
-		struct
-		{
+	union GlobalStatusUnion {
+		struct {
 			GlobalStatus global_status;
 		};
 		uint32_t bytes;
@@ -152,34 +142,30 @@ private:
 	const static uint8_t ADDRESS_IFCNT = 0x02;
 
 	const static uint8_t ADDRESS_REPLYDELAY = 0x03;
-	union ReplyDelay
-	{
-		struct
-		{
-			uint32_t reserved_0 : 8;
-			uint32_t replydelay : 4;
-			uint32_t reserved_1 : 20;
+	union ReplyDelay {
+		struct {
+			uint32_t reserved_0 :8;
+			uint32_t replydelay :4;
+			uint32_t reserved_1 :20;
 		};
 		uint32_t bytes;
 	};
 
 	const static uint8_t ADDRESS_IOIN = 0x06;
-	union Input
-	{
-		struct
-		{
-			uint32_t enn : 1;
-			uint32_t reserved_0 : 1;
-			uint32_t ms1 : 1;
-			uint32_t ms2 : 1;
-			uint32_t diag : 1;
-			uint32_t reserved_1 : 1;
-			uint32_t pdn_serial : 1;
-			uint32_t step : 1;
-			uint32_t spread_en : 1;
-			uint32_t dir : 1;
-			uint32_t reserved_2 : 14;
-			uint32_t version : 8;
+	union Input {
+		struct {
+			uint32_t enn :1;
+			uint32_t reserved_0 :1;
+			uint32_t ms1 :1;
+			uint32_t ms2 :1;
+			uint32_t diag :1;
+			uint32_t reserved_1 :1;
+			uint32_t pdn_serial :1;
+			uint32_t step :1;
+			uint32_t spread_en :1;
+			uint32_t dir :1;
+			uint32_t reserved_2 :14;
+			uint32_t version :8;
 		};
 		uint32_t bytes;
 	};
@@ -187,16 +173,14 @@ private:
 
 	// Velocity Dependent Driver Feature Control Register Set
 	const static uint8_t ADDRESS_IHOLD_IRUN = 0x10;
-	union DriverCurrent
-	{
-		struct
-		{
-			uint32_t ihold : 5;
-			uint32_t reserved_0 : 3;
-			uint32_t irun : 5;
-			uint32_t reserved_1 : 3;
-			uint32_t iholddelay : 4;
-			uint32_t reserved_2 : 12;
+	union DriverCurrent {
+		struct {
+			uint32_t ihold :5;
+			uint32_t reserved_0 :3;
+			uint32_t irun :5;
+			uint32_t reserved_1 :3;
+			uint32_t iholddelay :4;
+			uint32_t reserved_2 :12;
 		};
 		uint32_t bytes;
 	};
@@ -232,19 +216,17 @@ private:
 
 	const static uint8_t ADDRESS_COOLCONF = 0x42;
 	const static uint8_t COOLCONF_DEFAULT = 0;
-	union CoolConfig
-	{
-		struct
-		{
-			uint32_t semin : 4;
-			uint32_t reserved_0 : 1;
-			uint32_t seup : 2;
-			uint32_t reserved_1 : 1;
-			uint32_t semax : 4;
-			uint32_t reserved_2 : 1;
-			uint32_t sedn : 2;
-			uint32_t seimin : 1;
-			uint32_t reserved_3 : 16;
+	union CoolConfig {
+		struct {
+			uint32_t semin :4;
+			uint32_t reserved_0 :1;
+			uint32_t seup :2;
+			uint32_t reserved_1 :1;
+			uint32_t semax :4;
+			uint32_t reserved_2 :1;
+			uint32_t sedn :2;
+			uint32_t seimin :1;
+			uint32_t reserved_3 :16;
 		};
 		uint32_t bytes;
 	};
@@ -265,22 +247,20 @@ private:
 
 	// Driver Register Set
 	const static uint8_t ADDRESS_CHOPCONF = 0x6C;
-	union ChopperConfig
-	{
-		struct
-		{
-			uint32_t toff : 4;
-			uint32_t hstart : 3;
-			uint32_t hend : 4;
-			uint32_t reserved_0 : 4;
-			uint32_t tbl : 2;
-			uint32_t vsense : 1;
-			uint32_t reserved_1 : 6;
-			uint32_t mres : 4;
-			uint32_t interpolation : 1;
-			uint32_t double_edge : 1;
-			uint32_t diss2g : 1;
-			uint32_t diss2vs : 1;
+	union ChopperConfig {
+		struct {
+			uint32_t toff :4;
+			uint32_t hstart :3;
+			uint32_t hend :4;
+			uint32_t reserved_0 :4;
+			uint32_t tbl :2;
+			uint32_t vsense :1;
+			uint32_t reserved_1 :6;
+			uint32_t mres :4;
+			uint32_t interpolation :1;
+			uint32_t double_edge :1;
+			uint32_t diss2g :1;
+			uint32_t diss2vs :1;
 		};
 		uint32_t bytes;
 	};
@@ -308,29 +288,25 @@ private:
 	const static size_t MICROSTEPS_PER_STEP_MAX = 256;
 
 	const static uint8_t ADDRESS_DRV_STATUS = 0x6F;
-	union DriveStatus
-	{
-		struct
-		{
+	union DriveStatus {
+		struct {
 			Status status;
 		};
 		uint32_t bytes;
 	};
 
 	const static uint8_t ADDRESS_PWMCONF = 0x70;
-	union PwmConfig
-	{
-		struct
-		{
-			uint32_t pwm_offset : 8;
-			uint32_t pwm_grad : 8;
-			uint32_t pwm_freq : 2;
-			uint32_t pwm_autoscale : 1;
-			uint32_t pwm_autograd : 1;
-			uint32_t freewheel : 2;
-			uint32_t reserved : 2;
-			uint32_t pwm_reg : 4;
-			uint32_t pwm_lim : 4;
+	union PwmConfig {
+		struct {
+			uint32_t pwm_offset :8;
+			uint32_t pwm_grad :8;
+			uint32_t pwm_freq :2;
+			uint32_t pwm_autoscale :1;
+			uint32_t pwm_autograd :1;
+			uint32_t freewheel :2;
+			uint32_t reserved :2;
+			uint32_t pwm_reg :4;
+			uint32_t pwm_lim :4;
 		};
 		uint32_t bytes;
 	};
@@ -343,27 +319,23 @@ private:
 	const static uint8_t PWM_GRAD_MAX = 255;
 	const static uint8_t PWM_GRAD_DEFAULT = 0x14;
 
-	union PwmScale
-	{
-		struct
-		{
-			uint32_t pwm_scale_sum : 8;
-			uint32_t reserved_0 : 8;
-			uint32_t pwm_scale_auto : 9;
-			uint32_t reserved_1 : 7;
+	union PwmScale {
+		struct {
+			uint32_t pwm_scale_sum :8;
+			uint32_t reserved_0 :8;
+			uint32_t pwm_scale_auto :9;
+			uint32_t reserved_1 :7;
 		};
 		uint32_t bytes;
 	};
 	const static uint8_t ADDRESS_PWM_SCALE = 0x71;
 
-	union PwmAuto
-	{
-		struct
-		{
-			uint32_t pwm_offset_auto : 8;
-			uint32_t reserved_0 : 8;
-			uint32_t pwm_gradient_auto : 8;
-			uint32_t reserved_1 : 8;
+	union PwmAuto {
+		struct {
+			uint32_t pwm_offset_auto :8;
+			uint32_t reserved_0 :8;
+			uint32_t pwm_gradient_auto :8;
+			uint32_t reserved_1 :8;
 		};
 		uint32_t bytes;
 	};

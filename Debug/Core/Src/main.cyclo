@@ -1,14 +1,14 @@
 ../Core/Src/main.cpp:116:5:int main()	1
-../Core/Src/main.cpp:201:6:void SystemClock_Config()	4
-../Core/Src/main.cpp:261:13:void MX_CRC_Init()	2
-../Core/Src/main.cpp:295:13:void MX_TIM2_Init()	6
-../Core/Src/main.cpp:353:13:void MX_UART8_Init()	5
-../Core/Src/main.cpp:401:13:void MX_USART2_UART_Init()	5
-../Core/Src/main.cpp:447:13:void MX_DMA_Init()	1
-../Core/Src/main.cpp:474:13:void MX_GPIO_Init()	1
-../Core/Src/main.cpp:548:6:void HAL_GPIO_EXTI_Callback(uint16_t)	2
-../Core/Src/main.cpp:559:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	6
-../Core/Src/main.cpp:587:6:void HAL_UART_TxCpltCallback(UART_HandleTypeDef*)	1
-../Core/Src/main.cpp:599:6:void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef*, uint16_t)	1
-../Core/Src/main.cpp:606:6:void MPU_Config()	1
-../Core/Src/main.cpp:637:6:void Error_Handler()	1
+../Core/Src/main.cpp:208:6:void SystemClock_Config()	4
+../Core/Src/main.cpp:266:13:void MX_CRC_Init()	2
+../Core/Src/main.cpp:298:13:void MX_TIM2_Init()	6
+../Core/Src/main.cpp:352:13:void MX_UART8_Init()	5
+../Core/Src/main.cpp:397:13:void MX_USART2_UART_Init()	5
+../Core/Src/main.cpp:440:13:void MX_DMA_Init()	1
+../Core/Src/main.cpp:466:13:void MX_GPIO_Init()	1
+../Core/Src/main.cpp:539:6:void HAL_GPIO_EXTI_Callback(uint16_t)	2
+../Core/Src/main.cpp:550:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	6
+../Core/Src/main.cpp:578:6:void HAL_UART_TxCpltCallback(UART_HandleTypeDef*)	1
+../Core/Src/main.cpp:590:6:void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef*, uint16_t)	1
+../Core/Src/main.cpp:597:6:void MPU_Config()	1
+../Core/Src/main.cpp:627:6:void Error_Handler()	1

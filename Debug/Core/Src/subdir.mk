@@ -11,6 +11,7 @@ CPP_SRCS += \
 C_SRCS += \
 ../Core/Src/driver.c \
 ../Core/Src/homing.c \
+../Core/Src/main.c \
 ../Core/Src/move.c \
 ../Core/Src/stm32h7xx_hal_msp.c \
 ../Core/Src/stm32h7xx_it.c \
@@ -21,6 +22,7 @@ C_SRCS += \
 C_DEPS += \
 ./Core/Src/driver.d \
 ./Core/Src/homing.d \
+./Core/Src/main.d \
 ./Core/Src/move.d \
 ./Core/Src/stm32h7xx_hal_msp.d \
 ./Core/Src/stm32h7xx_it.d \

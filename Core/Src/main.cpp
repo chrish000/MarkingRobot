@@ -36,6 +36,7 @@
 #include "homing.h"
 #include "driver.h"
 #include "TMC2209.h"
+#include <cstring>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,7 +70,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 /* Test-Variablen */
 /* Buffer */
-uint8_t rxDatagram[32];
+uint8_t rxDatagram[16];
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -162,7 +163,7 @@ int main(void) {
 
 	/* UART Configuration */
 	HAL_HalfDuplex_EnableReceiver(&huart2);
-	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rxDatagram, 32);
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rxDatagram, 16);
 
 	//########################### Uart X (Uart2)
 	uint8_t write[8] = { 0x05, 0x0, 0xA2, 0, 0, 0x0F, 0xFF, 0xE9 }; //Schreiben von VACTUAL
@@ -181,17 +182,14 @@ int main(void) {
 		}
 		//*********************************************************************************************
 		//TODO UART in seperate Datei
-		write[7] = HAL_CRC_Calculate(&hcrc, (uint32_t*) write,
-				sizeof(write) - 1);
+		write[7] = HAL_CRC_Calculate(&hcrc, (uint32_t*) write, sizeof(write) - 1);
 		read[3] = HAL_CRC_Calculate(&hcrc, (uint32_t*) read, sizeof(read) - 1);
 		//*********************************************************************************************
 		HAL_HalfDuplex_EnableTransmitter(&huart2);
-		HAL_UART_Transmit_DMA(&huart2, write, 8);
-		HAL_HalfDuplex_EnableReceiver(&huart2);
+		HAL_UART_Transmit_DMA(&huart2, write, sizeof(write));
 		HAL_Delay(1000);
-		HAL_HalfDuplex_EnableTransmitter(&huart2);
-		HAL_UART_Transmit_DMA(&huart2, read, 4);
-		HAL_HalfDuplex_EnableReceiver(&huart2);
+		HAL_UART_Transmit_DMA(&huart2, read, sizeof(read));
+		//HAL_HalfDuplex_EnableReceiver(&huart2);
 		HAL_Delay(1000);
 		//*********************************************************************************************
 		/* USER CODE END WHILE */
@@ -455,7 +453,6 @@ static void MX_DMA_Init(void) {
 	/* DMA1_Stream3_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
-
 }
 
 /**
@@ -577,7 +574,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-
+		HAL_HalfDuplex_EnableReceiver(&huart2);
+	}
+	if (huart->Instance == UART8) {
+		HAL_HalfDuplex_EnableReceiver(&huart8);
 	}
 }
 
@@ -588,7 +588,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
  * @retval None
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
-	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rxDatagram, 32);
+	if (huart->Instance == USART2) {
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rxDatagram, 16);
+	}
+	if (huart->Instance == UART8) {
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, rxDatagram, 16);
+	}
 }
 /* USER CODE END 4 */
 

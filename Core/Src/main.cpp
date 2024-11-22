@@ -36,7 +36,6 @@
 #include "homing.h"
 #include "driver.h"
 #include "TMC2209.h"
-#include <cstring>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -147,13 +146,13 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
 	TMC2209 tmcX;
-	tmcX.UART = huart2;
-	tmcX.HardwareEnablePort = X_EN_GPIO_Port;
-	tmcX.HardwareEnablePin = X_EN_Pin;
+	tmcX.serial_address = huart2;
+	tmcX.hardware_enable_port = X_EN_GPIO_Port;
+	tmcX.hardware_enable_pin = X_EN_Pin;
 	TMC2209 tmcZ;
-	tmcZ.UART = huart8;
-	tmcZ.HardwareEnablePort = Z_EN_GPIO_Port;
-	tmcZ.HardwareEnablePin = Z_EN_Pin;
+	tmcZ.serial_address = huart8;
+	tmcZ.hardware_enable_port = Z_EN_GPIO_Port;
+	tmcZ.hardware_enable_pin = Z_EN_Pin;
 	/* CLK Configuration */
 	HAL_TIM_Base_Start_IT(&htim2);
 

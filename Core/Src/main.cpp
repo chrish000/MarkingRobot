@@ -68,8 +68,12 @@ DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 /* Test-Variablen */
+
+/* Peripherie */
+TMC2209 tmcX;
+TMC2209 tmcZ;
+
 /* Buffer */
-uint8_t rxDatagram[16];
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -145,29 +149,30 @@ int main(void) {
 	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
-	TMC2209 tmcX;
 	tmcX.serial_address = huart2;
 	tmcX.hardware_enable_port = X_EN_GPIO_Port;
 	tmcX.hardware_enable_pin = X_EN_Pin;
-	TMC2209 tmcZ;
+	tmcX.setup();
+
 	tmcZ.serial_address = huart8;
 	tmcZ.hardware_enable_port = Z_EN_GPIO_Port;
 	tmcZ.hardware_enable_pin = Z_EN_Pin;
+	tmcZ.setup();
+
 	/* CLK Configuration */
 	HAL_TIM_Base_Start_IT(&htim2);
 
 	/* GPIO Configuration */
-	HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_RESET); //Treiber aktivieren
-	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET); //Treiber aktivieren
 
 	/* UART Configuration */
-	HAL_HalfDuplex_EnableReceiver(&huart2);
-	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rxDatagram, 16);
 
-	//########################### Uart X (Uart2)
-	uint8_t write[8] = { 0x05, 0x0, 0xA2, 0, 0, 0x0F, 0xFF, 0xE9 }; //Schreiben von VACTUAL
-	uint8_t read[4] = { 0x05, 0x0, 0x2, 0x8F };	//Auslesen von IFCNT
-
+	/* Code before infinite loop */
+	//uint8_t write[8] = { 0x05, 0x0, 0xA2, 0, 0, 0x0F, 0xFF, 0xE9 }; //Schreiben von VACTUAL
+	//uint8_t read[4] = { 0x05, 0x0, 0x2, 0x8F };	//Auslesen von IFCNT
+	bool set = tmcX.isSetupAndCommunicating();
+	uint8_t version = tmcX.getVersion();
+	tmcX.setMicrostepsPerStep(256);
+	uint8_t counter = tmcX.getInterfaceTransmissionCounter();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -179,18 +184,6 @@ int main(void) {
 			if (0 /*Move_To_Pos((uint16_t*)HomePos)*/)
 				Error_Handler();
 		}
-		//*********************************************************************************************
-		//TODO UART in seperate Datei
-		write[7] = HAL_CRC_Calculate(&hcrc, (uint32_t*) write, sizeof(write) - 1);
-		read[3] = HAL_CRC_Calculate(&hcrc, (uint32_t*) read, sizeof(read) - 1);
-		//*********************************************************************************************
-		HAL_HalfDuplex_EnableTransmitter(&huart2);
-		HAL_UART_Transmit_DMA(&huart2, write, sizeof(write));
-		HAL_Delay(1000);
-		HAL_UART_Transmit_DMA(&huart2, read, sizeof(read));
-		//HAL_HalfDuplex_EnableReceiver(&huart2);
-		HAL_Delay(1000);
-		//*********************************************************************************************
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
@@ -568,15 +561,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 /**
  * @brief UART Transmitt Completed Callback Function
- * @param huart Pointer to UART with completed Transmitt
+ * @param huart Pointer to UART with completed transmitt
  * @retval None
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-		HAL_HalfDuplex_EnableReceiver(&huart2);
+		HAL_HalfDuplex_EnableReceiver(&tmcX.serial_address);
 	}
 	if (huart->Instance == UART8) {
-		HAL_HalfDuplex_EnableReceiver(&huart8);
+		HAL_HalfDuplex_EnableReceiver(&tmcZ.serial_address);
 	}
 }
 
@@ -588,10 +581,17 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 	if (huart->Instance == USART2) {
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rxDatagram, 16);
+		HAL_UARTEx_ReceiveToIdle_DMA(&tmcX.serial_address,
+					(uint8_t*) &tmcX.rxBuffer,
+					TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+		tmcX.data_received_flag = true;
 	}
 	if (huart->Instance == UART8) {
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, rxDatagram, 16);
+		HAL_UARTEx_ReceiveToIdle_DMA(&tmcZ.serial_address,
+							(uint8_t*) &tmcZ.rxBuffer,
+							TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+		tmcZ.data_received_flag = true;
+
 	}
 }
 /* USER CODE END 4 */

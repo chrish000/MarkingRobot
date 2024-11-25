@@ -1,7 +1,7 @@
 // ----------------------------------------------------------------------------
 // TMC2209.h
 //
-// Modified from Peter Polidoro
+// Modified by Chris Hauser, created by Peter Polidoro
 // peter@polidoro.io
 // https://github.com/janelia-arduino/TMC2209
 // ----------------------------------------------------------------------------
@@ -19,7 +19,7 @@ public:
 	uint16_t hardware_enable_pin;
 	GPIO_TypeDef *hardware_enable_port;
 
-	void setup(UART_HandleTypeDef serial_address);
+	void setup();
 
 	// unidirectional methods
 
@@ -124,8 +124,24 @@ public:
 	// driver may also be disabled by the hardware enable input pin
 	// this pin must be grounded or disconnected before driver may be enabled
 	bool hardwareDisabled();
-	//################################################################
 	uint16_t getMicrostepsPerStep();
+
+	//Datagram
+	const static uint8_t WRITE_READ_REPLY_DATAGRAM_SIZE = 8;
+	bool data_received_flag;
+	union WriteReadReplyDatagram {
+		struct {
+			uint64_t sync :4;
+			uint64_t reserved :4;
+			uint64_t serial_address :8;
+			uint64_t register_address :7;
+			uint64_t rw :1;
+			uint64_t data :32;
+			uint64_t crc :8;
+		};
+		uint64_t bytes;
+	};
+	WriteReadReplyDatagram rxBuffer;
 
 	struct Settings {
 		bool is_communicating;
@@ -135,9 +151,9 @@ public:
 		bool inverse_motor_direction_enabled;
 		bool stealth_chop_enabled;
 		uint8_t standstill_mode;
-		uint8_t irun_percent;
+		uint16_t irun;
 		uint8_t irun_register_value;
-		uint8_t ihold_percent;
+		uint8_t ihold;
 		uint8_t ihold_register_value;
 		uint8_t iholddelay_percent;
 		uint8_t iholddelay_register_value;
@@ -208,30 +224,18 @@ private:
 	const static uint8_t BYTE_MAX_VALUE = 0xFF;
 	const static uint8_t BITS_PER_BYTE = 8;
 
-	const static uint32_t ECHO_DELAY_INC_MICROSECONDS = 1;
-	const static uint32_t ECHO_DELAY_MAX_MICROSECONDS = 4000;
+	//const static uint32_t ECHO_DELAY_INC_MICROSECONDS = 1;
+	//const static uint32_t ECHO_DELAY_MAX_MICROSECONDS = 4000;
 
-	const static uint32_t REPLY_DELAY_INC_MICROSECONDS = 1;
-	const static uint32_t REPLY_DELAY_MAX_MICROSECONDS = 10000;
+	//const static uint32_t REPLY_DELAY_INC_MICROSECONDS = 1;
+	//const static uint32_t REPLY_DELAY_MAX_MICROSECONDS = 10000;
 
 	const static uint8_t STEPPER_DRIVER_FEATURE_OFF = 0;
 	const static uint8_t STEPPER_DRIVER_FEATURE_ON = 1;
 
 	// Datagrams
-	const static uint8_t WRITE_READ_REPLY_DATAGRAM_SIZE = 8;
-	const static uint8_t DATA_SIZE = 4;
-	union WriteReadReplyDatagram {
-		struct {
-			uint64_t sync :4;
-			uint64_t reserved :4;
-			uint64_t serial_address :8;
-			uint64_t register_address :7;
-			uint64_t rw :1;
-			uint64_t data :32;
-			uint64_t crc :8;
-		};
-		uint64_t bytes;
-	} write_read_reply_datagram;
+	const static uint8_t DATA_SIZE = 4;	//Number of Bytes stored in 'data' from WriteReadReplyDatagram
+	union WriteReadReplyDatagram write_read_reply_datagram;
 
 	const static uint8_t SYNC = 0x05;
 	const static uint8_t RW_READ = 0;
@@ -493,7 +497,6 @@ private:
 
 	void minimizeMotorCurrent();
 
-	uint32_t reverseData(uint32_t data);
 	template<typename Datagram>
 	uint8_t calculateCrc(Datagram &datagram, uint8_t datagram_size);
 	template<typename Datagram>
@@ -502,11 +505,9 @@ private:
 	void sendDatagram(Datagram &datagram, uint8_t datagram_size);
 
 	void write(uint8_t register_address, uint32_t data);
+	const static uint16_t READ_REPLY_TIMEOUT = 10000;	//ms
 	uint32_t read(uint8_t register_address);
 
-	uint8_t percentToCurrentSetting(uint8_t percent);
-	uint8_t currentSettingToPercent(uint8_t current_setting);
-	uint8_t percentToHoldDelaySetting(uint8_t percent);
 	uint8_t holdDelaySettingToPercent(uint8_t hold_delay_setting);
 
 	uint8_t pwmAmplitudeToPwmAmpl(uint8_t pwm_amplitude);

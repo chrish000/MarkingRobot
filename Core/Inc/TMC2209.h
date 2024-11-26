@@ -15,13 +15,13 @@ class TMC2209 {
 public:
 	TMC2209();
 
-	UART_HandleTypeDef serial_address;
+	UART_HandleTypeDef UART_address;
 	uint16_t hardware_enable_pin;
 	GPIO_TypeDef *hardware_enable_port;
 
 	void setup();
 
-	// unidirectional methods
+	/* Unidirectional methods ----------------------------------------------------*/
 
 	// driver must be enabled before use. it is disabled by default
 	void enable();
@@ -108,7 +108,7 @@ public:
 	void useExternalSenseResistors();
 	void useInternalSenseResistors();
 
-	// bidirectional methods
+	/* Bidirectional methods -----------------------------------------------------*/
 	uint8_t getVersion();
 
 	// if driver is not communicating, check power and communication connections
@@ -142,6 +142,7 @@ public:
 		uint64_t bytes;
 	};
 	WriteReadReplyDatagram rxBuffer;
+	uint8_t rxBufferRaw[8];
 
 	struct Settings {
 		bool is_communicating;

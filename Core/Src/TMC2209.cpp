@@ -22,10 +22,9 @@ TMC2209::TMC2209() {
  * @retval None
  */
 void TMC2209::setup() {
-	HAL_UARTEx_ReceiveToIdle_DMA(&serial_address, (uint8_t*) &rxBuffer,
+	HAL_HalfDuplex_EnableReceiver(&UART_address);
+	HAL_UARTEx_ReceiveToIdle_DMA(&UART_address, (uint8_t*) &rxBuffer,
 			WRITE_READ_REPLY_DATAGRAM_SIZE);
-	//HAL_HalfDuplex_EnableReceiver(&serial_address);
-
 
 	initialize();
 }
@@ -816,8 +815,8 @@ template<typename Datagram>
  * @retval None
  */
 void TMC2209::sendDatagram(Datagram &datagram, uint8_t datagram_size) {
-	HAL_HalfDuplex_EnableTransmitter(&serial_address);
-	HAL_UART_Transmit_DMA(&serial_address, (uint8_t*) &datagram, datagram_size);
+	HAL_HalfDuplex_EnableTransmitter(&UART_address);
+	HAL_UART_Transmit_DMA(&UART_address, (uint8_t*) &datagram, datagram_size);
 }
 
 /**
@@ -864,7 +863,6 @@ uint32_t TMC2209::read(uint8_t register_address) {
 		}
 	}
 	data_received_flag = false;
-	HAL_HalfDuplex_EnableTransmitter(&serial_address);
 	return rxBuffer.bytes;
 }
 

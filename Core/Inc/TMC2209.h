@@ -2,8 +2,9 @@
 // TMC2209.h
 //
 // Modified by Chris Hauser, created by Peter Polidoro
-// peter@polidoro.io
-// https://github.com/janelia-arduino/TMC2209
+// Original: https://github.com/janelia-arduino/TMC2209
+//
+// This TMC2209 Libary is ment to be used with a STM32H7
 // ----------------------------------------------------------------------------
 
 #ifndef TMC2209_H
@@ -11,13 +12,25 @@
 
 #include "main.h"
 
+/**
+ * @brief  TMC Status structures definition
+ */
+typedef enum {
+	TMC_OK = 0x00,
+	TMC_ERROR = 0x01,
+	TMC_CRC_ERROR = 0x02,
+	TMC_UART_ERROR = 0x03,
+	TMC_TIMEOUT = 0x04
+} TMC_StatusTypeDef;
+
 class TMC2209 {
 public:
 	TMC2209();
 
-	UART_HandleTypeDef UART_address;
+	UART_HandleTypeDef *UART_address;
 	uint16_t hardware_enable_pin;
 	GPIO_TypeDef *hardware_enable_port;
+	TMC_StatusTypeDef TMC2209_status;
 
 	void setup();
 
@@ -129,19 +142,6 @@ public:
 	//Datagram
 	const static uint8_t WRITE_READ_REPLY_DATAGRAM_SIZE = 8;
 	bool data_received_flag;
-	union WriteReadReplyDatagram {
-		struct {
-			uint64_t sync :4;
-			uint64_t reserved :4;
-			uint64_t serial_address :8;
-			uint64_t register_address :7;
-			uint64_t rw :1;
-			uint64_t data :32;
-			uint64_t crc :8;
-		};
-		uint64_t bytes;
-	};
-	WriteReadReplyDatagram rxBuffer;
 	uint8_t rxBufferRaw[8];
 
 	struct Settings {
@@ -215,28 +215,35 @@ public:
 
 private:
 
+	//Initialization of TMC
+	bool init_flag = 0;
+	static constexpr uint8_t precomputedCRC[16] = {	//fixed order in initialize()
+			0xdf, 0x97, 0x06, 0x45, 0x1f, 0x0f, 0x0e, 0x34, 0x8d, 0x45, 0x19,
+					0x5b, 0xd9, 0x45, 0xe7 };
+	uint8_t precomputedCRCIndex = 0;
 	void initialize();
-	int serialAvailable();
-	size_t serialWrite(uint8_t c);
-	int serialRead();
-	void serialFlush();
 
 	// Serial Settings
 	const static uint8_t BYTE_MAX_VALUE = 0xFF;
 	const static uint8_t BITS_PER_BYTE = 8;
-
-	//const static uint32_t ECHO_DELAY_INC_MICROSECONDS = 1;
-	//const static uint32_t ECHO_DELAY_MAX_MICROSECONDS = 4000;
-
-	//const static uint32_t REPLY_DELAY_INC_MICROSECONDS = 1;
-	//const static uint32_t REPLY_DELAY_MAX_MICROSECONDS = 10000;
 
 	const static uint8_t STEPPER_DRIVER_FEATURE_OFF = 0;
 	const static uint8_t STEPPER_DRIVER_FEATURE_ON = 1;
 
 	// Datagrams
 	const static uint8_t DATA_SIZE = 4;	//Number of Bytes stored in 'data' from WriteReadReplyDatagram
-	union WriteReadReplyDatagram write_read_reply_datagram;
+	union WriteReadReplyDatagram {
+		struct {
+			uint64_t sync :4;
+			uint64_t reserved :4;
+			uint64_t serial_address :8;
+			uint64_t register_address :7;
+			uint64_t rw :1;
+			uint64_t data :32;
+			uint64_t crc :8;
+		};
+		uint64_t bytes;
+	};
 
 	const static uint8_t SYNC = 0x05;
 	const static uint8_t RW_READ = 0;

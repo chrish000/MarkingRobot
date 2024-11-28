@@ -149,25 +149,15 @@ int main(void) {
 	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
-	tmcX.UART_address = huart2; //kopie des Handlers sorgt für Probleme
+	tmcX.UART_address = &huart2;
 	tmcX.hardware_enable_port = X_EN_GPIO_Port;
 	tmcX.hardware_enable_pin = X_EN_Pin;
-	//tmcX.setup();
-	//##################################### Interrupt loop ######################
+	tmcX.setup();
 
-	tmcZ.UART_address = huart8;
+	tmcZ.UART_address = &huart8;
 	tmcZ.hardware_enable_port = Z_EN_GPIO_Port;
 	tmcZ.hardware_enable_pin = Z_EN_Pin;
-	//tmcZ.setup();
-
-	HAL_HalfDuplex_EnableReceiver(&tmcX.UART_address);
-	HAL_UARTEx_ReceiveToIdle_DMA(&tmcX.UART_address, tmcX.rxBufferRaw, 8);
-
-	/*
-	 uint8_t rx[8];
-	 HAL_HalfDuplex_EnableReceiver(&huart2);
-	 HAL_UARTEx_ReceiveToIdle_DMA(&huart2, rx, 8);
-	 */
+	tmcZ.setup();
 
 	/* CLK Configuration */
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -177,14 +167,7 @@ int main(void) {
 	/* UART Configuration */
 
 	/* Code before infinite loop */
-	//uint8_t write[8] = { 0x05, 0x0, 0xA2, 0, 0, 0x0F, 0xFF, 0xE9 }; //Schreiben von VACTUAL
-	//uint8_t read[4] = { 0x05, 0x0, 0x2, 0x8F };	//Auslesen von IFCNT
-	/*
-	 bool set = tmcX.isSetupAndCommunicating();
-	 uint8_t version = tmcX.getVersion();
-	 tmcX.setMicrostepsPerStep(256);
-	 uint8_t counter = tmcX.getInterfaceTransmissionCounter();
-	 */
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -213,7 +196,7 @@ void SystemClock_Config(void) {
 
 	/** Supply configuration update enable
 	 */
-	HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+	HAL_PWREx_ConfigSupply (PWR_LDO_SUPPLY);
 
 	/** Configure the main internal regulator output voltage
 	 */
@@ -447,16 +430,16 @@ static void MX_DMA_Init(void) {
 	/* DMA interrupt init */
 	/* DMA1_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream0_IRQn);
 	/* DMA1_Stream1_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream1_IRQn);
 	/* DMA1_Stream2_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream2_IRQn);
 	/* DMA1_Stream3_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream3_IRQn);
 }
 
 /**
@@ -525,7 +508,7 @@ static void MX_GPIO_Init(void) {
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+	HAL_NVIC_EnableIRQ (EXTI15_10_IRQn);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 	/* USER CODE END MX_GPIO_Init_2 */
@@ -578,10 +561,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
  */
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-		HAL_HalfDuplex_EnableReceiver(&tmcX.UART_address);
+		HAL_HalfDuplex_EnableReceiver(tmcX.UART_address);
 	}
 	if (huart->Instance == UART8) {
-		HAL_HalfDuplex_EnableReceiver(&tmcZ.UART_address);
+		HAL_HalfDuplex_EnableReceiver(tmcZ.UART_address);
 	}
 }
 
@@ -593,14 +576,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
  */
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
 	if (huart->Instance == USART2) {
-		HAL_UARTEx_ReceiveToIdle_DMA(&tmcX.UART_address,
-				(uint8_t*) &tmcX.rxBuffer,
+		HAL_UARTEx_ReceiveToIdle_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcX.data_received_flag = true;
 	}
 	if (huart->Instance == UART8) {
-		HAL_UARTEx_ReceiveToIdle_DMA(&tmcZ.UART_address,
-				(uint8_t*) &tmcZ.rxBuffer,
+		HAL_UARTEx_ReceiveToIdle_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcZ.data_received_flag = true;
 
@@ -632,7 +613,7 @@ void MPU_Config(void) {
 
 	HAL_MPU_ConfigRegion(&MPU_InitStruct);
 	/* Enables the MPU */
-	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+	HAL_MPU_Enable (MPU_PRIVILEGED_DEFAULT);
 
 }
 

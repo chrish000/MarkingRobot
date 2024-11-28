@@ -2,19 +2,26 @@
 // TMC2209.cpp
 //
 // Modified by Chris Hauser, created by Peter Polidoro
-// peter@polidoro.io
-// https://github.com/janelia-arduino/TMC2209
+// Original: https://github.com/janelia-arduino/TMC2209
+//
+// This TMC2209 Library is ment to be used with a STM32H7
 // ----------------------------------------------------------------------------
 #include "TMC2209.h"
 #include "utils.h"
-
+#include <cstring>
 /**
  * @brief  Constructor for the TMC2209 class, initializes default settings.
  */
 TMC2209::TMC2209() {
 	cool_step_enabled_ = false;
 	data_received_flag = false;
+	TMC2209_status = TMC_OK;
 }
+
+/**
+ * @brief  Array that contains pre-calculated CRC-Values for the initialization-process
+ */
+constexpr uint8_t TMC2209::precomputedCRC[16];
 
 /**
  * @brief  Configures the TMC2209 communication interface.
@@ -22,8 +29,8 @@ TMC2209::TMC2209() {
  * @retval None
  */
 void TMC2209::setup() {
-	HAL_HalfDuplex_EnableReceiver(&UART_address);
-	HAL_UARTEx_ReceiveToIdle_DMA(&UART_address, (uint8_t*) &rxBuffer,
+	HAL_HalfDuplex_EnableReceiver(UART_address);
+	HAL_UARTEx_ReceiveToIdle_DMA(UART_address, rxBufferRaw,
 			WRITE_READ_REPLY_DATAGRAM_SIZE);
 
 	initialize();
@@ -585,6 +592,7 @@ TMC2209::Status TMC2209::getStatus() {
 	DriveStatus drive_status;
 	drive_status.bytes = 0;
 	drive_status.bytes = read(ADDRESS_DRV_STATUS);
+
 	return drive_status.status;
 }
 
@@ -597,6 +605,7 @@ TMC2209::GlobalStatus TMC2209::getGlobalStatus() {
 	GlobalStatusUnion global_status_union;
 	global_status_union.bytes = 0;
 	global_status_union.bytes = read(ADDRESS_GSTAT);
+
 	return global_status_union.global_status;
 }
 
@@ -714,6 +723,7 @@ uint16_t TMC2209::getMicrostepCounter() {
  * @brief  Initializes the TMC2209 driver by setting operation mode, clearing errors, and configuring settings.
  */
 void TMC2209::initialize() {
+	init_flag = 1;
 	setOperationModeToSerial();
 	setRegistersToDefaults();
 	clearDriveError();
@@ -722,6 +732,8 @@ void TMC2209::initialize() {
 	disable();
 	disableAutomaticCurrentScaling();
 	disableAutomaticGradientAdaptation();
+	init_flag = 0;
+	precomputedCRCIndex = 0;
 }
 
 /**
@@ -815,8 +827,8 @@ template<typename Datagram>
  * @retval None
  */
 void TMC2209::sendDatagram(Datagram &datagram, uint8_t datagram_size) {
-	HAL_HalfDuplex_EnableTransmitter(&UART_address);
-	HAL_UART_Transmit_DMA(&UART_address, (uint8_t*) &datagram, datagram_size);
+	HAL_HalfDuplex_EnableTransmitter(UART_address);
+	HAL_UART_Transmit_DMA(UART_address, (uint8_t*) &datagram, datagram_size);
 }
 
 /**
@@ -833,16 +845,20 @@ void TMC2209::write(uint8_t register_address, uint32_t data) {
 	write_datagram.register_address = register_address;
 	write_datagram.rw = RW_WRITE;
 	write_datagram.data = reverseData(data, DATA_SIZE);
-	write_datagram.crc = HAL_CRC_Calculate(&hcrc, (uint32_t*) &write_datagram,
-			WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
+	if (init_flag) {
+		write_datagram.crc = precomputedCRC[precomputedCRCIndex];
+		precomputedCRCIndex++;
+	} else
+		write_datagram.crc = HAL_CRC_Calculate(&hcrc,
+				(uint32_t*) &write_datagram,
+				WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
 
 	sendDatagram(write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE);
 }
-
 /**
  * @brief  Reads data from a specific register of the TMC2209.
  * @param  register_address: The address of the register to read from.
- * @retval uint32_t: The data read from the register, or 0xFFFFFFFF in case of a timeout.
+ * @retval uint32_t: The data read from the register, or 0xFFFFFFFF in case of an error.
  */
 uint32_t TMC2209::read(uint8_t register_address) {
 	ReadRequestDatagram read_request_datagram;
@@ -851,19 +867,43 @@ uint32_t TMC2209::read(uint8_t register_address) {
 	read_request_datagram.serial_address = DEFAULT_SERIAL_ADDRESS;
 	read_request_datagram.register_address = register_address;
 	read_request_datagram.rw = RW_READ;
-	read_request_datagram.crc = HAL_CRC_Calculate(&hcrc,
-			(uint32_t*) &read_request_datagram, READ_REQUEST_DATAGRAM_SIZE - 1);
+	if (init_flag) {
+		read_request_datagram.crc = precomputedCRC[precomputedCRCIndex];
+		precomputedCRCIndex++;
+	} else
+		read_request_datagram.crc = HAL_CRC_Calculate(&hcrc,
+				(uint32_t*) &read_request_datagram,
+				READ_REQUEST_DATAGRAM_SIZE - 1);
 
 	sendDatagram(read_request_datagram, READ_REQUEST_DATAGRAM_SIZE);
 
-	uint32_t timeout = HAL_GetTick() + READ_REPLY_TIMEOUT;
+	uint32_t recive_timeout = HAL_GetTick() + READ_REPLY_TIMEOUT;
 	while (!data_received_flag) {
-		if (HAL_GetTick() > timeout) {
-			return 0xFFFFFFFF; // Timeout-Fehlerwert
+		if (HAL_GetTick() > recive_timeout) {
+			TMC2209_status = TMC_TIMEOUT;
+			return 0xFFFFFFFF;
 		}
 	}
-	data_received_flag = false;
-	return rxBuffer.bytes;
+	uint8_t crc_check = HAL_CRC_Calculate(&hcrc, (uint32_t*) &rxBufferRaw,
+			WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
+	if (crc_check == rxBufferRaw[7]) {
+		WriteReadReplyDatagram read_reply_datagram;
+		memcpy(&read_reply_datagram.bytes, rxBufferRaw,
+				WRITE_READ_REPLY_DATAGRAM_SIZE);
+		read_reply_datagram.data = reverseData(read_reply_datagram.data,
+				DATA_SIZE);
+		data_received_flag = false;
+		TMC2209_status = TMC_OK;
+		if (read_reply_datagram.register_address == register_address)
+			return read_reply_datagram.data;
+		else {
+			TMC2209_status = TMC_UART_ERROR;
+			return 0xFFFFFFFF;
+		}
+	} else {
+		TMC2209_status = TMC_CRC_ERROR;
+		return 0xFFFFFFFF;
+	}
 }
 
 /**

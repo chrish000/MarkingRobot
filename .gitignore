@@ -1,0 +1,79 @@
+# Configurations
+*.prefs
+
+# Language
+*.xml
+
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.lo
+*.slo
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.lai
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Fortran module files
+*.mod
+*.smod
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+*.ld
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+# Folders
+**/Core/Startup
+**/Drivers
+**/Debug
+**/Release
+
+# Files
+Core/Src/system_stm32h7xx.c
+Core/Src/stm32h7xx_it.c
+Core/Src/stm32h7xx_hal_msp.c
+Core/Inc/stm32h7xx_it.h
+Core/Inc/stm32h7xx_hal_conf.h

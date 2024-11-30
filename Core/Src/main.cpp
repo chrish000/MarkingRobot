@@ -32,9 +32,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "move.h"
-#include "homing.h"
-#include "driver.h"
 #include "TMC2209.h"
 /* USER CODE END Includes */
 

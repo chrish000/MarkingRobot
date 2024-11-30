@@ -1,4 +1,0 @@
-../Core/Src/move.c:9:6:Step_X	16	static
-../Core/Src/move.c:18:9:Move_To_Pos	16	static
-../Core/Src/move.c:27:9:Move_Linear	24	static
-../Core/Src/move.c:40:9:Move_Degrees	16	static

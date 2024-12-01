@@ -6,20 +6,21 @@
  ******************************************************************************
  * @attention
  *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
  * If no LICENSE file comes with this software, it is provided AS-IS.
  *
  ******************************************************************************
  */
-
 /**
  * Wichtige Informationen für das Verständnis
  * 	>	Aufgrund der UART-Ansteuerung werden die Treiber X und Z benutzt.
  * 		Es werden trotzdem X-Y-Koordinaten verwendet.
  * 	>
  */
-
 /**
  * TODO Funktionen Kommentieren und Dokumentation anfügen
  * TODO Definition weiterer Konstanten und Makros für Pin-Zustände und Verzögerungen, um den Code lesbarer und wartbarer zu machen.
@@ -32,9 +33,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "move.h"
-#include "homing.h"
-#include "driver.h"
 #include "TMC2209.h"
 /* USER CODE END Includes */
 
@@ -57,8 +55,6 @@
 
 CRC_HandleTypeDef hcrc;
 
-TIM_HandleTypeDef htim2;
-
 UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_uart8_tx;
@@ -67,32 +63,14 @@ DMA_HandleTypeDef hdma_usart2_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-/* Test-Variablen */
 
 /* Peripherie */
 TMC2209 tmcX;
 TMC2209 tmcZ;
 
-/* Buffer */
-
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
 
-/* Positionsvariablen */
-const uint8_t HomeX = 0;
-const uint8_t HomeY = 0;
-uint8_t HomePos[2] = { HomeX, HomeY };
-volatile float PosX = 0; //in mm
-volatile float PosY = 0; //in mm
-
-/* PWM Ansteuerung der STEP-Pins durch Interrupt */
-volatile uint32_t PWMStepX = 0; // Zähler für die X PWM-Impulse
-volatile uint16_t PWMCounterX = 0; // Zähler für die PWM-Impuls-Position
-volatile uint32_t TargetStepsX = 0;
-
-volatile uint16_t PWMPeriod = 1000; // Periode des PWM-Signals in µs
-volatile uint16_t PWMPulseWidth = 500; // Breite des PWM-Impulses (Duty Cycle)
-volatile uint8_t PWMEnabledX = false; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -103,7 +81,6 @@ static void MX_DMA_Init(void);
 static void MX_UART8_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
-static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -132,12 +109,14 @@ int main(void) {
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
+
 	/* USER CODE END Init */
 
 	/* Configure the system clock */
 	SystemClock_Config();
 
 	/* USER CODE BEGIN SysInit */
+
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
@@ -146,7 +125,6 @@ int main(void) {
 	MX_UART8_Init();
 	MX_USART2_UART_Init();
 	MX_CRC_Init();
-	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
 	tmcX.UART_address = &huart2;
@@ -160,7 +138,6 @@ int main(void) {
 	tmcZ.setup();
 
 	/* CLK Configuration */
-	HAL_TIM_Base_Start_IT(&htim2);
 
 	/* GPIO Configuration */
 
@@ -173,14 +150,13 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		/* USER CODE END WHILE */
 		if (BatteryAlarm) {
 			//TODO gebe leeren Batteriestand auf Display aus
 			//TODO Code in Interrupt stecken?
 			if (0 /*Move_To_Pos((uint16_t*)HomePos)*/)
 				Error_Handler();
 		}
-		/* USER CODE END WHILE */
-
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
@@ -196,7 +172,7 @@ void SystemClock_Config(void) {
 
 	/** Supply configuration update enable
 	 */
-	HAL_PWREx_ConfigSupply (PWR_LDO_SUPPLY);
+	HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
 	/** Configure the main internal regulator output voltage
 	 */
@@ -251,7 +227,7 @@ void SystemClock_Config(void) {
 static void MX_CRC_Init(void) {
 
 	/* USER CODE BEGIN CRC_Init 0 */
-	__HAL_RCC_CRC_CLK_ENABLE();	//CRC-Clock aktivieren
+
 	/* USER CODE END CRC_Init 0 */
 
 	/* USER CODE BEGIN CRC_Init 1 */
@@ -272,60 +248,6 @@ static void MX_CRC_Init(void) {
 	/* USER CODE BEGIN CRC_Init 2 */
 
 	/* USER CODE END CRC_Init 2 */
-
-}
-
-/**
- * @brief TIM2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM2_Init(void) {
-
-	/* USER CODE BEGIN TIM2_Init 0 */
-
-	/* USER CODE END TIM2_Init 0 */
-
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-	TIM_OC_InitTypeDef sConfigOC = { 0 };
-
-	/* USER CODE BEGIN TIM2_Init 1 */
-
-	/* USER CODE END TIM2_Init 1 */
-	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 274;
-	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 999;
-	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	if (HAL_TIM_PWM_Init(&htim2) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.Pulse = 500;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM2_Init 2 */
-
-	/* USER CODE END TIM2_Init 2 */
 
 }
 
@@ -430,16 +352,17 @@ static void MX_DMA_Init(void) {
 	/* DMA interrupt init */
 	/* DMA1_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream0_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 	/* DMA1_Stream1_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream1_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 	/* DMA1_Stream2_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream2_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 	/* DMA1_Stream3_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream3_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+
 }
 
 /**
@@ -507,8 +430,8 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_Init(HE0_PWM_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
-	HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (EXTI15_10_IRQn);
+	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 	/* USER CODE END MX_GPIO_Init_2 */
@@ -523,34 +446,6 @@ static void MX_GPIO_Init(void) {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == PWRDET_Pin) {
 		BatteryAlarm = true;
-	}
-}
-
-/**
- * @brief Timer External Interrupt Callback Function
- * @param htim Pointer to Timer with elapsed Timer Callback
- * @retval None
- */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM2) {
-		if (PWMEnabledX) {
-			PWMCounterX++;
-			if (PWMCounterX >= PWMPeriod) {
-				PWMCounterX = 0;
-				PWMStepX++;
-			}
-			if (PWMCounterX < PWMPulseWidth) {
-				HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_SET);
-			} else {
-				HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_RESET);
-			}
-
-			// Überprüfen, ob die Ziel-Schritte erreicht sind
-			if (PWMStepX >= TargetStepsX) {
-				PWMEnabledX = false;
-				HAL_GPIO_WritePin(X_STEP_GPIO_Port, X_STEP_Pin, GPIO_PIN_RESET);
-			}
-		}
 	}
 }
 
@@ -613,7 +508,7 @@ void MPU_Config(void) {
 
 	HAL_MPU_ConfigRegion(&MPU_InitStruct);
 	/* Enables the MPU */
-	HAL_MPU_Enable (MPU_PRIVILEGED_DEFAULT);
+	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 }
 
@@ -626,25 +521,23 @@ void Error_Handler(void) {
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 	while (1) {
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_3);
-		HAL_Delay(100);
 	}
 	/* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-	/* USER CODE BEGIN 6 */
-	/* User can add his own implementation to report the file name and line number,
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-	/* USER CODE END 6 */
+  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

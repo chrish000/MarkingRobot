@@ -67,7 +67,6 @@ dkms.conf
 
 # Folders
 **/Core/Startup
-**/Drivers
 **/Debug
 **/Release
 

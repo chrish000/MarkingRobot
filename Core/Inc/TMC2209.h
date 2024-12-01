@@ -1,12 +1,19 @@
-// ----------------------------------------------------------------------------
-// TMC2209.h
-//
-// Modified by Chris Hauser, created by Peter Polidoro
-// Original: https://github.com/janelia-arduino/TMC2209
-//
-// This TMC2209 Libary is ment to be used with a STM32H7
-// ----------------------------------------------------------------------------
-
+/******************************************************************************
+ * @file           : TMC2209.h
+ * @brief          : Header for TMC2209.c file.
+ *                   This file contains the common defines of the application.
+ * @author		   : Chris Hauser
+ ******************************************************************************
+ * @attention
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ * This TMC2209 Library is meant to be used with a STM32H7
+ *
+ ******************************************************************************
+ */
 #ifndef TMC2209_H
 #define TMC2209_H
 
@@ -25,6 +32,7 @@ typedef enum {
 
 class TMC2209 {
 public:
+
 	TMC2209();
 
 	UART_HandleTypeDef *UART_address;

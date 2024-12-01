@@ -1,14 +1,22 @@
-// ----------------------------------------------------------------------------
-// TMC2209.cpp
-//
-// Modified by Chris Hauser, created by Peter Polidoro
-// Original: https://github.com/janelia-arduino/TMC2209
-//
-// This TMC2209 Library is ment to be used with a STM32H7
-// ----------------------------------------------------------------------------
+/******************************************************************************
+ * @file           : TMC2209.cpp
+ * @brief          : TMC2209 class and functions for communicating via UART.
+ * @author		   : Chris Hauser
+ ******************************************************************************
+ * @attention
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ * This TMC2209 Library is meant to be used with a STM32H7.
+ *
+ ******************************************************************************
+ */
 #include "TMC2209.h"
 #include "utils.h"
 #include <cstring>
+
 /**
  * @brief  Constructor for the TMC2209 class, initializes default settings.
  */

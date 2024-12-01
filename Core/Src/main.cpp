@@ -151,12 +151,7 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		/* USER CODE END WHILE */
-		if (BatteryAlarm) {
-			//TODO gebe leeren Batteriestand auf Display aus
-			//TODO Code in Interrupt stecken?
-			if (0 /*Move_To_Pos((uint16_t*)HomePos)*/)
-				Error_Handler();
-		}
+
 		/* USER CODE BEGIN 3 */
 	}
 	/* USER CODE END 3 */
@@ -172,12 +167,11 @@ void SystemClock_Config(void) {
 
 	/** Supply configuration update enable
 	 */
-	HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+	HAL_PWREx_ConfigSupply (PWR_LDO_SUPPLY);
 
 	/** Configure the main internal regulator output voltage
 	 */
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
-
 	while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
 	}
 
@@ -352,16 +346,16 @@ static void MX_DMA_Init(void) {
 	/* DMA interrupt init */
 	/* DMA1_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream0_IRQn);
 	/* DMA1_Stream1_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream1_IRQn);
 	/* DMA1_Stream2_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream2_IRQn);
 	/* DMA1_Stream3_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+	HAL_NVIC_EnableIRQ (DMA1_Stream3_IRQn);
 
 }
 
@@ -431,7 +425,7 @@ static void MX_GPIO_Init(void) {
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ (PWRDET_EXTI_IRQn);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 	/* USER CODE END MX_GPIO_Init_2 */
@@ -508,7 +502,7 @@ void MPU_Config(void) {
 
 	HAL_MPU_ConfigRegion(&MPU_InitStruct);
 	/* Enables the MPU */
-	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+	HAL_MPU_Enable (MPU_PRIVILEGED_DEFAULT);
 
 }
 

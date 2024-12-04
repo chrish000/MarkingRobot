@@ -72,11 +72,30 @@ void TMC2209::disable() {
 
 /**
  * @brief  Sets the number of microsteps per full step for the TMC2209 driver.
- * @param  microsteps_per_step: Desired microstep resolution.
+ * @param  microsteps_per_step: Desired microstep resolution. (1, 2, 4, 8...256)
  * @retval None
  */
 void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step) {
-	chopper_config_.mres = microsteps_per_step;
+	switch (microsteps_per_step) {
+	case 1:
+		chopper_config_.mres = MRES_001;
+	case 2:
+		chopper_config_.mres = MRES_002;
+	case 4:
+		chopper_config_.mres = MRES_004;
+	case 8:
+		chopper_config_.mres = MRES_008;
+	case 16:
+		chopper_config_.mres = MRES_016;
+	case 32:
+		chopper_config_.mres = MRES_032;
+	case 64:
+		chopper_config_.mres = MRES_064;
+	case 128:
+		chopper_config_.mres = MRES_128;
+	case 256:
+		chopper_config_.mres = MRES_256;
+	}
 	writeStoredChopperConfig();
 }
 

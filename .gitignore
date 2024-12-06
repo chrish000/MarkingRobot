@@ -66,8 +66,9 @@ Mkfile.old
 dkms.conf
 
 # Folders
-**/Core/Startup
 **/Debug
 **/Release
 
 # Files
+*.launch
+*.cfg

@@ -1,10 +1,41 @@
-/*
- * move.h
+/**
+ ******************************************************************************
+ * @file           : move.h
+ * @brief          :
+ * @author         : Chris Hauser
+ ******************************************************************************
+ * @attention
  *
- *  Created on: Jul 29, 2024
- *      Author: chris
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
  */
+#ifndef INC_MOVE_H_
+#define INC_MOVE_H_
 
-void Move_Lin(float Distance);
-void Move_Rot(float Degrees);
-void Move_To_Pos(float NextPosition[2]);
+#include "stepper.h"
+
+class Robot {
+public:
+
+	StepperMotor motorX;
+	StepperMotor motorY;
+	SharedIntervalBuffer intervalBuf;
+	void moveToPos(float newX, float newY, float speed, float accel);
+	void moveToPos(float newX, float newY);
+
+private:
+
+	short posX = 0;
+	short posY = 0;
+	float speed = DEFAULT_SPEED;
+	float accel = DEFAULT_ACCEL;
+	short orientation = 0; //0°-360°
+
+	void moveLin(float distance, float speed, float accel);
+	void moveRot(float degrees, float speed, float accel);
+};
+
+#endif /* INC_MOVE_H_ */

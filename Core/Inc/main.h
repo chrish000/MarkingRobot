@@ -84,7 +84,10 @@ void Error_Handler(void);
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-
+#define StepsPerMM 100
+#define StepsPerDeg 10
+#define DEFAULT_SPEED 100;
+#define DEFAULT_ACCEL 100;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

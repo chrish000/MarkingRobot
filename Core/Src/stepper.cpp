@@ -39,14 +39,12 @@ void StepperMotor::setStepDir(bool status) {
 }
 
 void SharedIntervalBuffer::setSpeed(float_t mmPerSecond) {
-	constrain(mmPerSecond, minSpeed, maxSpeed);
-	speed = (uint32_t) (mmPerSecond * StepsPerMM);
+	speed = constrain(mmPerSecond, minSpeed, maxSpeed);
 
 }
 
 void SharedIntervalBuffer::setAccel(float_t mmPerSecond2) {
-	constrain(mmPerSecond2, minAccel, maxAccel);
-	accel = (uint32_t) (mmPerSecond2 * StepsPerMM);
+	accel = constrain(mmPerSecond2, minAccel, maxAccel);
 }
 
 void StepperMotor::setActive(bool status) {

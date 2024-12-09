@@ -45,16 +45,16 @@ private:
 
 class SharedIntervalBuffer {
 private:
-	const static uint16_t size = 20000;
+	const static uint16_t size = 10000;
 	uint32_t buffer[size];
 	uint16_t head = 0;
 	uint16_t tail = 0;
 
-	uint32_t speed = DEFAULT_SPEED;
+	float_t speed = DEFAULT_SPEED;
 	const static uint8_t minSpeed = 1;
-	const static uint8_t maxSpeed = 100;
-	uint32_t accel = DEFAULT_ACCEL;
-	const static uint16_t minAccel = 1;
+	const static uint16_t maxSpeed = 10000;
+	float_t accel = DEFAULT_ACCEL;
+	const static uint8_t minAccel = 1;
 	const static uint16_t maxAccel = 10000;
 
 	uint16_t intervalPointer = 0;

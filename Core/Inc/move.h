@@ -30,7 +30,7 @@ private:
 
 	short posX = 0;
 	short posY = 0;
-	float speed = DEFAULT_SPEED;
+	float speed = DEFAULT_SPEED; //in mm/s
 	float accel = DEFAULT_ACCEL;
 	short orientation = 0; //0°-360°
 

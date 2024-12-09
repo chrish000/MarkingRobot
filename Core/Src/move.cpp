@@ -19,12 +19,12 @@
 void Robot::moveLin(float distance, float speed, float accel) {
 	if (distance != 0) //Prüfen ob Distanz nicht 0 ist
 			{
-		uint32_t steps = fabs(distance * StepsPerMM); //Schritte berechnen
+		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
 		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen TODO Distanz kann nie negativ sein mit aktueller Berechnung
 
 		motorX.setStepDir(direction);
 		motorY.setStepDir(!direction);
-		intervalBuf.calculateIntervals(speed, accel, steps);
+		intervalBuf.calculateIntervals(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
 		motorX.setTargetPos(steps);
 		motorY.setTargetPos(steps);
 		motorX.setActive(true);
@@ -35,12 +35,12 @@ void Robot::moveLin(float distance, float speed, float accel) {
 void Robot::moveRot(float degrees, float speed, float accel) {
 	if (degrees != 0) //Prüfen ob Distanz nicht 0 ist
 			{
-		uint32_t steps = fabs(degrees * StepsPerDeg); //Schritte berechnen
+		uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
 		bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
 
 		motorX.setStepDir(!direction);
 		motorY.setStepDir(!direction);
-		intervalBuf.calculateIntervals(speed, accel, steps);
+		intervalBuf.calculateIntervals(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
 		motorX.setTargetPos(steps);
 		motorY.setTargetPos(steps);
 		motorX.setActive(true);

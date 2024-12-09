@@ -108,13 +108,21 @@ int main(void) {
 	HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET);
 
+	//################# TESTLAUF ###############################
+	robo.moveToPos(1000, 0);
+	robo.moveToPos(2000, 0);
+	robo.moveToPos(3000, 0);
+	robo.moveToPos(4000, 0);
+	robo.moveToPos(5000, 0);
+	robo.moveToPos(6000, 0);
+	robo.moveToPos(7000, 0);
+	robo.moveToPos(8000, 0);
+	robo.moveToPos(9000, 0);
+	robo.moveToPos(10000, 0);
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		robo.moveToPos(0, 100, 50, 100);
-		robo.moveToPos(100, 0);
-		robo.moveToPos(100, 100);
-		robo.moveToPos(0, 0);
+
 		/* USER CODE END WHILE */
 		/* USER CODE BEGIN 3 */
 	}

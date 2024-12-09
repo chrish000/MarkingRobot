@@ -144,7 +144,8 @@ int main(void) {
 	/* UART Configuration */
 
 	/* Code before infinite loop */
-
+	tmcX.setRunCurrent(2000);
+	tmcZ.setRunCurrent(2000);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

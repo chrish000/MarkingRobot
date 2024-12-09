@@ -101,7 +101,7 @@ void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step) {
 
 /**
  * @brief  Configures the run current for the TMC2209 driver.
- * @param  runCurrent: Desired run current value, constrained within valid limits.
+ * @param  runCurrent: Desired run current value in mA, constrained within valid limits.
  * @retval None
  */
 
@@ -116,7 +116,7 @@ void TMC2209::setRunCurrent(uint16_t runCurrent) {
 
 /**
  * @brief  Configures the hold current for the TMC2209 driver.
- * @param  holdCurrent: Desired hold current value, constrained within valid limits.
+ * @param  holdCurrent: Desired hold current value in mA, constrained within valid limits.
  * @retval None
  */
 

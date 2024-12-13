@@ -58,8 +58,6 @@ private:
 	float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
 	float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
 
-	//uint16_t intervalPointer = 0;
-
 public:
 	const static uint8_t stepIntervalDefault = 9;
 	void setSpeed(float_t speed);
@@ -67,7 +65,6 @@ public:
 	void setDistance(float_t distance);
 	void setParam(float_t speed, float_t accel, float_t distance);
 	void resetStepCount();
-	//void calculateIntervals(float_t speed, float_t accel, float_t distance);
 	uint32_t popInterval();
 };
 #define F_TIM 1000000 //1MHz

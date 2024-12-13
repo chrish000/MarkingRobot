@@ -331,6 +331,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			robo.motorY.handleStep();
 			if (!robo.motorX.getActive() && !robo.motorY.getActive()) {
 				htim->Instance->ARR = robo.intervalBuf.stepIntervalDefault;
+				robo.intervalBuf.resetStepCount();
 			}
 		}
 	}

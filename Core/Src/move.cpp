@@ -24,7 +24,7 @@ void Robot::moveLin(float distance, float speed, float accel) {
 
 		motorX.setStepDir(direction);
 		motorY.setStepDir(!direction);
-		intervalBuf.calculateIntervals(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
+		intervalBuf.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
 		motorX.setTargetPos(steps);
 		motorY.setTargetPos(steps);
 		motorX.setActive(true);
@@ -40,7 +40,7 @@ void Robot::moveRot(float degrees, float speed, float accel) {
 
 		motorX.setStepDir(!direction);
 		motorY.setStepDir(!direction);
-		intervalBuf.calculateIntervals(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
+		intervalBuf.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
 		motorX.setTargetPos(steps);
 		motorY.setTargetPos(steps);
 		motorX.setActive(true);

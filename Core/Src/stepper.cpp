@@ -14,8 +14,6 @@
  */
 #include "stepper.h"
 #include "utils.h"
-//#include "circular_buffer.h"
-//#include "bresenham.h"
 
 void StepperMotor::setStepPin(GPIO_TypeDef *inputStepPort,
 		uint16_t inputStepPin) {
@@ -38,13 +36,27 @@ void StepperMotor::setStepDir(bool status) {
 	}
 }
 
-void SharedIntervalBuffer::setSpeed(float_t mmPerSecond) {
+void SharedInterval::setSpeed(float_t mmPerSecond) {
 	speed = constrain(mmPerSecond, minSpeed, maxSpeed);
 
 }
 
-void SharedIntervalBuffer::setAccel(float_t mmPerSecond2) {
+void SharedInterval::setAccel(float_t mmPerSecond2) {
 	accel = constrain(mmPerSecond2, minAccel, maxAccel);
+}
+
+void SharedInterval::setDistance(float_t newDistance) {
+	distance = newDistance;
+}
+
+void SharedInterval::setParam(float_t newSpeed, float_t newAccel, float_t newDistance) {
+	setSpeed(newSpeed);
+	setAccel(newAccel);
+	setDistance(newDistance);
+}
+
+void SharedInterval::resetStepCount() {
+	stepCount = 0;
 }
 
 void StepperMotor::setActive(bool status) {
@@ -63,48 +75,6 @@ void StepperMotor::setTargetPos(uint32_t target) {
 	targetPosition = target;
 }
 
-void SharedIntervalBuffer::calculateIntervals(float_t speedInput,
-		float_t accelInput, float_t distance) {
-	head = 0;
-	tail = 0;
-	setSpeed(speedInput);
-	setAccel(accelInput);
-	float_t current_velocity = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
-	float_t time_interval;          // Zeitintervall zwischen Schritten (s)
-	uint16_t step_count = 0;           // Zähler für Schritte
-
-	// 1. Beschleunigungsphase
-	while (current_velocity < speed && step_count < distance / 2) {
-		time_interval = 1.0f / current_velocity;
-		if (current_velocity == 0) {
-			time_interval = sqrt(2.0f / accel); // Anfangsphase ohne Geschwindigkeit
-		}
-
-		buffer[step_count++] = (uint32_t) (time_interval * F_TIM);
-		current_velocity += accel * time_interval;
-	}
-
-	uint16_t accel_count = step_count;
-
-	// 2. Konstante Geschwindigkeit
-	while (step_count < distance - accel_count) {
-		time_interval = 1.0f / speed;
-		buffer[step_count++] = (uint32_t) (time_interval * F_TIM);
-	}
-
-	// 3. Abbremsphase
-	while (step_count < distance) {
-		time_interval = 1.0f / current_velocity;
-		buffer[step_count++] = (uint32_t) (time_interval * F_TIM);
-		current_velocity -= accel * time_interval;
-		if (current_velocity < 0)
-			current_velocity = 0; // Sicherheit: Keine negative Geschwindigkeit
-	}
-
-	tail = step_count; // Gesamtanzahl der berechneten Intervalle
-
-}
-
 void StepperMotor::step() {
 	if (stepPort != nullptr)
 		HAL_GPIO_TogglePin(stepPort, stepPin);	//TODO TMC2209:double edge
@@ -121,11 +91,32 @@ void StepperMotor::handleStep() {
 	}
 }
 
-uint16_t SharedIntervalBuffer::popInterval() {
-	if (head == tail) {
-		return 0; // Leer
+uint32_t SharedInterval::popInterval() {
+	// 1. Beschleunigung
+	if (currentSpeed < speed && stepCount < distance / 2) {
+		interval = 1.0f / currentSpeed;
+		if (currentSpeed == 0) {
+			interval = sqrt(2.0f / accel); // Anfangsphase ohne Geschwindigkeit
+		}
+		currentSpeed += accel * interval;
+		accelStepCount = stepCount;
 	}
-	uint16_t value = buffer[head];
-	head = (head + 1) % size;
-	return value;
+
+	// 2. Konstante Geschwindigkeit
+	else if (stepCount < distance - accelStepCount) {
+		interval = 1.0f / speed;
+	}
+
+	// 3. Abbremsphase
+	else if (stepCount < distance) {
+		interval = 1.0f / currentSpeed;
+		currentSpeed -= accel * interval;
+		if (currentSpeed < 0) {
+			currentSpeed = 0; // Sicherheit: Keine negative Geschwindigkeit
+		}
+	}
+
+	stepCount++;
+
+	return (uint32_t) (interval * F_TIM);
 }

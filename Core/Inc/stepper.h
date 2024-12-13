@@ -43,12 +43,8 @@ private:
 	void step();
 };
 
-class SharedIntervalBuffer {
+class SharedInterval {
 private:
-	const static uint16_t size = 10000;
-	uint32_t buffer[size];
-	uint16_t head = 0;
-	uint16_t tail = 0;
 
 	float_t speed = DEFAULT_SPEED;
 	const static uint8_t minSpeed = 1;
@@ -56,15 +52,23 @@ private:
 	float_t accel = DEFAULT_ACCEL;
 	const static uint8_t minAccel = 1;
 	const static uint16_t maxAccel = 10000;
+	float_t distance;
+	uint32_t stepCount = 0;	// Zähler für Schritte
+	uint16_t accelStepCount = 0;
+	float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
+	float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
 
-	uint16_t intervalPointer = 0;
+	//uint16_t intervalPointer = 0;
 
 public:
 	const static uint8_t stepIntervalDefault = 9;
 	void setSpeed(float_t speed);
 	void setAccel(float_t accel);
-	void calculateIntervals(float_t speed, float_t accel, float_t distance);
-	uint16_t popInterval();
+	void setDistance(float_t distance);
+	void setParam(float_t speed, float_t accel, float_t distance);
+	void resetStepCount();
+	//void calculateIntervals(float_t speed, float_t accel, float_t distance);
+	uint32_t popInterval();
 };
 #define F_TIM 1000000 //1MHz
 

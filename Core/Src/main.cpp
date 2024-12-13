@@ -146,6 +146,10 @@ int main(void) {
 	/* Code before infinite loop */
 	tmcX.setRunCurrent(2000);
 	tmcZ.setRunCurrent(2000);
+	tmcX.setMicrostepsPerStep(256);
+	tmcZ.setMicrostepsPerStep(256);
+	tmcX.enableDoubleEdge();
+	tmcZ.enableDoubleEdge();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

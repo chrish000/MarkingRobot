@@ -23,8 +23,7 @@ public:
 	StepperMotor motorX;
 	StepperMotor motorY;
 	SharedInterval intervalBuf;
-	void moveToPos(float newX, float newY, float speed, float accel);
-	void moveToPos(float newX, float newY);
+	void moveToPos(float newX, float newY, float speed = DEFAULT_SPEED, float accel = DEFAULT_ACCEL);
 
 private:
 

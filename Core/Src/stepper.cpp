@@ -14,6 +14,9 @@
  */
 #include "stepper.h"
 #include "utils.h"
+#include <algorithm>
+
+//TODO Error-Handling
 
 void StepperMotor::setStepPin(GPIO_TypeDef *inputStepPort,
 		uint16_t inputStepPin) {
@@ -37,16 +40,17 @@ void StepperMotor::setStepDir(bool status) {
 }
 
 void SharedInterval::setSpeed(float_t mmPerSecond) {
-	speed = constrain(mmPerSecond, minSpeed, maxSpeed);
+	speed = std::clamp(mmPerSecond, minSpeed, maxSpeed);
 
 }
 
 void SharedInterval::setAccel(float_t mmPerSecond2) {
-	accel = constrain(mmPerSecond2, minAccel, maxAccel);
+	accel = std::clamp(mmPerSecond2, minAccel, maxAccel);
 }
 
 void SharedInterval::setDistance(float_t newDistance) {
-	distance = newDistance;
+	if(newDistance != 0)
+		distance = newDistance;
 }
 
 void SharedInterval::setParam(float_t newSpeed, float_t newAccel, float_t newDistance) {
@@ -91,7 +95,7 @@ void StepperMotor::handleStep() {
 	}
 }
 
-uint32_t SharedInterval::popInterval() {
+uint32_t SharedInterval::popInterval() {	//TODO optimieren
 	// 1. Beschleunigung
 	if (currentSpeed < speed && stepCount < distance / 2) {
 		interval = 1.0f / currentSpeed;

@@ -72,27 +72,11 @@ void Robot::moveToPos(float newX, float newY, float newSpeed, float newAccel) {
 		float turn = calcTurn(newX, newY, posX, posY, orientation);
 		if (turn != 0) {
 			moveRot(turn, speed, accel);
-			while (motorX.getActive() || motorY.getActive())
+			while (motorX.getActive() || motorY.getActive())	//TODO optimieren
 				;
 		}
 		moveLin(calcDistance(newX, newY, posX, posY), speed, accel);
-		while (motorX.getActive() || motorY.getActive())
-			;
-		posX = newX;
-		posY = newY;
-	}
-}
-
-void Robot::moveToPos(float newX, float newY) {
-	if (!(newX == posX && newY == posY)) {
-		float turn = calcTurn(newX, newY, posX, posY, orientation);
-		if (turn != 0) {
-			moveRot(turn, speed, accel);
-			while (motorX.getActive() || motorY.getActive())
-				;
-		}
-		moveLin(calcDistance(newX, newY, posX, posY), speed, accel);
-		while (motorX.getActive() || motorY.getActive())
+		while (motorX.getActive() || motorY.getActive())		//TODO optimieren
 			;
 		posX = newX;
 		posY = newY;

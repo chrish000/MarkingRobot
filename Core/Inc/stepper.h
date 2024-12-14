@@ -47,11 +47,11 @@ class SharedInterval {
 private:
 
 	float_t speed = DEFAULT_SPEED;
-	const static uint8_t minSpeed = 1;
-	const static uint16_t maxSpeed = 10000;
+	static constexpr float_t minSpeed = 1;
+	static constexpr float_t maxSpeed = 10000;
 	float_t accel = DEFAULT_ACCEL;
-	const static uint8_t minAccel = 1;
-	const static uint16_t maxAccel = 10000;
+	static constexpr float_t minAccel = 1;
+	static constexpr float_t maxAccel = 10000;
 	float_t distance;
 	uint32_t stepCount = 0;	// Zähler für Schritte
 	uint16_t accelStepCount = 0;
@@ -59,7 +59,7 @@ private:
 	float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
 
 public:
-	const static uint8_t stepIntervalDefault = 9;
+	static constexpr uint8_t stepIntervalDefault = 9;
 	void setSpeed(float_t speed);
 	void setAccel(float_t accel);
 	void setDistance(float_t distance);

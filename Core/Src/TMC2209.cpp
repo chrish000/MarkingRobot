@@ -16,6 +16,7 @@
 #include "TMC2209.h"
 #include "utils.h"
 #include <cstring>
+#include <algorithm>
 
 /**
  * @brief  Constructor for the TMC2209 class, initializes default settings.
@@ -114,7 +115,7 @@ void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step) {
  */
 
 void TMC2209::setRunCurrent(uint16_t runCurrent) {
-	runCurrent = constrain(runCurrent, CURRENT_SETTING_MIN,
+	runCurrent = std::clamp(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
 	driver_current_.irun = map(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
@@ -129,7 +130,7 @@ void TMC2209::setRunCurrent(uint16_t runCurrent) {
  */
 
 void TMC2209::setHoldCurrent(uint16_t holdCurrent) {
-	holdCurrent = constrain(holdCurrent, CURRENT_SETTING_MIN,
+	holdCurrent = std::clamp(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
 	driver_current_.ihold = map(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
@@ -144,7 +145,7 @@ void TMC2209::setHoldCurrent(uint16_t holdCurrent) {
  */
 
 void TMC2209::setHoldDelay(uint8_t holdDelayPercent) {
-	holdDelayPercent = constrain(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
+	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
 	driver_current_.iholddelay = map(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
 			HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
@@ -159,17 +160,17 @@ void TMC2209::setHoldDelay(uint8_t holdDelayPercent) {
  */
 void TMC2209::setAllCurrentValues(uint16_t runCurrent, uint16_t holdCurrent,
 		uint8_t holdDelayPercent) {
-	runCurrent = constrain(runCurrent, CURRENT_SETTING_MIN,
+	runCurrent = std::clamp(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
 	driver_current_.irun = map(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
-	holdCurrent = constrain(holdCurrent, CURRENT_SETTING_MIN,
+	holdCurrent = std::clamp(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
 	driver_current_.ihold = map(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
-	holdDelayPercent = constrain(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
+	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
 	driver_current_.iholddelay = map(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
 			HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
@@ -381,8 +382,8 @@ void TMC2209::setStallGuardThreshold(uint8_t stall_guard_threshold) {
  * @retval None
  */
 void TMC2209::enableCoolStep(uint8_t lower_threshold, uint8_t upper_threshold) {
-	cool_config_.semin = constrain(lower_threshold, SEMIN_MIN, SEMIN_MAX);
-	cool_config_.semax = constrain(upper_threshold, SEMAX_MIN, SEMAX_MAX);
+	cool_config_.semin = std::clamp(lower_threshold, SEMIN_MIN, SEMIN_MAX);
+	cool_config_.semax = std::clamp(upper_threshold, SEMAX_MIN, SEMAX_MAX);
 	write(ADDRESS_COOLCONF, cool_config_.bytes);
 	cool_step_enabled_ = true;
 }

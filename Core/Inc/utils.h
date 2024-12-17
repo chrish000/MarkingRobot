@@ -19,24 +19,6 @@
 
 /* Exported functions prototypes ---------------------------------------------*/
 /**
- * @brief  Constrains the input value to be within a specified range.
- * @param  value: The value to be constrained.
- * @param  min: The minimum allowed value.
- * @param  max: The maximum allowed value.
- * @retval int: The constrained value.
- *             If 'value' is less than 'min', it returns 'min'.
- *             If 'value' is greater than 'max', it returns 'max'.
- *             Otherwise, it returns 'value'.
- */
-inline int constrain(int value, int min, int max) {
-	if (value < min)
-		return min;
-	if (value > max)
-		return max;
-	return value;
-}
-
-/**
  * @brief  Maps a value from one range to another range.
  * @param  x: The value to be mapped.
  * @param  in_min: The minimum value of the input range.

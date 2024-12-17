@@ -38,9 +38,8 @@ constexpr uint8_t TMC2209::precomputedCRC[16];
  */
 void TMC2209::setup() {
 	HAL_HalfDuplex_EnableReceiver(UART_address);
-	HAL_UARTEx_ReceiveToIdle_DMA(UART_address, rxBufferRaw,
+	HAL_UART_Receive_DMA(UART_address, rxBufferRaw,
 			WRITE_READ_REPLY_DATAGRAM_SIZE);
-
 	initialize();
 }
 
@@ -859,12 +858,13 @@ template<typename Datagram>
 /**
  * @brief  Sends a datagram via UART using DMA.
  * @param  datagram: The datagram structure containing the data to be transmitted.
- * @param  datagram_size: The size of the datagram to be sent.
+ * @param  datagram_size: The size of the datagram to be send.
  * @retval None
  */
 void TMC2209::sendDatagram(Datagram &datagram, uint8_t datagram_size) {
 	HAL_HalfDuplex_EnableTransmitter(UART_address);
 	HAL_UART_Transmit_DMA(UART_address, (uint8_t*) &datagram, datagram_size);
+	//EnableReciver in TxCpltCallback
 }
 
 /**
@@ -890,11 +890,21 @@ void TMC2209::write(uint8_t register_address, uint32_t data) {
 				WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
 
 	sendDatagram(write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE);
+
+	uint32_t sent_timeout = HAL_GetTick() + SEND_TIMEOUT;
+	while (!data_sent_flag) {
+		if (HAL_GetTick() > sent_timeout) {
+			TMC2209_status = TMC_TIMEOUT;
+			Error_Handler();
+		}
+	}
+	data_sent_flag = false;
+	TMC2209_status = TMC_OK;
 }
 /**
  * @brief  Reads data from a specific register of the TMC2209.
  * @param  register_address: The address of the register to read from.
- * @retval uint32_t: The data read from the register, or 0xFFFFFFFF in case of an error.
+ * @retval uint32_t: The data read from the register.
  */
 uint32_t TMC2209::read(uint8_t register_address) {
 	ReadRequestDatagram read_request_datagram;
@@ -917,9 +927,10 @@ uint32_t TMC2209::read(uint8_t register_address) {
 	while (!data_received_flag) {
 		if (HAL_GetTick() > recive_timeout) {
 			TMC2209_status = TMC_TIMEOUT;
-			return 0xFFFFFFFF;
+			Error_Handler();
 		}
 	}
+
 	uint8_t crc_check = HAL_CRC_Calculate(&hcrc, (uint32_t*) &rxBufferRaw,
 			WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
 	if (crc_check == rxBufferRaw[7]) {
@@ -934,12 +945,14 @@ uint32_t TMC2209::read(uint8_t register_address) {
 			return read_reply_datagram.data;
 		else {
 			TMC2209_status = TMC_UART_ERROR;
-			return 0xFFFFFFFF;
+			//Error_Handler();
 		}
 	} else {
 		TMC2209_status = TMC_CRC_ERROR;
-		return 0xFFFFFFFF;
+		//Error_Handler();
 	}
+	//Never reached
+	return 0;
 }
 
 /**

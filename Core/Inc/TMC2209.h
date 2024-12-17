@@ -149,7 +149,8 @@ public:
 
 	//Datagram
 	const static uint8_t WRITE_READ_REPLY_DATAGRAM_SIZE = 8;
-	bool data_received_flag;
+	volatile bool data_received_flag = false;
+	volatile bool data_sent_flag = false;
 	uint8_t rxBufferRaw[8];
 
 	struct Settings {
@@ -224,7 +225,7 @@ public:
 private:
 
 	//Initialization of TMC
-	bool init_flag = 0;
+	volatile bool init_flag = 0;
 	static constexpr uint8_t precomputedCRC[16] = {	//fixed order in initialize()
 			0xdf, 0x97, 0x06, 0x45, 0x1f, 0x0f, 0x0e, 0x34, 0x8d, 0x45, 0x19,
 					0x5b, 0xd9, 0x45, 0xe7 };
@@ -520,6 +521,7 @@ private:
 	template<typename Datagram>
 	void sendDatagram(Datagram &datagram, uint8_t datagram_size);
 
+	const static uint16_t SEND_TIMEOUT = 10000;	//ms
 	void write(uint8_t register_address, uint32_t data);
 	const static uint16_t READ_REPLY_TIMEOUT = 10000;	//ms
 	uint32_t read(uint8_t register_address);

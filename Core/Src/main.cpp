@@ -144,12 +144,7 @@ int main(void) {
 	/* UART Configuration */
 
 	/* Code before infinite loop */
-	tmcX.setRunCurrent(2000);
-	tmcZ.setRunCurrent(2000);
-	tmcX.setMicrostepsPerStep(256);
-	tmcZ.setMicrostepsPerStep(256);
-	tmcX.enableDoubleEdge();
-	tmcZ.enableDoubleEdge();
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -172,11 +167,12 @@ void SystemClock_Config(void) {
 
 	/** Supply configuration update enable
 	 */
-	HAL_PWREx_ConfigSupply (PWR_LDO_SUPPLY);
+	HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
 	/** Configure the main internal regulator output voltage
 	 */
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
+
 	while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
 	}
 
@@ -351,16 +347,16 @@ static void MX_DMA_Init(void) {
 	/* DMA interrupt init */
 	/* DMA1_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream0_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 	/* DMA1_Stream1_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream1_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 	/* DMA1_Stream2_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream2_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 	/* DMA1_Stream3_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (DMA1_Stream3_IRQn);
+	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
 }
 
@@ -430,7 +426,7 @@ static void MX_GPIO_Init(void) {
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ (PWRDET_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
 	/* USER CODE END MX_GPIO_Init_2 */
@@ -456,29 +452,34 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
 		HAL_HalfDuplex_EnableReceiver(tmcX.UART_address);
+		HAL_UART_Receive_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+		tmcX.data_sent_flag = true;
 	}
 	if (huart->Instance == UART8) {
 		HAL_HalfDuplex_EnableReceiver(tmcZ.UART_address);
+		HAL_UART_Receive_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+		tmcZ.data_sent_flag = true;
 	}
 }
 
 /**
- * @brief UART Recive Completed Callback Function
- * @param huart Pointer to UART with recived data
- * @param Size Size of the recived data
+ * @brief UART Receive Completed Callback Function
+ * @param huart Pointer to UART with received data
+ * @param Size Size of the received data
  * @retval None
  */
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size) {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
-		HAL_UARTEx_ReceiveToIdle_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
+		HAL_UART_Receive_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcX.data_received_flag = true;
 	}
 	if (huart->Instance == UART8) {
-		HAL_UARTEx_ReceiveToIdle_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
+		HAL_UART_Receive_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcZ.data_received_flag = true;
-
 	}
 }
 /* USER CODE END 4 */
@@ -507,7 +508,7 @@ void MPU_Config(void) {
 
 	HAL_MPU_ConfigRegion(&MPU_InitStruct);
 	/* Enables the MPU */
-	HAL_MPU_Enable (MPU_PRIVILEGED_DEFAULT);
+	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 }
 

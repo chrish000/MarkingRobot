@@ -79,22 +79,31 @@ void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step) {
 	switch (microsteps_per_step) {
 	case 1:
 		chopper_config_.mres = MRES_001;
+		break;
 	case 2:
 		chopper_config_.mres = MRES_002;
+		break;
 	case 4:
 		chopper_config_.mres = MRES_004;
+		break;
 	case 8:
 		chopper_config_.mres = MRES_008;
+		break;
 	case 16:
 		chopper_config_.mres = MRES_016;
+		break;
 	case 32:
 		chopper_config_.mres = MRES_032;
+		break;
 	case 64:
 		chopper_config_.mres = MRES_064;
+		break;
 	case 128:
 		chopper_config_.mres = MRES_128;
+		break;
 	case 256:
 		chopper_config_.mres = MRES_256;
+		break;
 	}
 	writeStoredChopperConfig();
 }

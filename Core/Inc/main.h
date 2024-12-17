@@ -94,6 +94,8 @@ void Error_Handler(void);
 #define HomePosition { 0 , 0 }
 #define StepsPerMM 100
 #define StepsPerDeg 100
+#define RunCurrentDefault 800
+#define HoldCurrentDefault 500
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

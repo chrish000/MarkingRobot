@@ -42,6 +42,8 @@ public:
 
 	void setup();
 
+	void setOperationModeToSerial();
+
 	/* Unidirectional methods ----------------------------------------------------*/
 
 	// driver must be enabled before use. it is disabled by default
@@ -226,9 +228,11 @@ private:
 
 	//Initialization of TMC
 	volatile bool init_flag = 0;
-	static constexpr uint8_t precomputedCRC[16] = {	//fixed order in initialize()
+	static constexpr uint8_t precomputedCRC[] = {	//fixed order in initialize()
 			0xdf, 0x97, 0x06, 0x45, 0x1f, 0x0f, 0x0e, 0x34, 0x8d, 0x45, 0x19,
-					0x5b, 0xd9, 0x45, 0xe7 };
+					0x57, 0xd9, 0xf6, 0x0c, 0x45, 0xe7, 0x81, 0xdf, 0x97, 0x06,
+					0x45, 0x1f, 0x0f, 0x0e, 0x34, 0x8d, 0x45, 0x19, 0x57, 0xd9,
+					0xf6, 0x0c, 0x45, 0xe7, 0x81 };
 	uint8_t precomputedCRCIndex = 0;
 	void initialize();
 
@@ -505,7 +509,7 @@ private:
 	};
 	const static uint8_t ADDRESS_PWM_AUTO = 0x72;
 
-	void setOperationModeToSerial();
+	//void setOperationModeToSerial();
 
 	void setRegistersToDefaults();
 	void readAndStoreRegisters();

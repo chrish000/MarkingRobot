@@ -29,7 +29,7 @@ TMC2209::TMC2209() {
 /**
  * @brief  Array that contains pre-calculated CRC-Values for the initialization-process
  */
-constexpr uint8_t TMC2209::precomputedCRC[16];
+constexpr uint8_t TMC2209::precomputedCRC[];
 
 /**
  * @brief  Configures the TMC2209 communication interface.
@@ -517,6 +517,7 @@ bool TMC2209::hardwareDisabled() {
  */
 uint16_t TMC2209::getMicrostepsPerStep() {
 	uint16_t microsteps_per_step_exponent;
+	chopper_config_.bytes = readChopperConfigBytes();
 	switch (chopper_config_.mres) {
 	case MRES_001: {
 		microsteps_per_step_exponent = 0;
@@ -758,15 +759,18 @@ uint16_t TMC2209::getMicrostepCounter() {
  * @brief  Initializes the TMC2209 driver by setting operation mode, clearing errors, and configuring settings.
  */
 void TMC2209::initialize() {
+	//precomputedCRC[] needs to be recalculated if modified
 	init_flag = 1;
-	setOperationModeToSerial();
 	setRegistersToDefaults();
 	clearDriveError();
-
-	minimizeMotorCurrent();
+	clearReset();
 	disable();
+	setOperationModeToSerial();
+
+	setAllCurrentValues(RunCurrentDefault, HoldCurrentDefault, 10);
 	disableAutomaticCurrentScaling();
 	disableAutomaticGradientAdaptation();
+	enableDoubleEdge();
 	init_flag = 0;
 	precomputedCRCIndex = 0;
 }

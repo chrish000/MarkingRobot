@@ -88,10 +88,11 @@ void Error_Handler(void);
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-#define STEPS_PER_MM 100
-#define STEPS_PER_DEG 100
-#define RUN_CURRENT_DEFAULT 800
-#define HOLD_CURRENT_DEFAULT 500
+#define MICROSTEPS 256
+#define STEPS_PER_MM 181.952	//5.684 alt		// "/(256/MICROSTEPS)"
+#define STEPS_PER_DEG 825.666	//25.793 alt
+#define RUN_CURRENT_DEFAULT 2000
+#define HOLD_CURRENT_DEFAULT 2000
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

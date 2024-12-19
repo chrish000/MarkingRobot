@@ -131,12 +131,16 @@ int main(void) {
 	tmcX.hardware_enable_port = X_EN_GPIO_Port;
 	tmcX.hardware_enable_pin = X_EN_Pin;
 	tmcX.setup();
+	tmcX.setMicrostepsPerStep(MICROSTEPS);
 
 	tmcZ.UART_address = &huart8;
 	tmcZ.hardware_enable_port = Z_EN_GPIO_Port;
 	tmcZ.hardware_enable_pin = Z_EN_Pin;
 	tmcZ.setup();
+	tmcZ.setMicrostepsPerStep(MICROSTEPS);
 
+	tmcX.enable();
+	tmcZ.enable();
 	/* CLK Configuration */
 
 	/* GPIO Configuration */

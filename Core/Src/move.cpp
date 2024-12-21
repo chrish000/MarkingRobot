@@ -113,12 +113,12 @@ void Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 		if (turn != 0) {
 			moveRot(turn, speed, accel);
 			while (motorMaster.getTimerState())
-				//TODO optimieren
+				//TODO optimieren mit Warteschlangen-Buffer
 				;
 		}
 		moveLin(calcDistance(newX, newY, posX, posY), speed, accel);
 		while (motorMaster.getTimerState())
-			//TODO optimieren
+			//TODO optimieren mit Warteschlangen-Buffer
 			;
 		posX = newX;
 		posY = newY;

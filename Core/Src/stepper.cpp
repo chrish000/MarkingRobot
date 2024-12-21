@@ -220,5 +220,5 @@ void StepperMotor::setTargetPos(uint32_t target) {
  */
 void StepperMotor::step() {
 	if (stepPort != nullptr)
-		HAL_GPIO_TogglePin(stepPort, stepPin); // TODO TMC2209: Doppel-Flanke
+		HAL_GPIO_TogglePin(stepPort, stepPin); // double-edge des Schrittmotortreibers muss aktiv sein
 }

@@ -12,13 +12,12 @@
  *
  ******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef INC_UTILS_H
-#define INC_UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 /* Exported functions prototypes ---------------------------------------------*/
 inline float sqr(float x) {
 	return x * x;
 }
 
-#endif /* INC_UTILS_H */
+#endif /* UTILS_H */

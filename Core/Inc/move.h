@@ -12,29 +12,34 @@
  *
  ******************************************************************************
  */
-#ifndef INC_MOVE_H_
-#define INC_MOVE_H_
+#ifndef MOVE_H
+#define MOVE_H
 
+/* Includes ------------------------------------------------------------------*/
 #include "stepper.h"
 
 class Robot {
 public:
+	Robot(TIM_HandleTypeDef *htim) :
+			motorMaster(htim), motorX(&motorMaster), motorY(&motorMaster) {
+	}
 
+	MotorManager motorMaster;
 	StepperMotor motorX;
 	StepperMotor motorY;
-	SharedInterval intervalBuf;
-	void moveToPos(float newX, float newY, float speed = DEFAULT_SPEED, float accel = DEFAULT_ACCEL);
+
+	void moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
+			float_t accel = DEFAULT_ACCEL);
 
 private:
+	float_t posX = 0;
+	float_t posY = 0;
+	float_t speed = DEFAULT_SPEED; //in mm/s
+	float_t accel = DEFAULT_ACCEL;
+	float_t orientation = 0; //0°-360°
 
-	short posX = 0;
-	short posY = 0;
-	float speed = DEFAULT_SPEED; //in mm/s
-	float accel = DEFAULT_ACCEL;
-	short orientation = 0; //0°-360°
-
-	void moveLin(float distance, float speed, float accel);
-	void moveRot(float degrees, float speed, float accel);
+	void moveLin(float_t distance, float_t speed, float_t accel);
+	void moveRot(float_t degrees, float_t speed, float_t accel);
 };
 
-#endif /* INC_MOVE_H_ */
+#endif /* MOVE_H */

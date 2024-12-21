@@ -45,7 +45,7 @@
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
-Robot robo;
+Robot robi(&htim2);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,27 +98,26 @@ int main(void) {
 	/* Initialize interrupts */
 	MX_NVIC_Init();
 	/* USER CODE BEGIN 2 */
-	HAL_TIM_Base_Start_IT(&htim2);
 
-	robo.motorX.setStepPin(X_STEP_GPIO_Port, X_STEP_Pin);
-	robo.motorX.setDirPin(X_DIR_GPIO_Port, X_DIR_Pin);
-	robo.motorY.setStepPin(Z_STEP_GPIO_Port, Z_STEP_Pin);
-	robo.motorY.setDirPin(Z_DIR_GPIO_Port, Z_DIR_Pin);
+	robi.motorX.setStepPin(X_STEP_GPIO_Port, X_STEP_Pin);
+	robi.motorX.setDirPin(X_DIR_GPIO_Port, X_DIR_Pin);
+	robi.motorY.setStepPin(Z_STEP_GPIO_Port, Z_STEP_Pin);
+	robi.motorY.setDirPin(Z_DIR_GPIO_Port, Z_DIR_Pin);
 
 	HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET);
 
 	//################# TESTLAUF ###############################
-	robo.moveToPos(1000, 0);
-	robo.moveToPos(2000, 0);
-	robo.moveToPos(3000, 0);
-	robo.moveToPos(4000, 0);
-	robo.moveToPos(5000, 0);
-	robo.moveToPos(6000, 0);
-	robo.moveToPos(7000, 0);
-	robo.moveToPos(8000, 0);
-	robo.moveToPos(9000, 0);
-	robo.moveToPos(10000, 0);
+	robi.moveToPos(1000, 0);
+	robi.moveToPos(2000, 0);
+	robi.moveToPos(3000, 0);
+	robi.moveToPos(4000, 0);
+	robi.moveToPos(5000, 0);
+	robi.moveToPos(6000, 0);
+	robi.moveToPos(7000, 0);
+	robi.moveToPos(8000, 0);
+	robi.moveToPos(9000, 0);
+	robi.moveToPos(10000, 0);
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
@@ -325,15 +324,9 @@ static void MX_GPIO_Init(void) {
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
-		if (robo.motorX.getActive() && robo.motorY.getActive()) {
-			htim->Instance->ARR = robo.intervalBuf.popInterval();
-			robo.motorX.handleStep();
-			robo.motorY.handleStep();
-			if (!robo.motorX.getActive() && !robo.motorY.getActive()) {
-				htim->Instance->ARR = robo.intervalBuf.stepIntervalDefault;
-				robo.intervalBuf.resetStepCount();
-			}
-		}
+			htim->Instance->ARR = robi.motorMaster.calcInterval();
+			robi.motorX.handleStep();
+			robi.motorY.handleStep();
 	}
 }
 

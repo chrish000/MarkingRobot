@@ -17,6 +17,11 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "ringbuffer.hpp"
+
+enum {
+	forward = 1, reverse = 0
+};
 
 class MotorManager {
 public:
@@ -26,37 +31,55 @@ public:
 
 	TIM_HandleTypeDef *htim;
 
+	struct moveCommands {
+		float_t speed;
+		float_t accel;
+		uint32_t stepDistance;
+		bool directionX;
+		bool directionY;
+	};
+	struct stepCmd {
+		uint32_t interval;
+		bool directionX;
+		bool directionY;
+	};
+	constexpr static size_t buffer_size_move = 256;	//size = n-1 elements
+	constexpr static size_t buffer_size_step = 2048;	//size = n-1 elements
+	jnk0le::Ringbuffer<moveCommands, buffer_size_move> moveBuf;
+	jnk0le::Ringbuffer<stepCmd, buffer_size_step> stepBuf;
+
 	static constexpr uint8_t stepIntervalDefault = 9;
 	void setSpeed(float_t speed);
 	void setAccel(float_t accel);
 	void setDistance(float_t distance);
 	void setParam(float_t speed, float_t accel, float_t distance);
 	void resetStepCount();
-	uint32_t calcInterval();
+	bool calcInterval();
 	void startTimer();
 	void stopTimer();
 	bool getTimerState();
 
 private:
-	float_t speed = DEFAULT_SPEED;
-	static constexpr float_t minSpeed = 1;
-	static constexpr float_t maxSpeed = 10000;
-	float_t accel = DEFAULT_ACCEL;
-	static constexpr float_t minAccel = 1;
-	static constexpr float_t maxAccel = 10000;
-	float_t distance;
-	uint32_t stepCount = 0;	// Zähler für Schritte
-	uint16_t accelStepCount = 0;
-	float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
-	float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
 
+	moveCommands *moveCmdCalcBuf;
+
+	struct intervalCalc {
+		uint32_t stepCnt = 0;	// Zähler für Schritte
+		uint16_t accelStepCnt = 0;
+		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
+		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
+	} intervalCalc;
+	bool timerActiveFlag = 0;
+	struct stepCmd trapezoid(moveCommands*);
 };
 
 class StepperMotor {
 public:
-	StepperMotor(MotorManager *stepperMotorParent) :
-			parent(*stepperMotorParent) {
-	}
+	/*
+	 StepperMotor(MotorManager *stepperMotorParent) :
+	 parent(*stepperMotorParent) {
+	 }
+	 */
 
 	void setStepPin(GPIO_TypeDef *inputStepPort, uint16_t inputStepPin);
 	void setDirPin(GPIO_TypeDef *inputDirPort, uint16_t inputDirPin);
@@ -66,7 +89,7 @@ public:
 	void setTargetPos(uint32_t target);
 
 private:
-	MotorManager &parent;
+	//MotorManager &parent;
 
 	uint16_t stepPin;
 	GPIO_TypeDef *stepPort;
@@ -74,8 +97,8 @@ private:
 	GPIO_TypeDef *dirPort;
 
 	bool direction;
-	uint32_t currentPosition;
-	uint32_t targetPosition;
+	//uint32_t currentPosition;
+	//uint32_t targetPosition;
 
 	void step();
 };

@@ -21,25 +21,30 @@
 class Robot {
 public:
 	Robot(TIM_HandleTypeDef *htim) :
-			motorMaster(htim), motorX(&motorMaster), motorY(&motorMaster) {
+			motorMaster(htim) /*, motorX(&motorMaster), motorY(&motorMaster)*/{
 	}
 
 	MotorManager motorMaster;
 	StepperMotor motorX;
 	StepperMotor motorY;
 
-	void moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
+	void init();
+	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
 			float_t accel = DEFAULT_ACCEL);
 
 private:
 	float_t posX = 0;
 	float_t posY = 0;
-	float_t speed = DEFAULT_SPEED; //in mm/s
+	float_t speed = DEFAULT_SPEED;
+	static constexpr float_t minSpeed = 1;	//TODO constrain einbauen
+	static constexpr float_t maxSpeed = 10000;
 	float_t accel = DEFAULT_ACCEL;
+	static constexpr float_t minAccel = 1;
+	static constexpr float_t maxAccel = 10000;
 	float_t orientation = 0; //0°-360°
 
-	void moveLin(float_t distance, float_t speed, float_t accel);
-	void moveRot(float_t degrees, float_t speed, float_t accel);
+	bool moveLin(float_t distance, float_t speed, float_t accel);
+	bool moveRot(float_t degrees, float_t speed, float_t accel);
 };
 
 #endif /* MOVE_H */

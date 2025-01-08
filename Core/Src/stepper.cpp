@@ -19,34 +19,39 @@
 #include <algorithm>
 
 /* MotorManager --------------------------------------------------------------*/
-
 /**
  * @brief Setzt die Geschwindigkeit in mm/s mit Begrenzung auf minSpeed und maxSpeed
  * @param mmPerSecond Geschwindigkeit in mm/s
  * @retval None
  */
-void MotorManager::setSpeed(float_t mmPerSecond) {
-	speed = std::clamp(mmPerSecond, minSpeed, maxSpeed);
-}
+/*
+ void MotorManager::setSpeed(float_t mmPerSecond) {
+ speed = std::clamp(mmPerSecond, minSpeed, maxSpeed);
+ }
+ */
 
 /**
  * @brief Setzt die Beschleunigung in mm/s^2 mit Begrenzung auf minAccel und maxAccel
  * @param mmPerSecond2 Beschleunigung in mm/s^2
  * @retval None
  */
-void MotorManager::setAccel(float_t mmPerSecond2) {
-	accel = std::clamp(mmPerSecond2, minAccel, maxAccel);
-}
+/*
+ void MotorManager::setAccel(float_t mmPerSecond2) {
+ accel = std::clamp(mmPerSecond2, minAccel, maxAccel);
+ }
+ */
 
 /**
  * @brief Setzt die Distanz, falls sie nicht null ist
  * @param newDistance Neue Distanz in Einheiten
  * @retval None
  */
-void MotorManager::setDistance(float_t newDistance) {
-	if (newDistance != 0)
-		distance = newDistance;
-}
+/*
+ void MotorManager::setDistance(float_t newDistance) {
+ if (newDistance != 0)
+ distance = newDistance;
+ }
+ */
 
 /**
  * @brief Setzt alle relevanten Parameter: Geschwindigkeit, Beschleunigung und Distanz
@@ -55,20 +60,60 @@ void MotorManager::setDistance(float_t newDistance) {
  * @param newDistance Neue Distanz in Einheiten
  * @retval None
  */
-void MotorManager::setParam(float_t newSpeed, float_t newAccel,
-		float_t newDistance) {
-	setSpeed(newSpeed);
-	setAccel(newAccel);
-	setDistance(newDistance);
-}
+/*
+ void MotorManager::setParam(float_t newSpeed, float_t newAccel,
+ float_t newDistance) {
+ setSpeed(newSpeed);
+ setAccel(newAccel);
+ setDistance(newDistance);
+ }
+ */
 
 /**
  * @brief Zurücksetzen des Schrittzählers
  * @param None
  * @retval None
  */
-void MotorManager::resetStepCount() {
-	stepCount = 0;
+/*
+ void MotorManager::resetStepCount() {
+ intervalCalc.stepCnt = 0;
+ }
+ */
+
+MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
+	// 1. Beschleunigungsphase
+	if (intervalCalc.currentSpeed < moveCmd->speed
+			&& intervalCalc.stepCnt < moveCmd->stepDistance / 2) {
+		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
+		if (intervalCalc.currentSpeed == 0) {
+			intervalCalc.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
+		}
+		intervalCalc.currentSpeed += moveCmd->accel * intervalCalc.interval;
+		intervalCalc.accelStepCnt = intervalCalc.stepCnt;
+	}
+
+	// 2. Phase konstanter Geschwindigkeit
+	else if (intervalCalc.stepCnt
+			< moveCmd->stepDistance - intervalCalc.accelStepCnt) {
+		intervalCalc.interval = 1.0f / moveCmd->speed;
+	}
+
+	// 3. Abbremsphase
+	else if (intervalCalc.stepCnt < moveCmd->stepDistance) {
+		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
+		intervalCalc.currentSpeed -= moveCmdCalcBuf->accel
+				* intervalCalc.interval;
+		if (intervalCalc.currentSpeed < 0) {
+			intervalCalc.currentSpeed = 0; // Sicherheit: Keine negative Geschwindigkeit
+		}
+	}
+
+	intervalCalc.stepCnt++;
+	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
+			* F_TIM, stepCmd.directionX = moveCmd->directionX,
+			stepCmd.directionY = moveCmd->directionY };
+
+	return stepCmd;
 }
 
 /**
@@ -76,34 +121,40 @@ void MotorManager::resetStepCount() {
  * @param None
  * @retval Zeitintervall in Mikrosekunden
  */
-uint32_t MotorManager::calcInterval() {
-	// 1. Beschleunigungsphase
-	if (currentSpeed < speed && stepCount < distance / 2) {
-		interval = 1.0f / currentSpeed;
-		if (currentSpeed == 0) {
-			interval = sqrt(2.0f / accel); // Anfangsphase ohne Geschwindigkeit
+bool MotorManager::calcInterval() {
+	if (moveBuf.isEmpty() == false) {	//Berechne falls Daten vorhanden
+		startTimer();
+		moveCmdCalcBuf = moveBuf.peek();
+		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
+		while (stepBuf.isFull() == false
+				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
+
+			stepBuf.insert(trapezoid(moveCmdCalcBuf));
 		}
-		currentSpeed += accel * interval;
-		accelStepCount = stepCount;
-	}
-
-	// 2. Phase konstanter Geschwindigkeit
-	else if (stepCount < distance - accelStepCount) {
-		interval = 1.0f / speed;
-	}
-
-	// 3. Abbremsphase
-	else if (stepCount < distance) {
-		interval = 1.0f / currentSpeed;
-		currentSpeed -= accel * interval;
-		if (currentSpeed < 0) {
-			currentSpeed = 0; // Sicherheit: Keine negative Geschwindigkeit
+		//Berechnung abgeschlossen
+		if (intervalCalc.stepCnt == moveCmdCalcBuf->stepDistance) {
+			resetStepCount();
+			if (moveBuf.remove())
+				return true;
+			else {
+				ErrorCode = MOVE_BUF;
+				Error_Handler();
+				return false; //niemals erreicht
+			}
 		}
-	}
-
-	stepCount++;
-
-	return (uint32_t) (interval * F_TIM);
+		//Berechnung nicht abgeschlossen aber Puffer voll
+		else if (stepBuf.isFull()
+				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance)
+			return true;
+		//Berechnung nicht abgeschlossen und Puffer nicht voll
+		else {
+			ErrorCode = STEP_BUF;
+			Error_Handler();
+			return false; //niemals erreicht
+		}
+	} else
+		//Keine Daten für Berechnung vorhanden
+		return false;
 }
 
 /**
@@ -114,6 +165,7 @@ uint32_t MotorManager::calcInterval() {
 void MotorManager::startTimer() {
 	if (htim != nullptr) {
 		htim->Instance->ARR = stepIntervalDefault;
+		timerActiveFlag = true;
 		HAL_TIM_Base_Start_IT(htim);
 	}
 }
@@ -126,8 +178,9 @@ void MotorManager::startTimer() {
 void MotorManager::stopTimer() {
 	if (htim != nullptr) {
 		htim->Instance->ARR = stepIntervalDefault;
+		timerActiveFlag = false;
 		HAL_TIM_Base_Stop_IT(htim);
-		resetStepCount();
+		//resetStepCount();
 	}
 }
 
@@ -174,7 +227,7 @@ void StepperMotor::setDirPin(GPIO_TypeDef *inputDirPort, uint16_t inputDirPin) {
 void StepperMotor::setStepDir(bool status) {
 	direction = status;
 	if (dirPort != nullptr) {
-		if (direction == true)
+		if (direction == forward)
 			HAL_GPIO_WritePin(dirPort, dirPin, GPIO_PIN_SET);
 		else
 			HAL_GPIO_WritePin(dirPort, dirPin, GPIO_PIN_RESET);
@@ -197,11 +250,13 @@ bool StepperMotor::getStepDir() {
  */
 void StepperMotor::handleStep() {
 	step();
-	currentPosition++;
-	if (currentPosition == targetPosition) {
-		parent.stopTimer();
-		currentPosition = 0;
-	}
+	/*
+	 currentPosition++;
+	 if (currentPosition == targetPosition) {
+	 parent.stopTimer();
+	 currentPosition = 0;
+	 }
+	 */
 }
 
 /**
@@ -209,9 +264,11 @@ void StepperMotor::handleStep() {
  * @param target Zielposition in Schritten
  * @retval None
  */
-void StepperMotor::setTargetPos(uint32_t target) {
-	targetPosition = target;
-}
+/*
+ void StepperMotor::setTargetPos(uint32_t target) {
+ targetPosition = target;
+ }
+ */
 
 /**
  * @brief Führt einen Schritt aus, indem der Step-Pin toggelt

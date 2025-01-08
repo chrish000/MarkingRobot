@@ -21,7 +21,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stepper.h"
 #include "move.h"
 /* USER CODE END Includes */
 
@@ -45,6 +44,7 @@
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
+ERROR_HandleCode ErrorCode = NONE;
 Robot robi(&htim2);
 /* USER CODE END PV */
 
@@ -108,20 +108,31 @@ int main(void) {
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET);
 
 	//################# TESTLAUF ###############################
-	robi.moveToPos(1000, 0);
-	robi.moveToPos(2000, 0);
-	robi.moveToPos(3000, 0);
-	robi.moveToPos(4000, 0);
-	robi.moveToPos(5000, 0);
-	robi.moveToPos(6000, 0);
-	robi.moveToPos(7000, 0);
-	robi.moveToPos(8000, 0);
-	robi.moveToPos(9000, 0);
-	robi.moveToPos(10000, 0);
+	const uint8_t posCnt = 10;
+	int16_t posStorage[posCnt][2];
+	for (int i = 0; i < posCnt; i++) {
+		posStorage[i][0] += 1000;
+		posStorage[i][1] = 0;
+	}
+	uint8_t i = 0;
+	/*
+	 robi.moveToPos(1000, 0);
+	 robi.moveToPos(2000, 0);
+	 robi.moveToPos(3000, 0);
+	 robi.moveToPos(4000, 0);
+	 robi.moveToPos(5000, 0);
+	 robi.moveToPos(6000, 0);
+	 robi.moveToPos(7000, 0);
+	 robi.moveToPos(8000, 0);
+	 robi.moveToPos(9000, 0);
+	 robi.moveToPos(10000, 0);
+	 */
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-
+		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1]))
+			i++;
+		//TODO Intervalle berechnen und speichern
 		/* USER CODE END WHILE */
 		/* USER CODE BEGIN 3 */
 	}
@@ -324,9 +335,17 @@ static void MX_GPIO_Init(void) {
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
-			htim->Instance->ARR = robi.motorMaster.calcInterval();
-			robi.motorX.handleStep();
-			robi.motorY.handleStep();
+		MotorManager::stepCmd nextCmd;
+		if (robi.motorMaster.stepBuf.readBuff(&nextCmd, 1) == 0) { //Wenn keine Daten in Puffer
+			robi.motorMaster.stopTimer();
+			//ERROR_HandleCode = STEP_BUF;
+			//Error_Handler();
+		}
+		htim->Instance->ARR = nextCmd.interval;
+		robi.motorX.setStepDir(nextCmd.directionX);
+		robi.motorY.setStepDir(nextCmd.directionY);
+		robi.motorX.handleStep();
+		robi.motorY.handleStep();
 	}
 }
 
@@ -356,7 +375,7 @@ void MPU_Config(void) {
 
 	HAL_MPU_ConfigRegion(&MPU_InitStruct);
 	/* Enables the MPU */
-	HAL_MPU_Enable (MPU_PRIVILEGED_DEFAULT);
+	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
 }
 
@@ -368,7 +387,15 @@ void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-	while (1) {
+	//while (1) {
+	//}
+	switch (ErrorCode) {
+	case NONE:
+		break;
+	case MOVE_BUF:
+		break;
+	case STEP_BUF:
+		break;
 	}
 	/* USER CODE END Error_Handler_Debug */
 }

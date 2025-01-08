@@ -18,6 +18,10 @@
 #include "utils.h"
 #include "move.h"
 
+void Robot::init() {
+	motorMaster.moveBuf.consumerClear();
+}
+
 /**
  * @brief Lineare Bewegung des Roboters
  * @param distance Distanz in mm
@@ -25,19 +29,27 @@
  * @param accel Beschleunigung in mm/s^2
  * @retval None
  */
-void Robot::moveLin(float_t distance, float_t speed, float_t accel) {
+bool Robot::moveLin(float_t distance, float_t speed, float_t accel) {
 	if (distance != 0) //Prüfen ob Distanz nicht 0 ist
 			{
 		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
-		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen TODO Distanz kann nie negativ sein mit aktueller Berechnung
+		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen
 
-		motorX.setStepDir(direction);
-		motorY.setStepDir(!direction);
-		motorMaster.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
-		motorX.setTargetPos(steps);
-		motorY.setTargetPos(steps);
-		HAL_TIM_Base_Start_IT(motorMaster.htim);
-	}
+		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
+				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
+				cmd.directionX = direction, cmd.directionY = !direction };
+
+		return motorMaster.moveBuf.insert(cmd);
+		/*
+		 motorX.setStepDir(direction);
+		 motorY.setStepDir(!direction);
+		 motorMaster.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
+		 motorX.setTargetPos(steps);
+		 motorY.setTargetPos(steps);
+		 */
+//		HAL_TIM_Base_Start_IT(motorMaster.htim); //TODO optimieren
+	} else
+		return false;
 }
 
 /**
@@ -47,20 +59,32 @@ void Robot::moveLin(float_t distance, float_t speed, float_t accel) {
  * @param accel Beschleunigung in mm/s^2
  * @retval None
  */
-void Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
+bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	if (degrees != 0) //Prüfen ob Distanz nicht 0 ist
 			{
 		uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
 		bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
 
-		motorX.setStepDir(!direction);
-		motorY.setStepDir(!direction);
-		motorMaster.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
-		motorX.setTargetPos(steps);
-		motorY.setTargetPos(steps);
-		HAL_TIM_Base_Start_IT(motorMaster.htim);
-		orientation += degrees;
-	}
+		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
+				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
+				cmd.directionX = !direction, cmd.directionY = !direction };
+
+		if (motorMaster.moveBuf.writeAvailable() != 0) {
+			orientation += degrees;
+			return motorMaster.moveBuf.insert(cmd);
+		} else
+			return false;
+		/*
+		 motorX.setStepDir(!direction);
+		 motorY.setStepDir(!direction);
+		 motorMaster.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
+		 motorX.setTargetPos(steps);
+		 motorY.setTargetPos(steps);
+		 HAL_TIM_Base_Start_IT(motorMaster.htim);
+		 orientation += degrees;
+		 */
+	} else
+		return false;
 }
 
 /**
@@ -104,24 +128,36 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
  * @param newAccel Beschleunigung in mm/s^2
  * @retval None
  */
-void Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
+bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 		float_t newAccel) {
 	if (!(newX == posX && newY == posY)) {
 		speed = newSpeed;	//Aktuelle Geschwindigkeit speichern
 		accel = newAccel;
 		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
 		if (turn != 0) {
-			moveRot(turn, speed, accel);
-			while (motorMaster.getTimerState())
-				//TODO optimieren mit Warteschlangen-Buffer
-				;
+			if (motorMaster.moveBuf.readAvailable() >= 2) {
+				if (moveRot(turn, speed, accel) == false)
+					return false;
+				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel)
+						== false)
+					return false;
+				posX = newX;
+				posY = newY;
+				return true;
+			} else
+				return false;
+		} else {
+			if (motorMaster.moveBuf.readAvailable() != 0) {
+				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel)
+						== false)
+					return false;
+				posX = newX;
+				posY = newY;
+				return true;
+			} else
+				return false;
 		}
-		moveLin(calcDistance(newX, newY, posX, posY), speed, accel);
-		while (motorMaster.getTimerState())
-			//TODO optimieren mit Warteschlangen-Buffer
-			;
-		posX = newX;
-		posY = newY;
 	}
+	return false;
 }
 

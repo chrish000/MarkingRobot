@@ -768,7 +768,7 @@ void TMC2209::initialize() {
 	disable();
 	setOperationModeToSerial();
 
-	setAllCurrentValues(RunCurrentDefault, HoldCurrentDefault, 10);
+	setAllCurrentValues(RUN_CURRENT_DEFAULT, HOLD_CURRENT_DEFAULT, 10);
 	disableAutomaticCurrentScaling();
 	disableAutomaticGradientAdaptation();
 	enableDoubleEdge();

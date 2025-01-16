@@ -91,8 +91,8 @@ void Error_Handler(void);
 #define MICROSTEPS 256
 #define STEPS_PER_MM 181.952	//5.684 alt		// "/(256/MICROSTEPS)"
 #define STEPS_PER_DEG 825.666	//25.793 alt
-#define RUN_CURRENT_DEFAULT 2000
-#define HOLD_CURRENT_DEFAULT 2000
+#define RUN_CURRENT_DEFAULT 200
+#define HOLD_CURRENT_DEFAULT 500
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

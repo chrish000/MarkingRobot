@@ -353,12 +353,12 @@ private:
 	DriverCurrent driver_current_;
 	constexpr static uint8_t PERCENT_MIN = 0;
 	constexpr static uint8_t PERCENT_MAX = 100;
-	constexpr uint16_t CURRENT_SETTING_MIN = 0;		//mA
-	constexpr uint16_t CURRENT_SETTING_MAX = 2000;	//mA
-	constexpr uint8_t RUN_CURRENT_SETTING_MIN = 0;
-	constexpr uint8_t RUN_CURRENT_SETTING_MAX = 31;
-	constexpr uint8_t HOLD_DELAY_MIN = 0;
-	constexpr uint8_t HOLD_DELAY_MAX = 15;
+	const uint16_t CURRENT_SETTING_MIN = 0;		//mA
+	const uint16_t CURRENT_SETTING_MAX = 2000;	//mA
+	const uint8_t RUN_CURRENT_SETTING_MIN = 0;
+	const uint8_t RUN_CURRENT_SETTING_MAX = 31;
+	const uint8_t HOLD_DELAY_MIN = 0;
+	const uint8_t HOLD_DELAY_MAX = 15;
 	constexpr static uint8_t IHOLD_DEFAULT = 16;
 	constexpr static uint8_t IRUN_DEFAULT = 31;
 	constexpr static uint8_t IHOLDDELAY_DEFAULT = 1;
@@ -525,9 +525,9 @@ private:
 	template<typename Datagram>
 	void sendDatagram(Datagram &datagram, uint8_t datagram_size);
 
-	constexpr uint16_t SEND_TIMEOUT = 10000;	//ms
+	const uint16_t SEND_TIMEOUT = 10000;	//ms
 	void write(uint8_t register_address, uint32_t data);
-	constexpr uint16_t READ_REPLY_TIMEOUT = 10000;	//ms
+	const uint16_t READ_REPLY_TIMEOUT = 10000;	//ms
 	uint32_t read(uint8_t register_address);
 
 	uint8_t holdDelaySettingToPercent(uint8_t hold_delay_setting);

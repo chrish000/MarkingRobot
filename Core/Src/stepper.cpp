@@ -75,10 +75,10 @@
  * @retval None
  */
 /*
- void MotorManager::resetStepCount() {
- intervalCalc.stepCnt = 0;
- }
- */
+void MotorManager::resetStepCount() {
+	intervalCalc.stepCnt = 0;
+}
+*/
 
 MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	// 1. Beschleunigungsphase
@@ -123,7 +123,6 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
  */
 bool MotorManager::calcInterval() {
 	if (moveBuf.isEmpty() == false) {	//Berechne falls Daten vorhanden
-		startTimer();
 		moveCmdCalcBuf = moveBuf.peek();
 		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
 		while (stepBuf.isFull() == false
@@ -133,10 +132,12 @@ bool MotorManager::calcInterval() {
 		}
 		//Berechnung abgeschlossen
 		if (intervalCalc.stepCnt == moveCmdCalcBuf->stepDistance) {
-			resetStepCount();
-			if (moveBuf.remove())
+			intervalCalc.stepCnt = 0;
+			if (moveBuf.remove()) {
+				if (timerActiveFlag == false)
+					startTimer();
 				return true;
-			else {
+			} else {
 				ErrorCode = MOVE_BUF;
 				Error_Handler();
 				return false; //niemals erreicht
@@ -144,8 +145,12 @@ bool MotorManager::calcInterval() {
 		}
 		//Berechnung nicht abgeschlossen aber Puffer voll
 		else if (stepBuf.isFull()
-				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance)
+				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
+			//if (timerActiveFlag == false)
+				startTimer();
 			return true;
+		}
+
 		//Berechnung nicht abgeschlossen und Puffer nicht voll
 		else {
 			ErrorCode = STEP_BUF;

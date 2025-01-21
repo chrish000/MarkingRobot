@@ -108,12 +108,16 @@ int main(void) {
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET);
 
 	//################# TESTLAUF ###############################
-	const uint8_t posCnt = 10;
-	int16_t posStorage[posCnt][2];
-	for (int i = 0; i < posCnt; i++) {
-		posStorage[i][0] += 1000;
-		posStorage[i][1] = 0;
-	}
+	const uint8_t posCnt = 2;
+	//int16_t posStorage[posCnt][2] = { { 10, 0 } };
+	int16_t posStorage[10][2] = { { 10, 0 }, { 20, 0 }, { 30, 0 }, { 40, 0 }, {
+			50, 0 }, { 60, 0 }, { 70, 0 }, { 80, 0 }, { 90, 0 }, { 100, 0 }, };
+	/*
+	 for (int i = 0; i < posCnt; i++) {
+	 posStorage[i][0] += 1000;
+	 posStorage[i][1] = 0;
+	 }
+	 */
 	uint8_t i = 0;
 	/*
 	 robi.moveToPos(1000, 0);
@@ -132,7 +136,8 @@ int main(void) {
 	while (1) {
 		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1]))
 			i++;
-		//TODO Intervalle berechnen und speichern
+		while (robi.motorMaster.calcInterval())
+			;
 		/* USER CODE END WHILE */
 		/* USER CODE BEGIN 3 */
 	}

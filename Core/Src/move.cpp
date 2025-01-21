@@ -69,11 +69,8 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
 				cmd.directionX = !direction, cmd.directionY = !direction };
 
-		if (motorMaster.moveBuf.writeAvailable() != 0) {
-			orientation += degrees;
-			return motorMaster.moveBuf.insert(cmd);
-		} else
-			return false;
+		orientation += degrees;
+		return motorMaster.moveBuf.insert(cmd);
 		/*
 		 motorX.setStepDir(!direction);
 		 motorY.setStepDir(!direction);
@@ -135,7 +132,7 @@ bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 		accel = newAccel;
 		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
 		if (turn != 0) {
-			if (motorMaster.moveBuf.readAvailable() >= 2) {
+			if (motorMaster.moveBuf.writeAvailable() >= 2) {
 				if (moveRot(turn, speed, accel) == false)
 					return false;
 				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel)
@@ -147,7 +144,7 @@ bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 			} else
 				return false;
 		} else {
-			if (motorMaster.moveBuf.readAvailable() != 0) {
+			if (motorMaster.moveBuf.writeAvailable() != 0) {
 				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel)
 						== false)
 					return false;

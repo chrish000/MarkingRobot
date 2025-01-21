@@ -43,17 +43,21 @@ public:
 		bool directionX;
 		bool directionY;
 	};
-	constexpr static size_t buffer_size_move = 256;	//size = n-1 elements
-	constexpr static size_t buffer_size_step = 2048;	//size = n-1 elements
-	jnk0le::Ringbuffer<moveCommands, buffer_size_move> moveBuf;
-	jnk0le::Ringbuffer<stepCmd, buffer_size_step> stepBuf;
+	const static size_t buffer_size_move = 256;	//size = n-1 elements
+	/*
+	 * TODO
+	 * Der Buffer stepBuf ist zu klein für lange Bewegungen
+	 */
+	const static size_t buffer_size_step = 4096;	//size = n-1 elements
+	jnk0le::Ringbuffer<moveCommands, buffer_size_move, 0, 32> moveBuf;
+	jnk0le::Ringbuffer<stepCmd, buffer_size_step,0 ,32> stepBuf;
 
 	static constexpr uint8_t stepIntervalDefault = 9;
 	void setSpeed(float_t speed);
 	void setAccel(float_t accel);
 	void setDistance(float_t distance);
 	void setParam(float_t speed, float_t accel, float_t distance);
-	void resetStepCount();
+	//void inline resetStepCount();
 	bool calcInterval();
 	void startTimer();
 	void stopTimer();

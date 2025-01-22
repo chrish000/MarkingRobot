@@ -108,35 +108,19 @@ int main(void) {
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET);
 
 	//################# TESTLAUF ###############################
-	const uint8_t posCnt = 2;
-	//int16_t posStorage[posCnt][2] = { { 10, 0 } };
-	int16_t posStorage[10][2] = { { 10, 0 }, { 20, 0 }, { 30, 0 }, { 40, 0 }, {
-			50, 0 }, { 60, 0 }, { 70, 0 }, { 80, 0 }, { 90, 0 }, { 100, 0 }, };
-	/*
-	 for (int i = 0; i < posCnt; i++) {
-	 posStorage[i][0] += 1000;
-	 posStorage[i][1] = 0;
-	 }
-	 */
+	const uint8_t posCnt = 10;
+	int16_t posStorage[10][2] = { { 100, 0 }, { 200, 0 }, { 300, 0 },
+			{ 400, 0 }, { 500, 0 }, { 600, 0 }, { 700, 0 }, { 800, 0 },
+			{ 900, 0 }, { 1000, 0 } };
 	uint8_t i = 0;
-	/*
-	 robi.moveToPos(1000, 0);
-	 robi.moveToPos(2000, 0);
-	 robi.moveToPos(3000, 0);
-	 robi.moveToPos(4000, 0);
-	 robi.moveToPos(5000, 0);
-	 robi.moveToPos(6000, 0);
-	 robi.moveToPos(7000, 0);
-	 robi.moveToPos(8000, 0);
-	 robi.moveToPos(9000, 0);
-	 robi.moveToPos(10000, 0);
-	 */
+	/* USER CODE END 2 */
+
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1]))
 			i++;
-		while (robi.motorMaster.calcInterval())
+		if (robi.motorMaster.calcInterval())
 			;
 		/* USER CODE END WHILE */
 		/* USER CODE BEGIN 3 */
@@ -341,16 +325,17 @@ static void MX_GPIO_Init(void) {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
 		MotorManager::stepCmd nextCmd;
-		if (robi.motorMaster.stepBuf.readBuff(&nextCmd, 1) == 0) { //Wenn keine Daten in Puffer
+		if (robi.motorMaster.stepBuf.remove(&nextCmd)) { //Wenn Daten in Puffer
+			htim->Instance->ARR = nextCmd.interval;
+			robi.motorX.setStepDir(nextCmd.directionX);
+			robi.motorY.setStepDir(nextCmd.directionY);
+			robi.motorX.handleStep();
+			robi.motorY.handleStep();
+		} else {
 			robi.motorMaster.stopTimer();
 			//ERROR_HandleCode = STEP_BUF;
 			//Error_Handler();
 		}
-		htim->Instance->ARR = nextCmd.interval;
-		robi.motorX.setStepDir(nextCmd.directionX);
-		robi.motorY.setStepDir(nextCmd.directionY);
-		robi.motorX.handleStep();
-		robi.motorY.handleStep();
 	}
 }
 

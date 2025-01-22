@@ -144,19 +144,21 @@ bool MotorManager::calcInterval() {
 			}
 		}
 		//Berechnung nicht abgeschlossen aber Puffer voll
-		else if (stepBuf.isFull()
+		if (stepBuf.isFull()
 				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
-			//if (timerActiveFlag == false)
+			if (timerActiveFlag == false)
 				startTimer();
 			return true;
 		}
 
 		//Berechnung nicht abgeschlossen und Puffer nicht voll
+		/*
 		else {
 			ErrorCode = STEP_BUF;
 			Error_Handler();
 			return false; //niemals erreicht
 		}
+		*/
 	} else
 		//Keine Daten für Berechnung vorhanden
 		return false;

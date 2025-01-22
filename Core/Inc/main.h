@@ -92,7 +92,7 @@ void Error_Handler(void);
 #define STEPS_PER_DEG 825.666
 #define DEFAULT_SPEED 50 //in mm/
 #define MAX_SPEED 780
-#define DEFAULT_ACCEL 10
+#define DEFAULT_ACCEL 100
 #define MAX_ACCEL 3000
 /* USER CODE END Private defines */
 

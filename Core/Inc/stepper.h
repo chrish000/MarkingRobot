@@ -45,7 +45,7 @@ public:
 	};
 	const static size_t buffer_size_move = 16;	//size = n-1 elements
 	//TODO Der Buffer stepBuf ist zu klein für lange, schnelle Bewegungen
-	const static size_t buffer_size_step = 4096;	//size = n-1 elements
+	const static size_t buffer_size_step = 64;	//size = n-1 elements
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, 0, 32> moveBuf;
 	jnk0le::Ringbuffer<stepCmd, buffer_size_step,0 ,32> stepBuf;
 
@@ -66,7 +66,7 @@ private:
 
 	struct intervalCalc {
 		uint32_t stepCnt = 0;	// Zähler für Schritte
-		uint16_t accelStepCnt = 0;
+		uint32_t accelStepCnt = 0;
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
 		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
 	} intervalCalc;

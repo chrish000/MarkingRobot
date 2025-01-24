@@ -14,7 +14,6 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include <math.h>
 #include "utils.h"
 #include "move.h"
 

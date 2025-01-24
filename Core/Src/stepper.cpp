@@ -15,71 +15,13 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stepper.h"
-#include "utils.h"
-#include <algorithm>
 
 /* MotorManager --------------------------------------------------------------*/
 /**
- * @brief Setzt die Geschwindigkeit in mm/s mit Begrenzung auf minSpeed und maxSpeed
- * @param mmPerSecond Geschwindigkeit in mm/s
- * @retval None
- */
-/*
- void MotorManager::setSpeed(float_t mmPerSecond) {
- speed = std::clamp(mmPerSecond, minSpeed, maxSpeed);
- }
- */
-
-/**
- * @brief Setzt die Beschleunigung in mm/s^2 mit Begrenzung auf minAccel und maxAccel
- * @param mmPerSecond2 Beschleunigung in mm/s^2
- * @retval None
- */
-/*
- void MotorManager::setAccel(float_t mmPerSecond2) {
- accel = std::clamp(mmPerSecond2, minAccel, maxAccel);
- }
- */
-
-/**
- * @brief Setzt die Distanz, falls sie nicht null ist
- * @param newDistance Neue Distanz in Einheiten
- * @retval None
- */
-/*
- void MotorManager::setDistance(float_t newDistance) {
- if (newDistance != 0)
- distance = newDistance;
- }
- */
-
-/**
- * @brief Setzt alle relevanten Parameter: Geschwindigkeit, Beschleunigung und Distanz
- * @param newSpeed Neue Geschwindigkeit in mm/s
- * @param newAccel Neue Beschleunigung in mm/s^2
- * @param newDistance Neue Distanz in Einheiten
- * @retval None
- */
-/*
- void MotorManager::setParam(float_t newSpeed, float_t newAccel,
- float_t newDistance) {
- setSpeed(newSpeed);
- setAccel(newAccel);
- setDistance(newDistance);
- }
- */
-
-/**
- * @brief Zurücksetzen des Schrittzählers
+ * @brief Berechnet das Intervall für den nächsten Schritt
  * @param None
- * @retval None
+ * @retval Intervall mit der Sktuktur stepCmd
  */
-/*
-void MotorManager::resetStepCount() {
-	intervalCalc.stepCnt = 0;
-}
-*/
-
 MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	// 1. Beschleunigungsphase
 	if (intervalCalc.currentSpeed < moveCmd->speed
@@ -144,7 +86,7 @@ bool MotorManager::calcInterval() {
 			}
 		}
 		//Berechnung nicht abgeschlossen aber Puffer voll
-		if (stepBuf.isFull()
+		else if (stepBuf.isFull()
 				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
 			if (timerActiveFlag == false)
 				startTimer();
@@ -152,13 +94,11 @@ bool MotorManager::calcInterval() {
 		}
 
 		//Berechnung nicht abgeschlossen und Puffer nicht voll
-		/*
 		else {
 			ErrorCode = STEP_BUF;
 			Error_Handler();
 			return false; //niemals erreicht
 		}
-		*/
 	} else
 		//Keine Daten für Berechnung vorhanden
 		return false;
@@ -257,25 +197,7 @@ bool StepperMotor::getStepDir() {
  */
 void StepperMotor::handleStep() {
 	step();
-	/*
-	 currentPosition++;
-	 if (currentPosition == targetPosition) {
-	 parent.stopTimer();
-	 currentPosition = 0;
-	 }
-	 */
 }
-
-/**
- * @brief Setzt die Zielposition
- * @param target Zielposition in Schritten
- * @retval None
- */
-/*
- void StepperMotor::setTargetPos(uint32_t target) {
- targetPosition = target;
- }
- */
 
 /**
  * @brief Führt einen Schritt aus, indem der Step-Pin toggelt

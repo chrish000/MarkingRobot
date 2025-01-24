@@ -15,9 +15,35 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <math.h>
+
 /* Exported functions prototypes ---------------------------------------------*/
 inline float sqr(float x) {
 	return x * x;
 }
+
+// Compute the linear interpolation between two real numbers.
+static inline float interp(const float a, const float b, const float t) { return (1 - t) * a + t * b; }
+
+/**
+ * Compute a Bézier curve using the De Casteljau's algorithm (see
+ * https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm), which is
+ * easy to code and has good numerical stability (very important,
+ * since Arudino works with limited precision real numbers).
+ */
+static inline float eval_bezier(const float a, const float b, const float c, const float d, const float t) {
+  const float iab = interp(a, b, t),
+              ibc = interp(b, c, t),
+              icd = interp(c, d, t),
+              iabc = interp(iab, ibc, t),
+              ibcd = interp(ibc, icd, t);
+  return interp(iabc, ibcd, t);
+}
+
+/**
+ * We approximate Euclidean distance with the sum of the coordinates
+ * offset (so-called "norm 1"), which is quicker to compute.
+ */
+//static inline float dist1(const float x1, const float y1, const float x2, const float y2) { return fabsf(x1 - x2) + fabsf(y1 - y2); }
 
 #endif /* UTILS_H */

@@ -15,6 +15,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stepper.h"
+#include "utils.h"
 
 /* MotorManager --------------------------------------------------------------*/
 /**
@@ -28,12 +29,18 @@ bool MotorManager::calcInterval() {
 		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
 		while (stepBuf.isFull() == false
 				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
-
+//#if defined(ACCEL_CURVE_TRAPEZOID)
 			stepBuf.insert(trapezoid(moveCmdCalcBuf));
+//#elif defined(ACCEL_CURVE_BEZIER)
+//			stepBuf.insert(bezier(moveCmdCalcBuf));
+//#endif
 		}
 		//Berechnung abgeschlossen
 		if (intervalCalc.stepCnt == moveCmdCalcBuf->stepDistance) {
 			intervalCalc.stepCnt = 0;
+#ifdef ACCEL_CURVE_BEZIER
+			bezier_t = 0;
+#endif
 			if (moveBuf.remove()) {
 				if (timerActiveFlag == false)
 					startTimer();
@@ -109,10 +116,10 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	// 1. Beschleunigungsphase
 	if (intervalCalc.currentSpeed < moveCmd->speed
 			&& intervalCalc.stepCnt < moveCmd->stepDistance / 2) {
-		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
 		if (intervalCalc.currentSpeed == 0) {
 			intervalCalc.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
-		}
+		} else
+			intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
 		intervalCalc.currentSpeed += moveCmd->accel * intervalCalc.interval;
 		intervalCalc.accelStepCnt = intervalCalc.stepCnt;
 	}
@@ -134,10 +141,75 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	}
 
 	intervalCalc.stepCnt++;
+
 	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
 			* F_TIM, stepCmd.directionX = moveCmd->directionX,
 			stepCmd.directionY = moveCmd->directionY };
+	return stepCmd;
+}
 
+MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
+	if (intervalCalc.accelStepCnt == 0) { //berechne die Schrittzahl für die Beschleunigung
+		MotorManager::intervalCalcStruct intervalCalcTemp;
+		while (intervalCalcTemp.currentSpeed < moveCmd->speed
+				&& intervalCalcTemp.accelStepCnt < moveCmd->stepDistance / 2) {
+			intervalCalcTemp.accelStepCnt++;
+			if (intervalCalcTemp.currentSpeed == 0) {
+				intervalCalcTemp.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
+			} else
+				intervalCalcTemp.interval = 1.0f
+						/ intervalCalcTemp.currentSpeed;
+			intervalCalcTemp.currentSpeed += moveCmd->accel
+					* intervalCalcTemp.interval;
+		}
+		intervalCalc.accelStepCnt = intervalCalcTemp.accelStepCnt;
+	}
+
+	// 1. Beschleunigungsphase
+	if (bezier_t <= 1) {
+		const float_t P0 = 0.0f;			//Startgeschwindigkeit
+		const float_t P1 = 0.0f;			//Kontrollpunkt 1
+		const float_t P2 = moveCmd->speed;	//Kontrollpunkt 2
+		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
+
+		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t);
+		if (velocity > 0.0f)
+			intervalCalc.interval = 1.0f / velocity;
+		else
+			Error_Handler();
+
+		bezier_t += 1 / moveCmd->stepDistance;
+	}
+
+	// 2. Phase konstanter Geschwindigkeit
+	else if (intervalCalc.stepCnt
+			< moveCmd->stepDistance - intervalCalc.accelStepCnt) {
+		if (bezier_t > 0)
+			bezier_t = 0;
+		intervalCalc.interval = 1.0f / moveCmd->speed;
+	}
+
+	// 3. Abbremsphase
+	else if (intervalCalc.stepCnt < moveCmd->stepDistance) {
+		const float_t P0 = moveCmd->speed;			//Startgeschwindigkeit
+		const float_t P1 = moveCmd->speed;			//Kontrollpunkt 1
+		const float_t P2 = 0.0f;	//Kontrollpunkt 2
+		const float_t P3 = 0.0f;	//Zielgeschwindigkeit
+
+		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t);
+		if (velocity > 0.0f)
+			intervalCalc.interval = 1.0f / velocity;
+		else
+			Error_Handler();
+
+		bezier_t += 1 / moveCmd->stepDistance;
+	}
+
+	intervalCalc.stepCnt++;
+
+	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
+			* F_TIM, stepCmd.directionX = moveCmd->directionX,
+			stepCmd.directionY = moveCmd->directionY };
 	return stepCmd;
 }
 

@@ -58,7 +58,7 @@ private:
 
 	moveCommands *moveCmdCalcBuf;
 
-	struct intervalCalc {
+	struct intervalCalcStruct {
 		uint32_t stepCnt = 0;	// Zähler für Schritte
 		uint32_t accelStepCnt = 0;
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
@@ -66,6 +66,9 @@ private:
 	} intervalCalc;
 	bool timerActiveFlag = 0;
 	struct stepCmd trapezoid(moveCommands*);
+
+	float_t bezier_t = 0;
+	struct stepCmd bezier(moveCommands*);
 };
 
 class StepperMotor {

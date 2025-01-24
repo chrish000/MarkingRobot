@@ -94,6 +94,14 @@ void Error_Handler(void);
 #define MAX_SPEED 680
 #define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 3000
+
+//Beschleunigungskurve: {Trapezoid (default); Bezier}
+//#define ACCEL_CURVE_BEZIER
+
+#ifndef ACCEL_CURVE_BEZIER
+	#define ACCEL_CURVE_TRAPEZOID
+#endif
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

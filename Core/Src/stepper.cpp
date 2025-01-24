@@ -18,47 +18,6 @@
 
 /* MotorManager --------------------------------------------------------------*/
 /**
- * @brief Berechnet das Intervall für den nächsten Schritt
- * @param None
- * @retval Intervall mit der Sktuktur stepCmd
- */
-MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
-	// 1. Beschleunigungsphase
-	if (intervalCalc.currentSpeed < moveCmd->speed
-			&& intervalCalc.stepCnt < moveCmd->stepDistance / 2) {
-		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
-		if (intervalCalc.currentSpeed == 0) {
-			intervalCalc.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
-		}
-		intervalCalc.currentSpeed += moveCmd->accel * intervalCalc.interval;
-		intervalCalc.accelStepCnt = intervalCalc.stepCnt;
-	}
-
-	// 2. Phase konstanter Geschwindigkeit
-	else if (intervalCalc.stepCnt
-			< moveCmd->stepDistance - intervalCalc.accelStepCnt) {
-		intervalCalc.interval = 1.0f / moveCmd->speed;
-	}
-
-	// 3. Abbremsphase
-	else if (intervalCalc.stepCnt < moveCmd->stepDistance) {
-		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
-		intervalCalc.currentSpeed -= moveCmdCalcBuf->accel
-				* intervalCalc.interval;
-		if (intervalCalc.currentSpeed < 0) {
-			intervalCalc.currentSpeed = 0; // Sicherheit: Keine negative Geschwindigkeit
-		}
-	}
-
-	intervalCalc.stepCnt++;
-	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
-			* F_TIM, stepCmd.directionX = moveCmd->directionX,
-			stepCmd.directionY = moveCmd->directionY };
-
-	return stepCmd;
-}
-
-/**
  * @brief Berechnet das Zeitintervall zwischen Schritten basierend auf Geschwindigkeit und Beschleunigung
  * @param None
  * @retval Zeitintervall in Mikrosekunden
@@ -141,8 +100,48 @@ bool MotorManager::getTimerState() {
 	return (state == HAL_TIM_STATE_READY || state == HAL_TIM_STATE_BUSY) ? 1 : 0;
 }
 
-/* StepperMotor --------------------------------------------------------------*/
+/**
+ * @brief Berechnet das Intervall für den nächsten Schritt
+ * @param None
+ * @retval Intervall mit der Sktuktur stepCmd
+ */
+MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
+	// 1. Beschleunigungsphase
+	if (intervalCalc.currentSpeed < moveCmd->speed
+			&& intervalCalc.stepCnt < moveCmd->stepDistance / 2) {
+		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
+		if (intervalCalc.currentSpeed == 0) {
+			intervalCalc.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
+		}
+		intervalCalc.currentSpeed += moveCmd->accel * intervalCalc.interval;
+		intervalCalc.accelStepCnt = intervalCalc.stepCnt;
+	}
 
+	// 2. Phase konstanter Geschwindigkeit
+	else if (intervalCalc.stepCnt
+			< moveCmd->stepDistance - intervalCalc.accelStepCnt) {
+		intervalCalc.interval = 1.0f / moveCmd->speed;
+	}
+
+	// 3. Abbremsphase
+	else if (intervalCalc.stepCnt < moveCmd->stepDistance) {
+		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
+		intervalCalc.currentSpeed -= moveCmdCalcBuf->accel
+				* intervalCalc.interval;
+		if (intervalCalc.currentSpeed < 0) {
+			intervalCalc.currentSpeed = 0; // Sicherheit: Keine negative Geschwindigkeit
+		}
+	}
+
+	intervalCalc.stepCnt++;
+	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
+			* F_TIM, stepCmd.directionX = moveCmd->directionX,
+			stepCmd.directionY = moveCmd->directionY };
+
+	return stepCmd;
+}
+
+/* StepperMotor --------------------------------------------------------------*/
 /**
  * @brief Setzt den Step-Pin (Port und Pin-Nummer)
  * @param inputStepPort GPIO-Port des Step-Pins

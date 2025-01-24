@@ -17,72 +17,6 @@
 #include "utils.h"
 #include "move.h"
 
-void Robot::init() {
-	motorMaster.moveBuf.consumerClear();
-}
-
-/**
- * @brief Lineare Bewegung des Roboters
- * @param distance Distanz in mm
- * @param speed Geschwindigkeit in mm/s
- * @param accel Beschleunigung in mm/s^2
- * @retval None
- */
-bool Robot::moveLin(float_t distance, float_t speed, float_t accel) {
-	if (distance != 0) //Prüfen ob Distanz nicht 0 ist
-			{
-		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
-		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen
-
-		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
-				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = direction, cmd.directionY = !direction };
-
-		return motorMaster.moveBuf.insert(cmd);
-		/*
-		 motorX.setStepDir(direction);
-		 motorY.setStepDir(!direction);
-		 motorMaster.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
-		 motorX.setTargetPos(steps);
-		 motorY.setTargetPos(steps);
-		 */
-//		HAL_TIM_Base_Start_IT(motorMaster.htim); //TODO optimieren
-	} else
-		return false;
-}
-
-/**
- * @brief Rotationsbewegung des Roboters
- * @param degrees Drehwinkel in Grad
- * @param speed Geschwindigkeit in mm/s
- * @param accel Beschleunigung in mm/s^2
- * @retval None
- */
-bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
-	if (degrees != 0) //Prüfen ob Distanz nicht 0 ist
-			{
-		uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
-		bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
-
-		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
-				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = !direction, cmd.directionY = !direction };
-
-		orientation += degrees;
-		return motorMaster.moveBuf.insert(cmd);
-		/*
-		 motorX.setStepDir(!direction);
-		 motorY.setStepDir(!direction);
-		 motorMaster.setParam(speed * STEPS_PER_MM, accel * STEPS_PER_MM, steps);
-		 motorX.setTargetPos(steps);
-		 motorY.setTargetPos(steps);
-		 HAL_TIM_Base_Start_IT(motorMaster.htim);
-		 orientation += degrees;
-		 */
-	} else
-		return false;
-}
-
 /**
  * @brief Berechnung des Drehwinkels für eine Zielposition
  * @param newX Zielposition X-Koordinate
@@ -114,6 +48,16 @@ float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
  */
 float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 	return sqrt(sqr(newX - oldX) + sqr(newY - oldY));
+}
+
+/* Robot ---------------------------------------------------------------------*/
+/**
+ * @brief Funktion zur Initialisierun des Roboters
+ * @param None
+ * @retval None
+ */
+void Robot::init() {
+	motorMaster.moveBuf.consumerClear();
 }
 
 /**
@@ -157,3 +101,47 @@ bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 	return false;
 }
 
+/**
+ * @brief Lineare Bewegung des Roboters
+ * @param distance Distanz in mm
+ * @param speed Geschwindigkeit in mm/s
+ * @param accel Beschleunigung in mm/s^2
+ * @retval None
+ */
+bool Robot::moveLin(float_t distance, float_t speed, float_t accel) {
+	if (distance != 0) //Prüfen ob Distanz nicht 0 ist
+			{
+		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
+		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen
+
+		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
+				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
+				cmd.directionX = direction, cmd.directionY = !direction };
+
+		return motorMaster.moveBuf.insert(cmd);
+	} else
+		return false;
+}
+
+/**
+ * @brief Rotationsbewegung des Roboters
+ * @param degrees Drehwinkel in Grad
+ * @param speed Geschwindigkeit in mm/s
+ * @param accel Beschleunigung in mm/s^2
+ * @retval None
+ */
+bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
+	if (degrees != 0) //Prüfen ob Distanz nicht 0 ist
+			{
+		uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
+		bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
+
+		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
+				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
+				cmd.directionX = !direction, cmd.directionY = !direction };
+
+		orientation += degrees;
+		return motorMaster.moveBuf.insert(cmd);
+	} else
+		return false;
+}

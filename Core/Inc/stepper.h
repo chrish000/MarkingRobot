@@ -32,21 +32,23 @@ public:
 	TIM_HandleTypeDef *htim;
 
 	struct moveCommands {
-		float_t speed;
-		float_t accel;
+		float_t speed;	//Schritte pro s
+		float_t accel;	//Schritte pro s^2
 		uint32_t stepDistance;
 		bool directionX;
 		bool directionY;
 	};
 	struct stepCmd {
-		uint32_t interval;
+		uint32_t interval;	//Dauer in ns
 		bool directionX;
 		bool directionY;
 	};
 	const static size_t buffer_size_move = 16;	//size = n-1 elements
-	const static size_t buffer_size_step = 64;	//size = n-1 elements
+	const static size_t buffer_size_step = 8192;//64;	//size = n-1 elements
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, 0, 32> moveBuf;
 	jnk0le::Ringbuffer<stepCmd, buffer_size_step,0 ,32> stepBuf;
+	int i = 0;
+	uint32_t temp[16384] = {};
 
 	static constexpr uint8_t stepIntervalDefault = 9;
 	bool calcInterval();
@@ -62,7 +64,7 @@ private:
 		uint32_t stepCnt = 0;	// Zähler für Schritte
 		uint32_t accelStepCnt = 0;
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
-		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (s)
+		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (ns)
 	} intervalCalc;
 	bool timerActiveFlag = 0;
 	struct stepCmd trapezoid(moveCommands*);

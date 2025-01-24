@@ -30,7 +30,12 @@ bool MotorManager::calcInterval() {
 		while (stepBuf.isFull() == false
 				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
 //#if defined(ACCEL_CURVE_TRAPEZOID)
-			stepBuf.insert(trapezoid(moveCmdCalcBuf));
+			//stepBuf.insert(trapezoid(moveCmdCalcBuf));
+			temp[i] = trapezoid(moveCmdCalcBuf).interval;
+			i++;
+			if (i > 16383)
+				while (1)
+					;
 //#elif defined(ACCEL_CURVE_BEZIER)
 //			stepBuf.insert(bezier(moveCmdCalcBuf));
 //#endif
@@ -117,13 +122,23 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	// 1. Beschleunigungsphase
 	if (intervalCalc.currentSpeed < moveCmd->speed
 			&& intervalCalc.stepCnt < moveCmd->stepDistance / 2) {
-		if (intervalCalc.currentSpeed == 0) {
-			intervalCalc.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
-		} else
-			intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
-		intervalCalc.currentSpeed += moveCmd->accel * intervalCalc.interval;
+		intervalCalc.currentSpeed = sqrt(
+				sqr(100) + 2.0f * moveCmd->accel * intervalCalc.stepCnt);
+		intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
 		intervalCalc.accelStepCnt = intervalCalc.stepCnt;
 	}
+
+	/*
+	 if (intervalCalc.currentSpeed < moveCmd->speed
+	 && intervalCalc.stepCnt < moveCmd->stepDistance / 2) {
+	 if (intervalCalc.currentSpeed == 0) {
+	 intervalCalc.interval = sqrt(2.0f / moveCmd->accel); // Anfangsphase ohne Geschwindigkeit
+	 } else
+	 intervalCalc.interval = 1.0f / intervalCalc.currentSpeed;
+	 intervalCalc.currentSpeed += moveCmd->accel * (1/intervalCalc.interval);
+	 intervalCalc.accelStepCnt = intervalCalc.stepCnt;
+	 }
+	 */
 
 	// 2. Phase konstanter Geschwindigkeit
 	else if (intervalCalc.stepCnt
@@ -176,10 +191,10 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t);
 		if (velocity > 0.0f)
 			intervalCalc.interval = 1.0f / velocity;
-		else
-			Error_Handler();
+		//else
+		//	Error_Handler();
 
-		bezier_t += 1 / moveCmd->stepDistance;
+		bezier_t += 1.0f / intervalCalc.accelStepCnt;
 	}
 
 	// 2. Phase konstanter Geschwindigkeit
@@ -200,10 +215,10 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t);
 		if (velocity > 0.0f)
 			intervalCalc.interval = 1.0f / velocity;
-		else
-			Error_Handler();
+		//else
+		//	Error_Handler();
 
-		bezier_t += 1 / moveCmd->stepDistance;
+		bezier_t += 1.0f / intervalCalc.accelStepCnt;
 	}
 
 	intervalCalc.stepCnt++;

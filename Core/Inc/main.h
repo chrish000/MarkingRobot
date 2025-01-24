@@ -90,7 +90,7 @@ void Error_Handler(void);
 #define MICROSTEPS 256
 #define STEPS_PER_MM 181.952
 #define STEPS_PER_DEG 825.666
-#define DEFAULT_SPEED 500 //in mm/
+#define DEFAULT_SPEED 100 //in mm/
 #define MAX_SPEED 680
 #define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 3000

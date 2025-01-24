@@ -60,7 +60,8 @@ bool MotorManager::calcInterval() {
 		}
 
 		//Berechnung nicht abgeschlossen und Puffer nicht voll
-		else {
+		else if (!stepBuf.isFull()
+				&& intervalCalc.stepCnt >= moveCmdCalcBuf->stepDistance) {
 			ErrorCode = STEP_BUF;
 			Error_Handler();
 			return false; //niemals erreicht

@@ -38,17 +38,17 @@ public:
 		bool directionX;
 		bool directionY;
 	};
+
 	struct stepCmd {
 		uint32_t interval;	//Dauer in ns
 		bool directionX;
 		bool directionY;
 	};
+
 	const static size_t buffer_size_move = 16;	//size = n-1 elements
-	const static size_t buffer_size_step = 8192;//64;	//size = n-1 elements
+	const static size_t buffer_size_step = 64;	//size = n-1 elements
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, 0, 32> moveBuf;
-	jnk0le::Ringbuffer<stepCmd, buffer_size_step,0 ,32> stepBuf;
-	int i = 0;
-	uint32_t temp[16384] = {};
+	jnk0le::Ringbuffer<stepCmd, buffer_size_step, 0, 32> stepBuf;
 
 	static constexpr uint8_t stepIntervalDefault = 9;
 	bool calcInterval();
@@ -66,10 +66,10 @@ private:
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
 		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (ns)
 	} intervalCalc;
-	bool timerActiveFlag = 0;
-	struct stepCmd trapezoid(moveCommands*);
 
+	bool timerActiveFlag = 0;
 	float_t bezier_t = 0;
+	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);
 };
 

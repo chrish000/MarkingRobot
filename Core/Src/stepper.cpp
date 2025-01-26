@@ -119,15 +119,35 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	if (intervalCalc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
 		intervalCalc.accelStepCnt = roundf(
 				sqr(moveCmd->speed) / (2.0f * moveCmd->accel));
+		if (intervalCalc.accelStepCnt > moveCmd->stepDistance / 2) {
+			intervalCalc.accelStepCnt = moveCmd->stepDistance / 2;
+			moveCmd->speed = sqrt(
+					2 * moveCmd->accel * intervalCalc.accelStepCnt);
+		}
 	}
 
 	// 1. Beschleunigungsphase
-	if (intervalCalc.stepCnt <= intervalCalc.accelStepCnt) {
+	if (intervalCalc.stepCnt < intervalCalc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
-		const float_t P1 = moveCmd->speed;	//Zielgeschwindigkeit
+		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
+		const float_t P2 = moveCmd->speed
+				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
+		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
+
 		bezier_t += 1.0f / intervalCalc.accelStepCnt;
-		float_t velocity = interp(P0, P1, bezier_t); //Geschwindigkeit in steps/s
+		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
 		intervalCalc.interval = 1.0f / velocity;
+	} else if (intervalCalc.stepCnt = intervalCalc.accelStepCnt) {
+		const float_t P0 = V_MIN;			//Startgeschwindigkeit
+		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
+		const float_t P2 = moveCmd->speed
+				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
+		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
+
+		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
+		intervalCalc.interval = 1.0f / velocity;
+		bezier_t = 0;
 	}
 
 	// 2. Phase konstanter Geschwindigkeit
@@ -165,19 +185,35 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 	if (intervalCalc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
 		intervalCalc.accelStepCnt = roundf(
 				sqr(moveCmd->speed) / (2.0f * moveCmd->accel));
+		if (intervalCalc.accelStepCnt > moveCmd->stepDistance / 2) {
+			intervalCalc.accelStepCnt = moveCmd->stepDistance / 2;
+			moveCmd->speed = sqrt(
+					2 * moveCmd->accel * intervalCalc.accelStepCnt);
+		}
 	}
 
 	// 1. Beschleunigungsphase
-	if (intervalCalc.stepCnt <= intervalCalc.accelStepCnt) {
+	if (intervalCalc.stepCnt < intervalCalc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
-				- moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 2
+				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
 		bezier_t += 1.0f / intervalCalc.accelStepCnt;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
 		intervalCalc.interval = 1.0f / velocity;
+	} else if (intervalCalc.stepCnt = intervalCalc.accelStepCnt) {
+		const float_t P0 = V_MIN;			//Startgeschwindigkeit
+		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
+		const float_t P2 = moveCmd->speed
+				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
+		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
+
+		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
+		intervalCalc.interval = 1.0f / velocity;
+		bezier_t = 0;
 	}
 
 	// 2. Phase konstanter Geschwindigkeit
@@ -193,7 +229,7 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		const float_t P0 = moveCmd->speed;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
-				- moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 2
+				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = V_MIN;					//Zielgeschwindigkeit
 
 		bezier_t += 1.0f / intervalCalc.accelStepCnt;

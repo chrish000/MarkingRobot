@@ -132,7 +132,6 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 			intervalCalc.interval = 1.0f / velocity;
 		//else
 		//	Error_Handler();
-
 	}
 
 	// 2. Phase konstanter Geschwindigkeit

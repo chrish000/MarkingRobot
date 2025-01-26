@@ -39,11 +39,4 @@ static inline float eval_bezier(const float a, const float b, const float c, con
               ibcd = interp(ibc, icd, t);
   return interp(iabc, ibcd, t);
 }
-
-/**
- * We approximate Euclidean distance with the sum of the coordinates
- * offset (so-called "norm 1"), which is quicker to compute.
- */
-//static inline float dist1(const float x1, const float y1, const float x2, const float y2) { return fabsf(x1 - x2) + fabsf(y1 - y2); }
-
 #endif /* UTILS_H */

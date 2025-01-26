@@ -68,6 +68,7 @@ private:
 	} intervalCalc;
 
 	bool timerActiveFlag = 0;
+	uint8_t bezier_factor = 5; //Verschiebung der Kontrollpubnkte in % (Abflachung)
 	float_t bezier_t = 0;
 	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);
@@ -95,5 +96,6 @@ private:
 };
 
 #define F_TIM 1000000 //1MHz
+#define V_MIN STEPS_PER_MM * 0.5 //Mindestgeschwindigkeit in steps/s (=0.01 mm/s)
 
 #endif /* STEPPER_H */

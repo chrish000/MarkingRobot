@@ -1,21 +1,18 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.h
+ * @brief          : Header for main.c file.
+ *                   This file contains the common defines of the application.
+ ******************************************************************************
+ * @attention
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -23,34 +20,42 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+  /* Private includes ----------------------------------------------------------*/
+  /* USER CODE BEGIN Includes */
 
-/* USER CODE END Includes */
+  /* USER CODE END Includes */
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
+  /* Exported types ------------------------------------------------------------*/
+  /* USER CODE BEGIN ET */
+  extern CRC_HandleTypeDef hcrc;
+  /* USER CODE END ET */
 
-/* USER CODE END ET */
+  /* Exported constants --------------------------------------------------------*/
+  /* USER CODE BEGIN EC */
+  extern volatile float PosX; // in mm
+  extern volatile float PosY; // in mm
 
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
+  extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
+  extern volatile uint16_t PWMCounterX;
+  extern volatile uint32_t TargetStepsX;
 
-/* USER CODE END EC */
+  extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
+  /* USER CODE END EC */
 
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
+  /* Exported macro ------------------------------------------------------------*/
+  /* USER CODE BEGIN EM */
 
-/* USER CODE END EM */
+  /* USER CODE END EM */
 
-/* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
+  /* Exported functions prototypes ---------------------------------------------*/
+  void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -84,8 +89,12 @@ void Error_Handler(void);
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
+#define MICROSTEPS 256
+#define STEPS_PER_MM 181.952  // 5.684 alt		// "/(256/MICROSTEPS)"
+#define STEPS_PER_DEG 825.666 // 25.793 alt
+#define RUN_CURRENT_DEFAULT 200
+#define HOLD_CURRENT_DEFAULT 500
+  /* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

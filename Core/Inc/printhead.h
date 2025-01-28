@@ -17,6 +17,8 @@
 #define PRINTHEAD_H_
 
 #include "main.h"
+#include <limits>
+#include <algorithm>
 
 class Printhead {
 public:
@@ -31,10 +33,12 @@ public:
 	void setParam(uint16_t newPeriod = PRINTHEAD_PERIOD, uint8_t newDutyCycle =
 	PRINTHEAD_DUTY_CYCLE) {
 		param.period = newPeriod;
-		param.dutyCycle = newDutyCycle;
-		htim->Instance->ARR = param.period * 10000 - 1;
+		param.dutyCycle = std::clamp(newDutyCycle, (uint8_t) 0, (uint8_t) 100);
+		htim->Instance->ARR = std::clamp((uint16_t) (param.period * 10000 - 1),
+				std::numeric_limits<uint16_t>::min(),
+				std::numeric_limits<uint16_t>::max());
 		htim->Instance->CCR1 = param.dutyCycle * param.period * 10000 / 100 - 1;
-	}
+	} //(param.period * 10000 - 1)
 	void start() {
 		HAL_TIM_PWM_Start(htim, channel);
 		active = true;

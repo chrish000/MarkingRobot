@@ -326,7 +326,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM2) {
 		MotorManager::stepCmd nextCmd;
 		if (robi.motorMaster.stepBuf.remove(&nextCmd)) { //Wenn Daten in Puffer
-			htim->Instance->ARR = nextCmd.interval;
+			htim->Instance->ARR = nextCmd.interval - 1;
 			robi.motorX.setStepDir(nextCmd.directionX);
 			robi.motorY.setStepDir(nextCmd.directionY);
 			robi.motorX.handleStep();

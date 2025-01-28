@@ -22,7 +22,6 @@ class Printhead {
 public:
 	Printhead(TIM_HandleTypeDef *htim, uint32_t timChannel) :
 			htim(htim), channel(timChannel) {
-		init();
 	}
 
 	struct param {
@@ -33,8 +32,8 @@ public:
 	PRINTHEAD_DUTY_CYCLE) {
 		param.period = newPeriod;
 		param.dutyCycle = newDutyCycle;
-		htim->Instance->ARR = param.period;
-		htim->Instance->CCR1 = param.dutyCycle;
+		htim->Instance->ARR = param.period * 10000 - 1;
+		htim->Instance->CCR1 = param.dutyCycle * param.period * 10000 / 100 - 1;
 	}
 	void start() {
 		HAL_TIM_PWM_Start(htim, channel);
@@ -47,17 +46,15 @@ public:
 	bool isActive() {
 		return active;
 	}
+	void init() {
+		setParam();
+	}
 
 private:
-
 	TIM_HandleTypeDef *htim;
 	uint32_t channel;
 
 	bool active = false;
-
-	void init() {
-		setParam();
-	}
 };
 
 #endif /* PRINTHEAD_H_ */

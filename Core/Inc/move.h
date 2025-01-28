@@ -21,7 +21,8 @@
 
 class Robot {
 public:
-	Robot(TIM_HandleTypeDef *htimMotorMaster, TIM_HandleTypeDef *htimPrinthead, uint32_t timChannel) :
+	Robot(TIM_HandleTypeDef *htimMotorMaster, TIM_HandleTypeDef *htimPrinthead,
+			uint32_t timChannel) :
 			motorMaster(htimMotorMaster), printhead(htimPrinthead, timChannel) {
 	}
 
@@ -32,7 +33,7 @@ public:
 
 	void init();
 	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
-			float_t accel = DEFAULT_ACCEL);
+			float_t accel = DEFAULT_ACCEL, bool printing = false);
 
 private:
 	float_t posX = 0;
@@ -45,7 +46,7 @@ private:
 	const float_t maxAccel = 10000;
 	float_t orientation = 0; //0°-360°
 
-	bool moveLin(float_t distance, float_t speed, float_t accel);
+	bool moveLin(float_t distance, float_t speed, float_t accel, bool printing);
 	bool moveRot(float_t degrees, float_t speed, float_t accel);
 };
 

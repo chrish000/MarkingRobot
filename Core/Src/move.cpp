@@ -70,7 +70,7 @@ void Robot::init() {
  * @retval None
  */
 bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
-		float_t newAccel) {
+		float_t newAccel, bool printing) {
 	if (!(newX == posX && newY == posY)) {
 		speed = newSpeed;	//Aktuelle Geschwindigkeit speichern
 		accel = newAccel;
@@ -79,7 +79,7 @@ bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 			if (motorMaster.moveBuf.writeAvailable() >= 2) {
 				if (moveRot(turn, speed, accel) == false)
 					return false;
-				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel)
+				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel, printing)
 						== false)
 					return false;
 				posX = newX;
@@ -89,7 +89,7 @@ bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 				return false;
 		} else {
 			if (motorMaster.moveBuf.writeAvailable() != 0) {
-				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel)
+				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel, printing)
 						== false)
 					return false;
 				posX = newX;
@@ -109,7 +109,7 @@ bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
  * @param accel Beschleunigung in mm/s^2
  * @retval None
  */
-bool Robot::moveLin(float_t distance, float_t speed, float_t accel) {
+bool Robot::moveLin(float_t distance, float_t speed, float_t accel, bool printing) {
 	if (distance != 0) //Prüfen ob Distanz nicht 0 ist
 			{
 		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
@@ -118,7 +118,7 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel) {
 		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
 				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
 				cmd.directionX = direction, cmd.directionY = !direction,
-				cmd.printigMove = true };
+				cmd.printigMove = printing };
 
 		return motorMaster.moveBuf.insert(cmd);
 	} else

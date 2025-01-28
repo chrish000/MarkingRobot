@@ -58,6 +58,7 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
  */
 void Robot::init() {
 	motorMaster.moveBuf.consumerClear();
+	printhead.init();
 }
 
 /**
@@ -116,7 +117,8 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel) {
 
 		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
 				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = direction, cmd.directionY = !direction };
+				cmd.directionX = direction, cmd.directionY = !direction,
+				cmd.printigMove = true };
 
 		return motorMaster.moveBuf.insert(cmd);
 	} else
@@ -138,7 +140,8 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 
 		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
 				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = !direction, cmd.directionY = !direction };
+				cmd.directionX = !direction, cmd.directionY = !direction,
+				cmd.printigMove = false };
 
 		orientation += degrees;
 		return motorMaster.moveBuf.insert(cmd);

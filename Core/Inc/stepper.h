@@ -37,12 +37,14 @@ public:
 		uint32_t stepDistance;
 		bool directionX;
 		bool directionY;
+		bool printigMove;
 	};
 
 	struct stepCmd {
 		uint32_t interval;	//Dauer in ns
 		bool directionX;
 		bool directionY;
+		bool printigMove;
 	};
 
 	const static size_t buffer_size_move = 16;	//size = n-1 elements
@@ -96,6 +98,6 @@ private:
 };
 
 #define F_TIM 1000000 //1MHz
-#define V_MIN STEPS_PER_MM * 0.5 //Mindestgeschwindigkeit in steps/s (=0.01 mm/s)
+#define V_MIN STEPS_PER_MM * 1 //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
 
 #endif /* STEPPER_H */

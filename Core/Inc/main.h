@@ -52,6 +52,8 @@ extern ERROR_HandleCode ErrorCode;
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -81,26 +83,41 @@ void Error_Handler(void);
 #define X_EN_GPIO_Port GPIOD
 #define HE0_PWM_Pin GPIO_PIN_3
 #define HE0_PWM_GPIO_Port GPIOB
+#define HE1_PWM_Pin GPIO_PIN_4
+#define HE1_PWM_GPIO_Port GPIOB
 #define Z_EN_Pin GPIO_PIN_0
 #define Z_EN_GPIO_Port GPIOE
 #define Z_UART_Pin GPIO_PIN_1
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
+/**
+ *	###########################################################################
+ *	BEWEGUNG
+ *	###########################################################################
+ */
 #define MICROSTEPS 256
 #define STEPS_PER_MM 181.952
 #define STEPS_PER_DEG 825.666
 #define DEFAULT_SPEED 600 //in mm/
 #define MAX_SPEED 680
-#define DEFAULT_ACCEL 1000
+#define DEFAULT_ACCEL 5000
 #define MAX_ACCEL 3000
 
 //Beschleunigungskurve: {Trapezoid (default); Bezier}
-#define ACCEL_CURVE_BEZIER
+//#define ACCEL_CURVE_BEZIER
 
 #ifndef ACCEL_CURVE_BEZIER
 	#define ACCEL_CURVE_TRAPEZOID
 #endif
+
+/**
+ *	###########################################################################
+ *	MARKIEREINHEIT
+ *	###########################################################################
+ */
+#define PRINTHEAD_PERIOD 1 //s
+#define PRINTHEAD_DUTY_CYCLE 10 //%
 
 /* USER CODE END Private defines */
 

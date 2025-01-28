@@ -17,16 +17,18 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stepper.h"
+#include "printhead.h"
 
 class Robot {
 public:
-	Robot(TIM_HandleTypeDef *htim) :
-			motorMaster(htim) /*, motorX(&motorMaster), motorY(&motorMaster)*/{
+	Robot(TIM_HandleTypeDef *htimMotorMaster, TIM_HandleTypeDef *htimPrinthead, uint32_t timChannel) :
+			motorMaster(htimMotorMaster), printhead(htimPrinthead, timChannel) {
 	}
 
 	MotorManager motorMaster;
 	StepperMotor motorX;
 	StepperMotor motorY;
+	Printhead printhead;
 
 	void init();
 	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,

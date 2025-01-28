@@ -34,6 +34,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "TMC2209.h"
+#include "printhead.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,6 +70,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* Peripherie */
 TMC2209 tmcX;
 TMC2209 tmcZ;
+Printhead printhead(&htim3, TIM_CHANNEL_1);
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -143,10 +145,11 @@ int main(void) {
 	tmcZ.setup();
 	tmcZ.setMicrostepsPerStep(MICROSTEPS);
 
+	printhead.start();
+
 	tmcX.enable();
 	tmcZ.enable();
 	/* CLK Configuration */
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
 
 	/* GPIO Configuration */
 
@@ -304,9 +307,7 @@ static void MX_TIM3_Init(void) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN TIM3_Init 2 */
-	htim3.Instance->ARR = PRINTHEAD_PERIOD * 10000 - 1;	//Ueberschreibe Periode mit eigenem Wert
-	htim3.Instance->CCR1 = PRINTHEAD_DUTY_CYCLE * (htim3.Instance->ARR + 1)
-			/ 100 - 1; //Ueberschreibe Pulsweite mit eigenem Wert
+
 	/* USER CODE END TIM3_Init 2 */
 	HAL_TIM_MspPostInit(&htim3);
 

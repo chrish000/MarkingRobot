@@ -20,42 +20,43 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
 
-  /* Private includes ----------------------------------------------------------*/
-  /* USER CODE BEGIN Includes */
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-  /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-  /* Exported types ------------------------------------------------------------*/
-  /* USER CODE BEGIN ET */
-  extern CRC_HandleTypeDef hcrc;
-  /* USER CODE END ET */
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
+extern CRC_HandleTypeDef hcrc;
+/* USER CODE END ET */
 
-  /* Exported constants --------------------------------------------------------*/
-  /* USER CODE BEGIN EC */
-  extern volatile float PosX; // in mm
-  extern volatile float PosY; // in mm
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
+extern volatile float PosX; // in mm
+extern volatile float PosY; // in mm
 
-  extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
-  extern volatile uint16_t PWMCounterX;
-  extern volatile uint32_t TargetStepsX;
+extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
+extern volatile uint16_t PWMCounterX;
+extern volatile uint32_t TargetStepsX;
 
-  extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
-  /* USER CODE END EC */
+extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
+/* USER CODE END EC */
 
-  /* Exported macro ------------------------------------------------------------*/
-  /* USER CODE BEGIN EM */
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
-  /* USER CODE END EM */
+/* USER CODE END EM */
 
-  /* Exported functions prototypes ---------------------------------------------*/
-  void Error_Handler(void);
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
+/* Exported functions prototypes ---------------------------------------------*/
+void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
@@ -83,6 +84,8 @@ extern "C"
 #define X_EN_GPIO_Port GPIOD
 #define HE0_PWM_Pin GPIO_PIN_3
 #define HE0_PWM_GPIO_Port GPIOB
+#define HE1_PWM_Pin GPIO_PIN_4
+#define HE1_PWM_GPIO_Port GPIOB
 #define Z_EN_Pin GPIO_PIN_0
 #define Z_EN_GPIO_Port GPIOE
 #define Z_UART_Pin GPIO_PIN_1
@@ -94,7 +97,10 @@ extern "C"
 #define STEPS_PER_DEG 825.666 // 25.793 alt
 #define RUN_CURRENT_DEFAULT 200
 #define HOLD_CURRENT_DEFAULT 500
-  /* USER CODE END Private defines */
+
+#define PRINTHEAD_PERIOD 1 //s
+#define PRINTHEAD_DUTY_CYCLE 10 //%
+/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

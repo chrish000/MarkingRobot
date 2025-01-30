@@ -34,6 +34,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "TMC2209.h"
+#include "printhead.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +56,8 @@
 
 CRC_HandleTypeDef hcrc;
 
+TIM_HandleTypeDef htim3;
+
 UART_HandleTypeDef huart8;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_uart8_tx;
@@ -67,6 +70,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* Peripherie */
 TMC2209 tmcX;
 TMC2209 tmcZ;
+Printhead printhead(&htim3, TIM_CHANNEL_1);
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -81,6 +85,7 @@ static void MX_DMA_Init(void);
 static void MX_UART8_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -94,8 +99,7 @@ static void MX_CRC_Init(void);
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void) {
 
 	/* USER CODE BEGIN 1 */
 
@@ -126,6 +130,7 @@ int main(void)
 	MX_UART8_Init();
 	MX_USART2_UART_Init();
 	MX_CRC_Init();
+	MX_TIM3_Init();
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
 	tmcX.UART_address = &huart2;
@@ -139,6 +144,8 @@ int main(void)
 	tmcZ.hardware_enable_pin = Z_EN_Pin;
 	tmcZ.setup();
 	tmcZ.setMicrostepsPerStep(MICROSTEPS);
+
+	printhead.start();
 
 	tmcX.enable();
 	tmcZ.enable();
@@ -154,8 +161,7 @@ int main(void)
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	while (1)
-	{
+	while (1) {
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
@@ -167,10 +173,9 @@ int main(void)
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void)
-{
-	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+void SystemClock_Config(void) {
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
 	/** Supply configuration update enable
 	 */
@@ -180,8 +185,7 @@ void SystemClock_Config(void)
 	 */
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
-	while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY))
-	{
+	while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
 	}
 
 	/** Initializes the RCC Oscillators according to the specified parameters
@@ -200,14 +204,15 @@ void SystemClock_Config(void)
 	RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
 	RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
 	RCC_OscInitStruct.PLL.PLLFRACN = 3072;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-	{
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
 		Error_Handler();
 	}
 
 	/** Initializes the CPU, AHB and APB buses clocks
 	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1 | RCC_CLOCKTYPE_D1PCLK1;
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1
+			| RCC_CLOCKTYPE_D1PCLK1;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
@@ -216,8 +221,7 @@ void SystemClock_Config(void)
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
 	RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
-	{
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK) {
 		Error_Handler();
 	}
 }
@@ -227,8 +231,7 @@ void SystemClock_Config(void)
  * @param None
  * @retval None
  */
-static void MX_CRC_Init(void)
-{
+static void MX_CRC_Init(void) {
 
 	/* USER CODE BEGIN CRC_Init 0 */
 
@@ -246,13 +249,68 @@ static void MX_CRC_Init(void)
 	hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_BYTE;
 	hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
 	hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
-	if (HAL_CRC_Init(&hcrc) != HAL_OK)
-	{
+	if (HAL_CRC_Init(&hcrc) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN CRC_Init 2 */
 
 	/* USER CODE END CRC_Init 2 */
+
+}
+
+/**
+ * @brief TIM3 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM3_Init(void) {
+
+	/* USER CODE BEGIN TIM3_Init 0 */
+
+	/* USER CODE END TIM3_Init 0 */
+
+	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
+	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+	TIM_OC_InitTypeDef sConfigOC = { 0 };
+
+	/* USER CODE BEGIN TIM3_Init 1 */
+
+	/* USER CODE END TIM3_Init 1 */
+	htim3.Instance = TIM3;
+	htim3.Init.Prescaler = 27500 - 1;
+	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim3.Init.Period = 10000 - 1;
+	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+	if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
+		Error_Handler();
+	}
+	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK) {
+		Error_Handler();
+	}
+	if (HAL_TIM_PWM_Init(&htim3) != HAL_OK) {
+		Error_Handler();
+	}
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+	sConfigOC.OCMode = TIM_OCMODE_PWM1;
+	sConfigOC.Pulse = 1000 - 1;
+	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+	if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_1)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN TIM3_Init 2 */
+
+	/* USER CODE END TIM3_Init 2 */
+	HAL_TIM_MspPostInit(&htim3);
+
 }
 
 /**
@@ -260,8 +318,7 @@ static void MX_CRC_Init(void)
  * @param None
  * @retval None
  */
-static void MX_UART8_Init(void)
-{
+static void MX_UART8_Init(void) {
 
 	/* USER CODE BEGIN UART8_Init 0 */
 
@@ -281,25 +338,24 @@ static void MX_UART8_Init(void)
 	huart8.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 	huart8.Init.ClockPrescaler = UART_PRESCALER_DIV1;
 	huart8.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-	if (HAL_HalfDuplex_Init(&huart8) != HAL_OK)
-	{
+	if (HAL_HalfDuplex_Init(&huart8) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart8, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
-	{
+	if (HAL_UARTEx_SetTxFifoThreshold(&huart8, UART_TXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart8, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-	{
+	if (HAL_UARTEx_SetRxFifoThreshold(&huart8, UART_RXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_DisableFifoMode(&huart8) != HAL_OK)
-	{
+	if (HAL_UARTEx_DisableFifoMode(&huart8) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN UART8_Init 2 */
 
 	/* USER CODE END UART8_Init 2 */
+
 }
 
 /**
@@ -307,8 +363,7 @@ static void MX_UART8_Init(void)
  * @param None
  * @retval None
  */
-static void MX_USART2_UART_Init(void)
-{
+static void MX_USART2_UART_Init(void) {
 
 	/* USER CODE BEGIN USART2_Init 0 */
 
@@ -328,32 +383,30 @@ static void MX_USART2_UART_Init(void)
 	huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 	huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
 	huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-	if (HAL_HalfDuplex_Init(&huart2) != HAL_OK)
-	{
+	if (HAL_HalfDuplex_Init(&huart2) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
-	{
+	if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
-	{
+	if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK)
-	{
+	if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK) {
 		Error_Handler();
 	}
 	/* USER CODE BEGIN USART2_Init 2 */
 
 	/* USER CODE END USART2_Init 2 */
+
 }
 
 /**
  * Enable DMA controller clock
  */
-static void MX_DMA_Init(void)
-{
+static void MX_DMA_Init(void) {
 
 	/* DMA controller clock enable */
 	__HAL_RCC_DMA1_CLK_ENABLE();
@@ -371,6 +424,7 @@ static void MX_DMA_Init(void)
 	/* DMA1_Stream3_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+
 }
 
 /**
@@ -378,9 +432,8 @@ static void MX_DMA_Init(void)
  * @param None
  * @retval None
  */
-static void MX_GPIO_Init(void)
-{
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
+static void MX_GPIO_Init(void) {
+	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 	/* USER CODE BEGIN MX_GPIO_Init_1 */
 	/* USER CODE END MX_GPIO_Init_1 */
 
@@ -452,10 +505,8 @@ static void MX_GPIO_Init(void)
  * @param GPIO_Pin GPIO-Pin with active Interrupt
  * @retval None
  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if (GPIO_Pin == PWRDET_Pin)
-	{
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == PWRDET_Pin) {
 		BatteryAlarm = true;
 	}
 }
@@ -465,20 +516,17 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
  * @param huart Pointer to UART with completed transmitt
  * @retval None
  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == USART2)
-	{
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART2) {
 		HAL_HalfDuplex_EnableReceiver(tmcX.UART_address);
 		HAL_UART_Receive_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcX.data_sent_flag = true;
 	}
-	if (huart->Instance == UART8)
-	{
+	if (huart->Instance == UART8) {
 		HAL_HalfDuplex_EnableReceiver(tmcZ.UART_address);
 		HAL_UART_Receive_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcZ.data_sent_flag = true;
 	}
 }
@@ -489,18 +537,15 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
  * @param Size Size of the received data
  * @retval None
  */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == USART2)
-	{
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART2) {
 		HAL_UART_Receive_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcX.data_received_flag = true;
 	}
-	if (huart->Instance == UART8)
-	{
+	if (huart->Instance == UART8) {
 		HAL_UART_Receive_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcZ.data_received_flag = true;
 	}
 }
@@ -508,9 +553,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 /* MPU Configuration */
 
-void MPU_Config(void)
-{
-	MPU_Region_InitTypeDef MPU_InitStruct = {0};
+void MPU_Config(void) {
+	MPU_Region_InitTypeDef MPU_InitStruct = { 0 };
 
 	/* Disables the MPU */
 	HAL_MPU_Disable();
@@ -532,36 +576,35 @@ void MPU_Config(void)
 	HAL_MPU_ConfigRegion(&MPU_InitStruct);
 	/* Enables the MPU */
 	HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
+
 }
 
 /**
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void)
-{
+void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-	while (1)
-	{
+	while (1) {
 	}
 	/* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-	/* USER CODE BEGIN 6 */
+  /* USER CODE BEGIN 6 */
 	/* User can add his own implementation to report the file name and line number,
 	   ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-	/* USER CODE END 6 */
+  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

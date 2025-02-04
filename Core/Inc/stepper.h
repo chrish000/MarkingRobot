@@ -63,17 +63,22 @@ private:
 	moveCommands *moveCmdCalcBuf;
 
 	struct intervalCalcStruct {
+		uint8_t phase = 0;
 		uint32_t stepCnt = 0;	// Zähler für Schritte
 		uint32_t accelStepCnt = 0;
+		uint32_t jerkStepCnt = 0;
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
+		float_t currentAccel = 0.0f;
+		float_t currentJerk = JERK;
 		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (ns)
-	} intervalCalc;
+	} calc;
 
 	bool timerActiveFlag = 0;
 	uint8_t bezier_factor = 5; //Verschiebung der Kontrollpubnkte in % (Abflachung)
 	float_t bezier_t = 0;
 	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);
+	struct stepCmd jerk(moveCommands*);
 };
 
 class StepperMotor {

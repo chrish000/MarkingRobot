@@ -103,6 +103,7 @@ void Error_Handler(void);
 #define MAX_SPEED 680
 #define DEFAULT_ACCEL 200
 #define MAX_ACCEL 3000
+#define JERK 1
 
 //Beschleunigungskurve: {Trapezoid (default); Bezier}
 //#define ACCEL_CURVE_BEZIER

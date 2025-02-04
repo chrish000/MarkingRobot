@@ -18,9 +18,6 @@
 #include <math.h>
 
 /* Exported functions prototypes ---------------------------------------------*/
-inline float sqr(float x) {
-	return x * x;
-}
 
 // Compute the linear interpolation between two real numbers.
 static inline float interp(const float a, const float b, const float t) { return (1 - t) * a + t * b; }

@@ -16,6 +16,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stepper.h"
 #include "utils.h"
+#include <math.h>
 
 /* MotorManager --------------------------------------------------------------*/
 
@@ -29,7 +30,7 @@ bool MotorManager::calcInterval() {
 		moveCmdCalcBuf = moveBuf.peek();
 		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
 		while (stepBuf.isFull() == false
-				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
+				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 #if defined(ACCEL_CURVE_TRAPEZOID)
 			stepBuf.insert(trapezoid(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_BEZIER)
@@ -38,8 +39,8 @@ bool MotorManager::calcInterval() {
 		}
 
 		//Berechnung abgeschlossen
-		if (intervalCalc.stepCnt == moveCmdCalcBuf->stepDistance) {
-			intervalCalc.stepCnt = 0;
+		if (calc.stepCnt == moveCmdCalcBuf->stepDistance) {
+			calc.stepCnt = 0;
 			bezier_t = 0;
 			if (moveBuf.remove()) {
 				if (timerActiveFlag == false)
@@ -54,7 +55,7 @@ bool MotorManager::calcInterval() {
 
 		//Berechnung nicht abgeschlossen aber Puffer voll
 		else if (stepBuf.isFull()
-				&& intervalCalc.stepCnt < moveCmdCalcBuf->stepDistance) {
+				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 			if (timerActiveFlag == false)
 				startTimer();
 			return true;
@@ -62,7 +63,7 @@ bool MotorManager::calcInterval() {
 
 		//Berechnung nicht abgeschlossen und Puffer nicht voll
 		else if (!stepBuf.isFull()
-				&& intervalCalc.stepCnt >= moveCmdCalcBuf->stepDistance) {
+				&& calc.stepCnt >= moveCmdCalcBuf->stepDistance) {
 			ErrorCode = STEP_BUF;
 			Error_Handler();
 			return false; //niemals erreicht
@@ -115,64 +116,63 @@ bool MotorManager::getTimerState() {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
+//TODO Berechnung korrigieren
 MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
-	if (intervalCalc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
-		intervalCalc.accelStepCnt = roundf(
-				sqr(moveCmd->speed) / (2.0f * moveCmd->accel));
-		if (intervalCalc.accelStepCnt > moveCmd->stepDistance / 2) {
-			intervalCalc.accelStepCnt = moveCmd->stepDistance / 2;
-			moveCmd->speed = sqrt(
-					2 * moveCmd->accel * intervalCalc.accelStepCnt);
+	if (calc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
+		calc.accelStepCnt = roundf(
+				pow(moveCmd->speed, 2) / (2.0f * moveCmd->accel));
+		if (calc.accelStepCnt > moveCmd->stepDistance / 2) {
+			calc.accelStepCnt = moveCmd->stepDistance / 2;
+			moveCmd->speed = sqrt(2 * moveCmd->accel * calc.accelStepCnt);
 		}
 	}
 
 	// 1. Beschleunigungsphase
-	if (intervalCalc.stepCnt < intervalCalc.accelStepCnt) {
+	if (calc.stepCnt < calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		bezier_t += 1.0f / calc.accelStepCnt;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		intervalCalc.interval = 1.0f / velocity;
-	} else if (intervalCalc.stepCnt == intervalCalc.accelStepCnt) {
+		calc.interval = 1.0f / velocity;
+	} else if (calc.stepCnt == calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		bezier_t += 1.0f / calc.accelStepCnt;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		intervalCalc.interval = 1.0f / velocity;
+		calc.interval = 1.0f / velocity;
 		bezier_t = 0;
 	}
 
 	// 2. Phase konstanter Geschwindigkeit
-	else if (intervalCalc.stepCnt
-			< moveCmd->stepDistance - intervalCalc.accelStepCnt) {
+	else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
 		if (bezier_t > 0)
 			bezier_t = 0;
-		intervalCalc.interval = 1.0f / moveCmd->speed;
+		calc.interval = 1.0f / moveCmd->speed;
 	}
 
 	// 3. Abbremsphase
-	else if (intervalCalc.stepCnt < moveCmd->stepDistance) {
+	else if (calc.stepCnt < moveCmd->stepDistance) {
 		const float_t P0 = moveCmd->speed;	//Startgeschwindigkeit
 		const float_t P1 = V_MIN;			//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		bezier_t += 1.0f / calc.accelStepCnt;
 		float_t velocity = interp(P0, P1, bezier_t); //Geschwindigkeit in steps/s
-		intervalCalc.interval = 1.0f / velocity;
+		calc.interval = 1.0f / velocity;
 	}
 
-	intervalCalc.stepCnt++;
+	calc.stepCnt++;
 
-	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
-			* F_TIM, stepCmd.directionX = moveCmd->directionX,
-			stepCmd.directionY = moveCmd->directionY, stepCmd.printigMove =
+	MotorManager::stepCmd stepCmd { stepCmd.interval = calc.interval * F_TIM,
+			stepCmd.directionX = moveCmd->directionX, stepCmd.directionY =
+					moveCmd->directionY, stepCmd.printigMove =
 					moveCmd->printigMove };
 	return stepCmd;
 }
@@ -182,71 +182,190 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
+//TODO Beschleunigungsdistanz Berechnung anpassen
+//TODO Beschleunigung Werte Beginn anpassen
 MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
-	if (intervalCalc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
-		intervalCalc.accelStepCnt = roundf(
-				sqr(moveCmd->speed) / (2.0f * moveCmd->accel));
-		if (intervalCalc.accelStepCnt > moveCmd->stepDistance / 2) {
-			intervalCalc.accelStepCnt = moveCmd->stepDistance / 2;
-			moveCmd->speed = sqrt(
-					2 * moveCmd->accel * intervalCalc.accelStepCnt);
+	if (calc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
+		calc.accelStepCnt = roundf(
+				pow(moveCmd->speed, 2) / (2.0f * moveCmd->accel));
+		if (calc.accelStepCnt > moveCmd->stepDistance / 2) {
+			calc.accelStepCnt = moveCmd->stepDistance / 2;
+			moveCmd->speed = sqrt(2 * moveCmd->accel * calc.accelStepCnt);
 		}
 	}
 
 	// 1. Beschleunigungsphase
-	if (intervalCalc.stepCnt < intervalCalc.accelStepCnt) {
+	if (calc.stepCnt < calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		bezier_t += 1.0f / calc.accelStepCnt;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		intervalCalc.interval = 1.0f / velocity;
-	} else if (intervalCalc.stepCnt == intervalCalc.accelStepCnt) {
+		calc.interval = 1.0f / velocity;
+	} else if (calc.stepCnt == calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		bezier_t += 1.0f / calc.accelStepCnt;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		intervalCalc.interval = 1.0f / velocity;
+		calc.interval = 1.0f / velocity;
 		bezier_t = 0;
 	}
 
 	// 2. Phase konstanter Geschwindigkeit
-	else if (intervalCalc.stepCnt
-			< moveCmd->stepDistance - intervalCalc.accelStepCnt) {
+	else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
 		if (bezier_t > 0)
 			bezier_t = 0;
-		intervalCalc.interval = 1.0f / moveCmd->speed;
+		calc.interval = 1.0f / moveCmd->speed;
 	}
 
 	// 3. Abbremsphase
-	else if (intervalCalc.stepCnt < moveCmd->stepDistance) {
+	else if (calc.stepCnt < moveCmd->stepDistance) {
 		const float_t P0 = moveCmd->speed;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = V_MIN;					//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / intervalCalc.accelStepCnt;
+		bezier_t += 1.0f / calc.accelStepCnt;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		intervalCalc.interval = 1.0f / velocity;
+		calc.interval = 1.0f / velocity;
 	}
 
-	intervalCalc.stepCnt++;
+	calc.stepCnt++;
 
-	MotorManager::stepCmd stepCmd { stepCmd.interval = intervalCalc.interval
-			* F_TIM, stepCmd.directionX = moveCmd->directionX,
-			stepCmd.directionY = moveCmd->directionY, stepCmd.printigMove =
+	MotorManager::stepCmd stepCmd { stepCmd.interval = calc.interval * F_TIM,
+			stepCmd.directionX = moveCmd->directionX, stepCmd.directionY =
+					moveCmd->directionY, stepCmd.printigMove =
 					moveCmd->printigMove };
 	return stepCmd;
 }
 
+/**
+ * @brief Berechnet das Intervall für den nächsten Schritt als S-Kurve
+ * @param None
+ * @retval Intervall mit der Sktuktur stepCmd
+ */
+MotorManager::stepCmd MotorManager::jerk(moveCommands *moveCmd) {
+	//TODO Sonderfälle implementieren
+	switch (calc.phase) {
+	case 0: //Anfangsbeschleunigung
+	{
+		calc.currentJerk = JERK;
+		calc.interval = 1.0f / V_MIN;
+		calc.phase = 1;
+
+		calc.stepCnt++;
+
+		MotorManager::stepCmd stepCmd;
+		stepCmd.interval = calc.interval * F_TIM;
+		stepCmd.directionX = moveCmd->directionX;
+		stepCmd.directionY = moveCmd->directionY;
+		stepCmd.printigMove = moveCmd->printigMove;
+
+		return stepCmd;
+		//break;
+	}
+	case 1: //steigende Beschleunigung
+	{
+		//Jerk aus Phase 0 bereits gesetzt
+		if (calc.currentAccel >= moveCmd->accel) {
+			calc.currentJerk = 0;
+			calc.currentAccel = moveCmd->accel;
+			calc.jerkStepCnt = calc.stepCnt + 1;
+			calc.accelStepCnt = (pow(moveCmd->speed, 3) - pow(V_MIN, 3))
+					/ (3 * JERK);
+			calc.phase = 2;
+		}
+		break;
+	}
+	case 2: //konstante Beschleunigung
+	{
+		if (calc.stepCnt >= calc.accelStepCnt - calc.jerkStepCnt) {
+			calc.currentJerk = -JERK;
+			calc.phase = 3;
+		}
+		break;
+	}
+	case 3: //sinkende Beschleunigung
+	{
+		if (calc.stepCnt >= calc.accelStepCnt) {
+			calc.currentJerk = 0;
+			calc.currentAccel = 0;
+			calc.phase = 4;
+		}
+		break;
+	}
+	case 4: //konstante Geschwindigkeit
+	{
+		if (calc.stepCnt >= moveCmd->stepDistance - calc.accelStepCnt) {
+			calc.currentJerk = -JERK;
+			calc.phase = 5;
+		}
+		break;
+	}
+	case 5: //steigende Entschleunigung
+	{
+		if (calc.stepCnt
+				>= moveCmd->stepDistance - calc.accelStepCnt
+						+ calc.jerkStepCnt) {
+			calc.currentJerk = 0;
+			calc.phase = 6;
+		}
+		break;
+	}
+	case 6: //konstante Entschleunigung
+	{
+		if (calc.stepCnt >= moveCmd->stepDistance - calc.jerkStepCnt) {
+			calc.currentJerk = JERK;
+			calc.phase = 7;
+		}
+		break;
+	}
+	case 7: //sinkende Entschleunigung
+	{
+		if (calc.stepCnt >= moveCmd->stepDistance) {
+			calc.interval = 1.0f / V_MIN;
+			calc.phase = 0;
+			calc.stepCnt = 0;
+			calc.accelStepCnt = 0;
+			calc.jerkStepCnt = 0;
+			calc.currentSpeed = V_MIN;
+			calc.currentAccel = 0.0f;
+			calc.currentJerk = JERK;
+
+			MotorManager::stepCmd stepCmd;
+			stepCmd.interval = calc.interval * F_TIM;
+			stepCmd.directionX = moveCmd->directionX;
+			stepCmd.directionY = moveCmd->directionY;
+			stepCmd.printigMove = moveCmd->printigMove;
+
+			return stepCmd;
+		}
+		//break;
+	}
+	}
+
+	calc.currentAccel += JERK * 1.0f / calc.interval;
+	calc.currentSpeed += calc.currentAccel * 1.0f / calc.interval;
+	calc.interval = 1.0f / (calc.currentSpeed ? calc.currentSpeed : V_MIN);
+
+	calc.stepCnt++;
+
+	MotorManager::stepCmd stepCmd;
+	stepCmd.interval = calc.interval * F_TIM;
+	stepCmd.directionX = moveCmd->directionX;
+	stepCmd.directionY = moveCmd->directionY;
+	stepCmd.printigMove = moveCmd->printigMove;
+
+	return stepCmd;
+}
 /* StepperMotor --------------------------------------------------------------*/
 
 /**

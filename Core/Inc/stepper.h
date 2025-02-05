@@ -19,6 +19,11 @@
 #include "main.h"
 #include "ringbuffer.hpp"
 
+/* Defines -------------------------------------------------------------------*/
+#define F_TIM 1000000 //1MHz
+#define V_MIN (STEPS_PER_MM * 1) //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
+#define JERK (MAX_JERK * STEPS_PER_MM)
+
 enum {
 	forward = 1, reverse = 0
 };
@@ -67,6 +72,7 @@ private:
 		uint32_t stepCnt = 0;	// Zähler für Schritte
 		uint32_t accelStepCnt = 0;
 		uint32_t jerkStepCnt = 0;
+		float_t timeAccel = 0.0f;
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
 		float_t currentAccel = 0.0f;
 		float_t currentJerk = JERK;
@@ -101,8 +107,5 @@ private:
 
 	void step();
 };
-
-#define F_TIM 1000000 //1MHz
-#define V_MIN STEPS_PER_MM * 1 //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
 
 #endif /* STEPPER_H */

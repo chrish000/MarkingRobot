@@ -31,10 +31,18 @@ bool MotorManager::calcInterval() {
 		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
 		while (stepBuf.isFull() == false
 				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
+			uint32_t result[3000] = { };
+			for (int i = 0; i < 3000; i++) {
+				result[i] = jerk(moveCmdCalcBuf).interval;
+			}
+			while (1)
+				;
 #if defined(ACCEL_CURVE_TRAPEZOID)
 			stepBuf.insert(trapezoid(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_BEZIER)
 			stepBuf.insert(bezier(moveCmdCalcBuf));
+#elif defined(ACCEL_CURVE_JERK)
+			stepBuf.insert(jerk(moveCmdCalcBuf));
 #endif
 		}
 
@@ -116,57 +124,37 @@ bool MotorManager::getTimerState() {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
-//TODO Berechnung korrigieren
+//TODO Endposition
 MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	if (calc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
 		calc.accelStepCnt = roundf(
-				pow(moveCmd->speed, 2) / (2.0f * moveCmd->accel));
+				(pow(moveCmd->speed, 2) - pow(V_MIN, 2))
+						/ (2.0f * moveCmd->accel));
 		if (calc.accelStepCnt > moveCmd->stepDistance / 2) {
 			calc.accelStepCnt = moveCmd->stepDistance / 2;
 			moveCmd->speed = sqrt(2 * moveCmd->accel * calc.accelStepCnt);
 		}
+		calc.currentSpeed = V_MIN;
+	} else {
+
+		// 1. Beschleunigungsphase
+		if (calc.stepCnt <= calc.accelStepCnt) {
+			calc.currentAccel = moveCmd->accel;
+		}
+
+		// 2. Phase konstanter Geschwindigkeit
+		else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
+			calc.currentAccel = 0;
+		}
+
+		// 3. Abbremsphase
+		else if (calc.stepCnt < moveCmd->stepDistance) {
+			calc.currentAccel = -moveCmd->accel;
+		}
+
+		calc.currentSpeed += calc.currentAccel * calc.interval;
 	}
-
-	// 1. Beschleunigungsphase
-	if (calc.stepCnt < calc.accelStepCnt) {
-		const float_t P0 = V_MIN;			//Startgeschwindigkeit
-		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
-		const float_t P2 = moveCmd->speed
-				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
-		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
-
-		bezier_t += 1.0f / calc.accelStepCnt;
-		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		calc.interval = 1.0f / velocity;
-	} else if (calc.stepCnt == calc.accelStepCnt) {
-		const float_t P0 = V_MIN;			//Startgeschwindigkeit
-		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
-		const float_t P2 = moveCmd->speed
-				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
-		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
-
-		bezier_t += 1.0f / calc.accelStepCnt;
-		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		calc.interval = 1.0f / velocity;
-		bezier_t = 0;
-	}
-
-	// 2. Phase konstanter Geschwindigkeit
-	else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
-		if (bezier_t > 0)
-			bezier_t = 0;
-		calc.interval = 1.0f / moveCmd->speed;
-	}
-
-	// 3. Abbremsphase
-	else if (calc.stepCnt < moveCmd->stepDistance) {
-		const float_t P0 = moveCmd->speed;	//Startgeschwindigkeit
-		const float_t P1 = V_MIN;			//Zielgeschwindigkeit
-
-		bezier_t += 1.0f / calc.accelStepCnt;
-		float_t velocity = interp(P0, P1, bezier_t); //Geschwindigkeit in steps/s
-		calc.interval = 1.0f / velocity;
-	}
+	calc.interval = 1.0f / calc.currentSpeed;
 
 	calc.stepCnt++;
 
@@ -182,40 +170,32 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
-//TODO Beschleunigungsdistanz Berechnung anpassen
-//TODO Beschleunigung Werte Beginn anpassen
+//TODO Bugfix Werte
 MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 	if (calc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
 		calc.accelStepCnt = roundf(
-				pow(moveCmd->speed, 2) / (2.0f * moveCmd->accel));
+				(pow(moveCmd->speed, 2) - pow(V_MIN, 2))
+						/ (2.0f * moveCmd->accel));
 		if (calc.accelStepCnt > moveCmd->stepDistance / 2) {
 			calc.accelStepCnt = moveCmd->stepDistance / 2;
 			moveCmd->speed = sqrt(2 * moveCmd->accel * calc.accelStepCnt);
 		}
+		calc.timeAccel = (moveCmd->speed - V_MIN) / moveCmd->accel;
 	}
 
 	// 1. Beschleunigungsphase
-	if (calc.stepCnt < calc.accelStepCnt) {
+	if (calc.stepCnt <= calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
 		const float_t P2 = moveCmd->speed
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / calc.accelStepCnt;
+		bezier_t = bezier_t * calc.timeAccel + calc.interval / calc.timeAccel;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
 		calc.interval = 1.0f / velocity;
-	} else if (calc.stepCnt == calc.accelStepCnt) {
-		const float_t P0 = V_MIN;			//Startgeschwindigkeit
-		const float_t P1 = V_MIN + moveCmd->speed * (bezier_factor / 100);//Kontrollpunkt 1
-		const float_t P2 = moveCmd->speed
-				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
-		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
-
-		bezier_t += 1.0f / calc.accelStepCnt;
-		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
-		calc.interval = 1.0f / velocity;
-		bezier_t = 0;
+		if (calc.stepCnt == calc.accelStepCnt)
+			bezier_t = 0;
 	}
 
 	// 2. Phase konstanter Geschwindigkeit
@@ -233,9 +213,11 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 				- moveCmd->speed * (bezier_factor / 100);	//Kontrollpunkt 2
 		const float_t P3 = V_MIN;					//Zielgeschwindigkeit
 
-		bezier_t += 1.0f / calc.accelStepCnt;
+		bezier_t = bezier_t * calc.timeAccel + calc.interval / calc.timeAccel;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezier_t); //Geschwindigkeit in steps/s
 		calc.interval = 1.0f / velocity;
+		if (calc.stepCnt == moveCmd->stepDistance)
+			bezier_t = 0;
 	}
 
 	calc.stepCnt++;
@@ -252,13 +234,15 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
+//TODO Sonderfälle implementieren
+//TODO Bugfix Werte
 MotorManager::stepCmd MotorManager::jerk(moveCommands *moveCmd) {
-	//TODO Sonderfälle implementieren
 	switch (calc.phase) {
 	case 0: //Anfangsbeschleunigung
 	{
 		calc.currentJerk = JERK;
-		calc.interval = 1.0f / V_MIN;
+		calc.currentSpeed = V_MIN;
+		calc.interval = 1.0f / calc.currentSpeed;
 		calc.phase = 1;
 
 		calc.stepCnt++;
@@ -288,7 +272,7 @@ MotorManager::stepCmd MotorManager::jerk(moveCommands *moveCmd) {
 	case 2: //konstante Beschleunigung
 	{
 		if (calc.stepCnt >= calc.accelStepCnt - calc.jerkStepCnt) {
-			calc.currentJerk = -JERK;
+			calc.currentJerk = -JERK * STEPS_PER_MM;
 			calc.phase = 3;
 		}
 		break;
@@ -352,9 +336,11 @@ MotorManager::stepCmd MotorManager::jerk(moveCommands *moveCmd) {
 	}
 	}
 
-	calc.currentAccel += JERK * 1.0f / calc.interval;
-	calc.currentSpeed += calc.currentAccel * 1.0f / calc.interval;
-	calc.interval = 1.0f / (calc.currentSpeed ? calc.currentSpeed : V_MIN);
+	calc.currentAccel += calc.currentJerk * calc.interval;
+	calc.currentAccel = fmin(calc.currentAccel, moveCmd->accel);
+	calc.currentSpeed += calc.currentAccel * calc.interval;
+	calc.currentSpeed = fmin(calc.currentSpeed, moveCmd->speed);
+	calc.interval = 1.0f / calc.currentSpeed;
 
 	calc.stepCnt++;
 

@@ -1,8 +1,7 @@
 /**
  ******************************************************************************
  * @file           : utils.h
- * @brief          : Header for utils.c file.
- *                   This file contains the common defines of the application.
+ * @brief          :
  * @author		   : Chris Hauser
  ******************************************************************************
  * @attention
@@ -14,8 +13,8 @@
  ******************************************************************************
  */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __UTILS_H
-#define __UTILS_H
+#ifndef UTILS_H
+#define UTILS_H
 
 /* Exported functions prototypes ---------------------------------------------*/
 /**
@@ -51,5 +50,24 @@ inline unsigned int reverseData(unsigned int data, unsigned char data_size) {
 	return reversed_data;
 }
 
-#endif /* __UTILS_H */
+// Compute the linear interpolation between two real numbers.
+static inline float interp(const float a, const float b, const float t) { return (1 - t) * a + t * b; }
 
+/**
+ * @brief  Computing a Bézier-Curve.
+ * @param  a: starting point.
+ * @param  b: first control point.
+ * @param  b: second control point.
+ * @param  c: last point.
+ * @param  t: value for interpolating point on curve.
+ * @retval float: computed value.
+ */
+static inline float eval_bezier(const float a, const float b, const float c, const float d, const float t) {
+  const float iab = interp(a, b, t),
+              ibc = interp(b, c, t),
+              icd = interp(c, d, t),
+              iabc = interp(iab, ibc, t),
+              ibcd = interp(ibc, icd, t);
+  return interp(iabc, ibcd, t);
+}
+#endif /* UTILS_H */

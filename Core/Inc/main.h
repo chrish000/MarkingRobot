@@ -34,6 +34,13 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 extern CRC_HandleTypeDef hcrc;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+
+typedef enum {
+	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11
+} ERROR_HandleCode;
+extern ERROR_HandleCode ErrorCode;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -92,11 +99,35 @@ void Error_Handler(void);
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
+/**
+ *	###########################################################################
+ *	BEWEGUNG
+ *	###########################################################################
+ */
 #define MICROSTEPS 256
 #define STEPS_PER_MM 182.465
 #define STEPS_PER_DEG 802.077
+#define DEFAULT_SPEED 500 //in mm/s
+#define MAX_SPEED 680
+#define DEFAULT_ACCEL 1000
+#define MAX_ACCEL 3000
+
 #define RUN_CURRENT_DEFAULT 2000
 #define HOLD_CURRENT_DEFAULT 500
+
+//#define REVERSE_MOTOR_DIRECTION
+
+//Beschleunigungskurve: {Trapezoid; Bezier}
+//#define ACCEL_CURVE_BEZIER
+#define ACCEL_CURVE_TRAPEZOID
+
+/**
+ *	###########################################################################
+ *	MARKIEREINHEIT
+ *	###########################################################################
+ */
+#define PRINTHEAD_PERIOD 1000 //ms
+#define PRINTHEAD_DUTY_CYCLE 50 //%
 
 #define PRINTHEAD_PERIOD 1 //s
 #define PRINTHEAD_DUTY_CYCLE 10 //%

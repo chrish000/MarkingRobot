@@ -27,7 +27,7 @@
  * @param  out_max: The maximum value of the output range.
  * @retval int: The mapped value in the output range.
  */
-inline int map(int x, int in_min, int in_max, int out_min, int out_max) {
+inline int normalize(int x, int in_min, int in_max, int out_min, int out_max) {
 	return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 

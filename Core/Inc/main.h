@@ -7,9 +7,6 @@
  ******************************************************************************
  * @attention
  *
- * Copyright (c) 2024 STMicroelectronics.
- * All rights reserved.
- *
  * This software is licensed under terms that can be found in the LICENSE file
  * in the root directory of this software component.
  * If no LICENSE file comes with this software, it is provided AS-IS.
@@ -36,6 +33,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern CRC_HandleTypeDef hcrc;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 
@@ -47,7 +45,14 @@ extern ERROR_HandleCode ErrorCode;
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+extern volatile float PosX; // in mm
+extern volatile float PosY; // in mm
 
+extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
+extern volatile uint16_t PWMCounterX;
+extern volatile uint32_t TargetStepsX;
+
+extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -106,6 +111,9 @@ void Error_Handler(void);
 #define MAX_SPEED 680
 #define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 3000
+
+#define RUN_CURRENT_DEFAULT 2000
+#define HOLD_CURRENT_DEFAULT 500
 
 //#define REVERSE_MOTOR_DIRECTION
 

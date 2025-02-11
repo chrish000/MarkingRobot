@@ -21,10 +21,13 @@
 static inline float interp(const float a, const float b, const float t) { return (1 - t) * a + t * b; }
 
 /**
- * Compute a Bézier curve using the De Casteljau's algorithm (see
- * https://en.wikipedia.org/wiki/De_Casteljau%27s_algorithm), which is
- * easy to code and has good numerical stability (very important,
- * since Arudino works with limited precision real numbers).
+ * @brief  Computing a Bézier-Curve.
+ * @param  a: starting point.
+ * @param  b: first control point.
+ * @param  b: second control point.
+ * @param  c: last point.
+ * @param  t: value for interpolating point on curve.
+ * @retval float: computed value.
  */
 static inline float eval_bezier(const float a, const float b, const float c, const float d, const float t) {
   const float iab = interp(a, b, t),

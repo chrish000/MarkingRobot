@@ -110,7 +110,7 @@ int main(void) {
 
 	//################# TESTLAUF ###############################
 	const uint8_t posCnt = 10;
-	int16_t posStorage[10][2] = { { 14, 0 }, { 2000, 0 }, { 3000, 0 }, { 4000,
+	int16_t posStorage[10][2] = { { 1000, 0 }, { 2000, 0 }, { 3000, 0 }, { 4000,
 			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
 			{ 9000, 0 }, { 10000, 0 } };
 	uint8_t i = 0;
@@ -119,7 +119,8 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1]))
+		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
+		DEFAULT_SPEED, DEFAULT_ACCEL, true))
 			i++;
 		if (robi.motorMaster.calcInterval())
 			;
@@ -260,7 +261,7 @@ static void MX_TIM3_Init(void) {
 	htim3.Instance = TIM3;
 	htim3.Init.Prescaler = 27500 - 1;
 	htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim3.Init.Period = 10000 - 1;
+	htim3.Init.Period = 0;
 	htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 	if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
@@ -287,6 +288,7 @@ static void MX_TIM3_Init(void) {
 			!= HAL_OK) {
 		Error_Handler();
 	}
+	__HAL_TIM_DISABLE_OCxPRELOAD(&htim3, TIM_CHANNEL_1);
 	/* USER CODE BEGIN TIM3_Init 2 */
 
 	/* USER CODE END TIM3_Init 2 */

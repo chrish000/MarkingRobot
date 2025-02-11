@@ -34,8 +34,8 @@ public:
 	PRINTHEAD_DUTY_CYCLE) {
 		param.period = newPeriod;
 		param.dutyCycle = newDutyCycle;
-		htim->Instance->ARR = param.period * 10000 - 1;
-		htim->Instance->CCR1 = param.dutyCycle * param.period * 10000 / 100 - 1;
+		htim->Instance->ARR = (uint32_t)(param.period * 10 - 1);
+		htim->Instance->CCR1 = (uint32_t)(param.dutyCycle * param.period * 10 / 100 - 1);
 	}
 	void start() {
 		HAL_TIM_PWM_Start(htim, channel);
@@ -49,6 +49,7 @@ public:
 		return active;
 	}
 	void init() {
+		stop();
 		setParam();
 	}
 

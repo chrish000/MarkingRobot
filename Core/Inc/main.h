@@ -102,11 +102,10 @@ void Error_Handler(void);
 #define MICROSTEPS 256
 #define STEPS_PER_MM 181.952
 #define STEPS_PER_DEG 825.666
-#define DEFAULT_SPEED 100 //in mm/s
+#define DEFAULT_SPEED 500 //in mm/s
 #define MAX_SPEED 680
 #define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 3000
-#define MAX_JERK 10000
 
 //#define REVERSE_MOTOR_DIRECTION
 
@@ -119,8 +118,8 @@ void Error_Handler(void);
  *	MARKIEREINHEIT
  *	###########################################################################
  */
-#define PRINTHEAD_PERIOD 0.5 //s
-#define PRINTHEAD_DUTY_CYCLE 75 //%
+#define PRINTHEAD_PERIOD 1000 //ms
+#define PRINTHEAD_DUTY_CYCLE 50 //%
 
 /* USER CODE END Private defines */
 

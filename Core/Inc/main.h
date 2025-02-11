@@ -1,4 +1,4 @@
-/* USER CODE BEGIN Header */
+_/* USER CODE BEGIN Header */
 /**
  ******************************************************************************
  * @file           : main.h
@@ -89,8 +89,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN Private defines */
 #define MICROSTEPS 256
-#define STEPS_PER_MM 181.952	//5.684 alt		// "/(256/MICROSTEPS)"
-#define STEPS_PER_DEG 825.666	//25.793 alt
+#define STEPS_PER_MM 182.465
+#define STEPS_PER_DEG 802.077
 #define RUN_CURRENT_DEFAULT 2000
 #define HOLD_CURRENT_DEFAULT 500
 /* USER CODE END Private defines */

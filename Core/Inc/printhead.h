@@ -30,15 +30,19 @@ public:
 		uint16_t period = PRINTHEAD_PERIOD;
 		uint8_t dutyCycle = PRINTHEAD_DUTY_CYCLE;
 	} param;
+
 	void setParam(uint16_t newPeriod = PRINTHEAD_PERIOD, uint8_t newDutyCycle =
 	PRINTHEAD_DUTY_CYCLE) {
 		param.period = newPeriod;
 		param.dutyCycle = std::clamp(newDutyCycle, (uint8_t) 0, (uint8_t) 100);
-		htim->Instance->ARR = std::clamp((uint16_t) (param.period * 10000 - 1),
+		htim->Instance->ARR = std::clamp((uint16_t) (param.period * 10 - 1),
 				std::numeric_limits<uint16_t>::min(),
 				std::numeric_limits<uint16_t>::max());
-		htim->Instance->CCR1 = param.dutyCycle * param.period * 10000 / 100 - 1;
-	} //(param.period * 10000 - 1)
+		htim->Instance->CCR1 = std::clamp(
+				(uint16_t) (param.dutyCycle * param.period * 10 / 100 - 1),
+				std::numeric_limits<uint16_t>::min(),
+				std::numeric_limits<uint16_t>::max());
+	}
 	void start() {
 		HAL_TIM_PWM_Start(htim, channel);
 		active = true;
@@ -51,6 +55,7 @@ public:
 		return active;
 	}
 	void init() {
+		stop();
 		setParam();
 	}
 

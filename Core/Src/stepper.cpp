@@ -26,46 +26,50 @@
  * @retval Zeitintervall in Mikrosekunden
  */
 bool MotorManager::calcInterval() {
-	if (moveBuf.isEmpty())	//Berechne falls Daten vorhanden
-		return false;
-
-	moveCmdCalcBuf = moveBuf.peek();
-	//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
-	while (stepBuf.isFull() == false
-			&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
+	if (moveBuf.isEmpty() == false) {	//Berechne falls Daten vorhanden
+		moveCmdCalcBuf = moveBuf.peek();
+		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
+		while (stepBuf.isFull() == false
+				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 #if defined(ACCEL_CURVE_TRAPEZOID)
-		stepBuf.insert(trapezoid(moveCmdCalcBuf));
+			stepBuf.insert(trapezoid(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_BEZIER)
 			stepBuf.insert(bezier(moveCmdCalcBuf));
 #endif
-	}
+		}
 
-	//Berechnung abgeschlossen
-	if (calc.stepCnt == moveCmdCalcBuf->stepDistance) {
-		calc.stepCnt = 0;
-		bezierT = 0;
-		if (moveBuf.remove()) {
+		//Berechnung abgeschlossen
+		if (calc.stepCnt == moveCmdCalcBuf->stepDistance) {
+			calc.stepCnt = 0;
+			bezierT = 0;
+			if (moveBuf.remove()) {
+				if (!timerActiveFlag)
+					startTimer();
+				return true;
+			} else {
+				ErrorCode = MOVE_BUF;
+				Error_Handler();
+				return false; //niemals erreicht
+			}
+		}
+
+		//Berechnung nicht abgeschlossen aber Puffer voll
+		else if (stepBuf.isFull()
+				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 			if (!timerActiveFlag)
 				startTimer();
 			return true;
-		} else {
-			ErrorCode = MOVE_BUF;
+		}
+
+		//Berechnung nicht abgeschlossen und Puffer nicht voll
+		else if (!stepBuf.isFull()
+				&& calc.stepCnt >= moveCmdCalcBuf->stepDistance) {
+			ErrorCode = STEP_BUF;
 			Error_Handler();
 			return false; //niemals erreicht
 		}
 	}
-
-	//Berechnung nicht abgeschlossen aber Puffer voll
-	if (stepBuf.isFull()) {
-		if (!timerActiveFlag)
-			startTimer();
-		return true;
-	}
-
-	//Berechnung nicht abgeschlossen und Puffer nicht voll
-	ErrorCode = STEP_BUF;
-	Error_Handler();
-	return false; //niemals erreicht
+	return false;
 }
 
 /**

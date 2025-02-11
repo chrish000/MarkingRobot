@@ -21,17 +21,21 @@
 
 /* Defines -------------------------------------------------------------------*/
 #define F_TIM 1000000 //1MHz
-#define V_MIN (STEPS_PER_MM * 0.1) //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
+#define V_MIN (STEPS_PER_MM * 0.5) //Mindestgeschwindigkeit in steps/s (= x.x mm/s), MUSS mindestens *0.2 sein!
 
 enum class Direction : bool {
-    Forward = true,
-    Reverse = false
+	Forward = true, Reverse = false
 };
 
 class MotorManager {
 public:
+	//Instruktor
 	MotorManager(TIM_HandleTypeDef *htim) :
-			htim(htim) {
+			htim(htim), moveCmdCalcBuf(new moveCommands { }) {
+	}
+	//Destruktor
+	~MotorManager() {
+		delete moveCmdCalcBuf;
 	}
 
 	TIM_HandleTypeDef *htim;
@@ -86,10 +90,15 @@ private:
 
 class StepperMotor {
 public:
+	//Instruktor
 	StepperMotor(GPIO_TypeDef *stepPort, uint16_t stepPin,
 			GPIO_TypeDef *dirPort, uint16_t dirPin) :
 			stepPort(stepPort), stepPin(stepPin), dirPort(dirPort), dirPin(
 					dirPin) {
+	}
+	//Destruktor
+	~StepperMotor() {
+
 	}
 
 	void setStepDir(Direction dir);
@@ -102,7 +111,7 @@ private:
 	GPIO_TypeDef *dirPort;
 	uint16_t dirPin;
 
-	bool direction;
+	Direction direction = Direction::Forward;
 
 	void step();
 };

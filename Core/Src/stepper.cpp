@@ -26,46 +26,50 @@
  * @retval Zeitintervall in Mikrosekunden
  */
 bool MotorManager::calcInterval() {
-	if (moveBuf.isEmpty())	//Berechne falls Daten vorhanden
-		return false;
-
-	moveCmdCalcBuf = moveBuf.peek();
-	//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
-	while (stepBuf.isFull() == false
-			&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
+	if (moveBuf.isEmpty() == false) {	//Berechne falls Daten vorhanden
+		moveCmdCalcBuf = moveBuf.peek();
+		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
+		while (stepBuf.isFull() == false
+				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 #if defined(ACCEL_CURVE_TRAPEZOID)
-		stepBuf.insert(trapezoid(moveCmdCalcBuf));
+			stepBuf.insert(trapezoid(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_BEZIER)
 			stepBuf.insert(bezier(moveCmdCalcBuf));
 #endif
-	}
+		}
 
-	//Berechnung abgeschlossen
-	if (calc.stepCnt == moveCmdCalcBuf->stepDistance) {
-		calc.stepCnt = 0;
-		bezierT = 0;
-		if (moveBuf.remove()) {
+		//Berechnung abgeschlossen
+		if (calc.stepCnt == moveCmdCalcBuf->stepDistance) {
+			calc.stepCnt = 0;
+			bezierT = 0;
+			if (moveBuf.remove()) {
+				if (!timerActiveFlag)
+					startTimer();
+				return true;
+			} else {
+				ErrorCode = MOVE_BUF;
+				Error_Handler();
+				return false; //niemals erreicht
+			}
+		}
+
+		//Berechnung nicht abgeschlossen aber Puffer voll
+		else if (stepBuf.isFull()
+				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 			if (!timerActiveFlag)
 				startTimer();
 			return true;
-		} else {
-			ErrorCode = MOVE_BUF;
+		}
+
+		//Berechnung nicht abgeschlossen und Puffer nicht voll
+		else if (!stepBuf.isFull()
+				&& calc.stepCnt >= moveCmdCalcBuf->stepDistance) {
+			ErrorCode = STEP_BUF;
 			Error_Handler();
 			return false; //niemals erreicht
 		}
 	}
-
-	//Berechnung nicht abgeschlossen aber Puffer voll
-	if (stepBuf.isFull()) {
-		if (!timerActiveFlag)
-			startTimer();
-		return true;
-	}
-
-	//Berechnung nicht abgeschlossen und Puffer nicht voll
-	ErrorCode = STEP_BUF;
-	Error_Handler();
-	return false; //niemals erreicht
+	return false;
 }
 
 /**
@@ -154,7 +158,7 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		calc.timeAccel = (moveCmd->speed - V_MIN) / moveCmd->accel;
 	}
 
-// 1. Beschleunigungsphase
+	// 1. Beschleunigungsphase
 	if (calc.stepCnt <= calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezierFactor / 100);//Kontrollpunkt 1
@@ -169,14 +173,14 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 			bezierT = 0;
 	}
 
-// 2. Phase konstanter Geschwindigkeit
+	// 2. Phase konstanter Geschwindigkeit
 	else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
 		if (bezierT > 0)
 			bezierT = 0;
 		calc.interval = 1.0f / moveCmd->speed;
 	}
 
-// 3. Abbremsphase
+	// 3. Abbremsphase
 	else if (calc.stepCnt < moveCmd->stepDistance) {
 		const float_t P0 = moveCmd->speed;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezierFactor / 100);//Kontrollpunkt 1
@@ -218,10 +222,10 @@ void MotorManager::calculateTrapezoidAccelerationParameters(
  * @retval None
  */
 void StepperMotor::setStepDir(Direction dir) {
-	direction = (dir == Direction::Forward);
+	direction = dir;  // Keine bool-Umwandlung nötig
 	assert(dirPort != nullptr && "Dir-Port darf nicht NULL sein!");
 	HAL_GPIO_WritePin(dirPort, dirPin,
-			(direction ? GPIO_PIN_SET : GPIO_PIN_RESET));
+			(direction == Direction::Forward ? GPIO_PIN_SET : GPIO_PIN_RESET));
 }
 
 /**
@@ -230,7 +234,7 @@ void StepperMotor::setStepDir(Direction dir) {
  * @retval true wenn Vorwärts, false wenn Rückwärts
  */
 Direction StepperMotor::getStepDir() {
-	return direction ? Direction::Forward : Direction::Reverse;
+	return direction;
 }
 
 /**

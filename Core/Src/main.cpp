@@ -167,16 +167,17 @@ int main(void)
 	/* Code before infinite loop */
 	// ################# TESTLAUF ###############################
 	const uint8_t posCnt = 10;
-	int16_t posStorage[10][2] = {{1000, 0}, {2000, 0}, {3000, 0}, {4000, 0}, {5000, 0}, {6000, 0}, {7000, 0}, {8000, 0}, {9000, 0}, {10000, 0}};
+	int16_t posStorage[10][2] = { { 1000, 0 }, { 2000, 0 }, { 3000, 0 }, { 4000,
+			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
+			{ 9000, 0 }, { 10000, 0 } };
 	uint8_t i = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1)
-	{
+	while (1) {
 		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
-										 DEFAULT_SPEED, DEFAULT_ACCEL, true))
+		DEFAULT_SPEED, DEFAULT_ACCEL, true))
 			i++;
 		if (robi.motorMaster.calcInterval())
 			;
@@ -523,7 +524,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(HE0_PWM_GPIO_Port, HE0_PWM_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, HE0_PWM_Pin|FAN0_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_SET);
@@ -554,12 +555,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : HE0_PWM_Pin */
-  GPIO_InitStruct.Pin = HE0_PWM_Pin;
+  /*Configure GPIO pins : HE0_PWM_Pin FAN0_Pin */
+  GPIO_InitStruct.Pin = HE0_PWM_Pin|FAN0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(HE0_PWM_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 0, 0);
@@ -575,22 +576,17 @@ static void MX_GPIO_Init(void)
  * @param GPIO_Pin GPIO-Pin with active Interrupt
  * @retval None
  */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-	if (GPIO_Pin == PWRDET_Pin)
-	{
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == PWRDET_Pin) {
 		BatteryAlarm = true;
 	}
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim->Instance == TIM2)
-	{
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM2) {
 		MotorManager::stepCmd nextCmd;
-		if (robi.motorMaster.stepBuf.remove(&nextCmd))
-		{ // Wenn Daten in Puffer
-			// Neuen Zeitwert laden
+		if (robi.motorMaster.stepBuf.remove(&nextCmd)) { // Wenn Daten in Puffer
+														 // Neuen Zeitwert laden
 			htim->Instance->ARR = nextCmd.interval - 1;
 
 			// Markierkopf aktivieren
@@ -605,8 +601,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 
 		// Schritt-Timer und Markierkopf deaktivieren
-		else
-		{
+		else {
 			robi.motorMaster.stopTimer();
 			robi.printhead.stop();
 		}
@@ -618,20 +613,17 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
  * @param huart Pointer to UART with completed transmitt
  * @retval None
  */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == USART2)
-	{
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART2) {
 		HAL_HalfDuplex_EnableReceiver(tmcX.UART_address);
 		HAL_UART_Receive_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcX.data_sent_flag = true;
 	}
-	if (huart->Instance == UART8)
-	{
+	if (huart->Instance == UART8) {
 		HAL_HalfDuplex_EnableReceiver(tmcZ.UART_address);
 		HAL_UART_Receive_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcZ.data_sent_flag = true;
 	}
 }
@@ -642,18 +634,15 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
  * @param Size Size of the received data
  * @retval None
  */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == USART2)
-	{
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == USART2) {
 		HAL_UART_Receive_DMA(tmcX.UART_address, tmcX.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcX.data_received_flag = true;
 	}
-	if (huart->Instance == UART8)
-	{
+	if (huart->Instance == UART8) {
 		HAL_UART_Receive_DMA(tmcZ.UART_address, tmcZ.rxBufferRaw,
-							 TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
+				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
 		tmcZ.data_received_flag = true;
 	}
 }
@@ -698,10 +687,8 @@ void Error_Handler(void)
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 
-	while (1)
-	{
-		switch (ErrorCode)
-		{
+	while (1) {
+		switch (ErrorCode) {
 		case NONE:
 			break;
 		case MOVE_BUF:

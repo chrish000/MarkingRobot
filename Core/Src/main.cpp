@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "move.h"
+#include "pins.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,8 +46,9 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
+Pin pins;
 ERROR_HandleCode ErrorCode = NONE;
-Robot robi(&htim2, &htim3, TIM_CHANNEL_1);
+Robot robi(pins);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -102,11 +104,6 @@ int main(void) {
 	MX_NVIC_Init();
 	/* USER CODE BEGIN 2 */
 	robi.init();
-
-	robi.motorX.setStepPin(X_STEP_GPIO_Port, X_STEP_Pin);
-	robi.motorX.setDirPin(X_DIR_GPIO_Port, X_DIR_Pin);
-	robi.motorY.setStepPin(Z_STEP_GPIO_Port, Z_STEP_Pin);
-	robi.motorY.setDirPin(Z_DIR_GPIO_Port, Z_DIR_Pin);
 
 	HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_RESET);

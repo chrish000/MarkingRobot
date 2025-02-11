@@ -15,8 +15,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <math.h>
-
 /* Exported functions prototypes ---------------------------------------------*/
 
 // Compute the linear interpolation between two real numbers.

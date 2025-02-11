@@ -18,12 +18,15 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stepper.h"
 #include "printhead.h"
+#include "pins.h"
 
 class Robot {
 public:
-	Robot(TIM_HandleTypeDef *htimMotorMaster, TIM_HandleTypeDef *htimPrinthead,
-			uint32_t timChannel) :
-			motorMaster(htimMotorMaster), printhead(htimPrinthead, timChannel) {
+	Robot(Pin pins) :
+			motorMaster(pins.TIM_MotorMaster), motorX(X_STEP_PORT, X_STEP_PIN,
+					X_DIR_PORT, X_DIR_PIN), motorY(Y_STEP_PORT, Y_STEP_PIN,
+					Y_DIR_PORT, Y_DIR_PIN), printhead(pins.TIM_Printhead,
+					TIM_PrintheadChannel) {
 	}
 
 	MotorManager motorMaster;

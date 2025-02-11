@@ -36,6 +36,9 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+
 typedef enum {
 	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11
 } ERROR_HandleCode;
@@ -105,10 +108,9 @@ void Error_Handler(void);
 #define MAX_ACCEL 3000
 #define MAX_JERK 10000
 
-//Beschleunigungskurve: {Trapezoid (default); Bezier; Jerk}
+//Beschleunigungskurve: {Trapezoid; Bezier}
 //#define ACCEL_CURVE_BEZIER
 #define ACCEL_CURVE_TRAPEZOID
-//#define ACCEL_CURVE_JERK
 
 /**
  *	###########################################################################

@@ -154,7 +154,7 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		calc.timeAccel = (moveCmd->speed - V_MIN) / moveCmd->accel;
 	}
 
-// 1. Beschleunigungsphase
+	// 1. Beschleunigungsphase
 	if (calc.stepCnt <= calc.accelStepCnt) {
 		const float_t P0 = V_MIN;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezierFactor / 100);//Kontrollpunkt 1
@@ -169,14 +169,14 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 			bezierT = 0;
 	}
 
-// 2. Phase konstanter Geschwindigkeit
+	// 2. Phase konstanter Geschwindigkeit
 	else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
 		if (bezierT > 0)
 			bezierT = 0;
 		calc.interval = 1.0f / moveCmd->speed;
 	}
 
-// 3. Abbremsphase
+	// 3. Abbremsphase
 	else if (calc.stepCnt < moveCmd->stepDistance) {
 		const float_t P0 = moveCmd->speed;			//Startgeschwindigkeit
 		const float_t P1 = V_MIN + moveCmd->speed * (bezierFactor / 100);//Kontrollpunkt 1

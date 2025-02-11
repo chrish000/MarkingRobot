@@ -117,7 +117,7 @@ void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step) {
 void TMC2209::setRunCurrent(uint16_t runCurrent) {
 	runCurrent = std::clamp(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
-	driver_current_.irun = map(runCurrent, CURRENT_SETTING_MIN,
+	driver_current_.irun = normalize(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
 	writeStoredDriverCurrent();
@@ -132,7 +132,7 @@ void TMC2209::setRunCurrent(uint16_t runCurrent) {
 void TMC2209::setHoldCurrent(uint16_t holdCurrent) {
 	holdCurrent = std::clamp(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
-	driver_current_.ihold = map(holdCurrent, CURRENT_SETTING_MIN,
+	driver_current_.ihold = normalize(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
 	writeStoredDriverCurrent();
@@ -146,7 +146,7 @@ void TMC2209::setHoldCurrent(uint16_t holdCurrent) {
 
 void TMC2209::setHoldDelay(uint8_t holdDelayPercent) {
 	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
-	driver_current_.iholddelay = map(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
+	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
 			HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
 }
@@ -162,16 +162,16 @@ void TMC2209::setAllCurrentValues(uint16_t runCurrent, uint16_t holdCurrent,
 		uint8_t holdDelayPercent) {
 	runCurrent = std::clamp(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
-	driver_current_.irun = map(runCurrent, CURRENT_SETTING_MIN,
+	driver_current_.irun = normalize(runCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
 	holdCurrent = std::clamp(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX);
-	driver_current_.ihold = map(holdCurrent, CURRENT_SETTING_MIN,
+	driver_current_.ihold = normalize(holdCurrent, CURRENT_SETTING_MIN,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
 	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
-	driver_current_.iholddelay = map(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
+	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
 			HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
 }
@@ -966,7 +966,7 @@ uint32_t TMC2209::read(uint8_t register_address) {
  * @retval uint8_t: The corresponding percentage value.
  */
 uint8_t TMC2209::holdDelaySettingToPercent(uint8_t hold_delay_setting) {
-	uint8_t percent = map(hold_delay_setting, HOLD_DELAY_MIN, HOLD_DELAY_MAX,
+	uint8_t percent = normalize(hold_delay_setting, HOLD_DELAY_MIN, HOLD_DELAY_MAX,
 			PERCENT_MIN, PERCENT_MAX);
 	return percent;
 }

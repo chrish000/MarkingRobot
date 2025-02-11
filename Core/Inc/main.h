@@ -1,4 +1,4 @@
-_/* USER CODE BEGIN Header */
+/* USER CODE BEGIN Header */
 /**
  ******************************************************************************
  * @file           : main.h
@@ -129,8 +129,6 @@ void Error_Handler(void);
 #define PRINTHEAD_PERIOD 1000 //ms
 #define PRINTHEAD_DUTY_CYCLE 50 //%
 
-#define PRINTHEAD_PERIOD 1 //s
-#define PRINTHEAD_DUTY_CYCLE 10 //%
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -108,6 +108,8 @@ void Error_Handler(void);
 #define MAX_ACCEL 3000
 #define MAX_JERK 10000
 
+//#define REVERSE_MOTOR_DIRECTION
+
 //Beschleunigungskurve: {Trapezoid; Bezier}
 //#define ACCEL_CURVE_BEZIER
 #define ACCEL_CURVE_TRAPEZOID

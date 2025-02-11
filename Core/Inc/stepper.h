@@ -23,8 +23,9 @@
 #define F_TIM 1000000 //1MHz
 #define V_MIN (STEPS_PER_MM * 0.1) //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
 
-enum {
-	forward = 1, reverse = 0
+enum class Direction : bool {
+    Forward = true,
+    Reverse = false
 };
 
 class MotorManager {
@@ -39,15 +40,15 @@ public:
 		float_t speed;	//Schritte pro s
 		float_t accel;	//Schritte pro s^2
 		uint32_t stepDistance;
-		bool directionX;
-		bool directionY;
+		Direction directionX;
+		Direction directionY;
 		bool printigMove;
 	};
 
 	struct stepCmd {
 		uint32_t interval;	//Dauer in ns
-		bool directionX;
-		bool directionY;
+		Direction directionX;
+		Direction directionY;
 		bool printigMove;
 	};
 
@@ -76,10 +77,11 @@ private:
 	} calc;
 
 	bool timerActiveFlag = 0;
-	uint8_t bezierFactor = 5; //Verschiebung der Kontrollpubnkte in % (Abflachung)
+	const uint8_t bezierFactor = 5; //Verschiebung der Kontrollpubnkte in % (Abflachung)
 	float_t bezierT = 0;
 	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);
+	void calculateTrapezoidAccelerationParameters(moveCommands*);
 };
 
 class StepperMotor {
@@ -90,8 +92,8 @@ public:
 					dirPin) {
 	}
 
-	void setStepDir(bool status);
-	bool getStepDir();
+	void setStepDir(Direction dir);
+	Direction getStepDir();
 	void handleStep();
 
 private:

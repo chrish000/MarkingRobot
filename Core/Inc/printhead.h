@@ -29,6 +29,7 @@ public:
 		uint16_t period = PRINTHEAD_PERIOD;
 		uint8_t dutyCycle = std::clamp(PRINTHEAD_DUTY_CYCLE, 0, 100);
 	} param;
+
 	void setParam(uint16_t newPeriod = PRINTHEAD_PERIOD, uint8_t newDutyCycle =
 	PRINTHEAD_DUTY_CYCLE) {
 		param.period = newPeriod;

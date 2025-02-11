@@ -73,7 +73,7 @@ void Robot::init() {
 bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 		float_t newAccel, bool printing) {
 	if (!(newX == posX && newY == posY)) {
-		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED);//Neue Geschwindigkeit speichern
+		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
 		accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);
 		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
 		if (turn != 0) {
@@ -116,10 +116,16 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 			{
 		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
 		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen
+#ifdef REVERSE_MOTOR_DIRECTION
+		direction = !direction;
+#endif
 
 		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
 				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = direction, cmd.directionY = !direction,
+				cmd.directionX = (
+						direction ? Direction::Forward : Direction::Reverse),
+				cmd.directionY = (
+						!direction ? Direction::Forward : Direction::Reverse),
 				cmd.printigMove = printing };
 
 		return motorMaster.moveBuf.insert(cmd);
@@ -139,10 +145,16 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 			{
 		uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
 		bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
+#ifdef REVERSE_MOTOR_DIRECTION
+		direction = !direction;
+#endif
 
 		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
 				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = !direction, cmd.directionY = !direction,
+				cmd.directionX = (
+						!direction ? Direction::Forward : Direction::Reverse),
+				cmd.directionY = (
+						!direction ? Direction::Forward : Direction::Reverse),
 				cmd.printigMove = false };
 
 		orientation += degrees;

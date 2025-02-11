@@ -587,7 +587,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		MotorManager::stepCmd nextCmd;
 		if (robi.motorMaster.stepBuf.remove(&nextCmd)) { // Wenn Daten in Puffer
 														 // Neuen Zeitwert laden
-			htim->Instance->ARR = nextCmd.interval - 1;
+			TIM2->ARR = nextCmd.interval - 1;
 
 			// Markierkopf aktivieren
 			if (nextCmd.printigMove && !robi.printhead.isActive())

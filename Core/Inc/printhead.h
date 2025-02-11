@@ -17,6 +17,7 @@
 #define PRINTHEAD_H_
 
 #include "main.h"
+#include <algorithm>
 
 class Printhead {
 public:
@@ -26,7 +27,7 @@ public:
 
 	struct param {
 		uint16_t period = PRINTHEAD_PERIOD;
-		uint8_t dutyCycle = PRINTHEAD_DUTY_CYCLE;
+		uint8_t dutyCycle = std::clamp(PRINTHEAD_DUTY_CYCLE, 0, 100);
 	} param;
 	void setParam(uint16_t newPeriod = PRINTHEAD_PERIOD, uint8_t newDutyCycle =
 	PRINTHEAD_DUTY_CYCLE) {

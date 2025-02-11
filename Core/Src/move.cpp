@@ -16,6 +16,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "utils.h"
 #include "move.h"
+#include <algorithm>
 
 /**
  * @brief Berechnung des Drehwinkels für eine Zielposition
@@ -72,8 +73,8 @@ void Robot::init() {
 bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
 		float_t newAccel, bool printing) {
 	if (!(newX == posX && newY == posY)) {
-		speed = newSpeed;	//Aktuelle Geschwindigkeit speichern
-		accel = newAccel;
+		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED);//Neue Geschwindigkeit speichern
+		accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);
 		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
 		if (turn != 0) {
 			if (motorMaster.moveBuf.writeAvailable() >= 2) {

@@ -21,7 +21,7 @@
 
 /* Defines -------------------------------------------------------------------*/
 #define F_TIM 1000000 //1MHz
-#define V_MIN (STEPS_PER_MM * 1) //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
+#define V_MIN (STEPS_PER_MM * 0.1) //Mindestgeschwindigkeit in steps/s (= x.x mm/s)
 
 enum {
 	forward = 1, reverse = 0

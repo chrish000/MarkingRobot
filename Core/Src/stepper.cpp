@@ -222,10 +222,10 @@ void MotorManager::calculateTrapezoidAccelerationParameters(
  * @retval None
  */
 void StepperMotor::setStepDir(Direction dir) {
-	direction = (dir == Direction::Forward);
+	direction = dir;  // Keine bool-Umwandlung nötig
 	assert(dirPort != nullptr && "Dir-Port darf nicht NULL sein!");
 	HAL_GPIO_WritePin(dirPort, dirPin,
-			(direction ? GPIO_PIN_SET : GPIO_PIN_RESET));
+			(direction == Direction::Forward ? GPIO_PIN_SET : GPIO_PIN_RESET));
 }
 
 /**
@@ -234,7 +234,7 @@ void StepperMotor::setStepDir(Direction dir) {
  * @retval true wenn Vorwärts, false wenn Rückwärts
  */
 Direction StepperMotor::getStepDir() {
-	return direction ? Direction::Forward : Direction::Reverse;
+	return direction;
 }
 
 /**

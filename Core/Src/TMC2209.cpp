@@ -19,15 +19,6 @@
 #include <algorithm>
 
 /**
- * @brief  Constructor for the TMC2209 class, initializes default settings.
- */
-TMC2209::TMC2209() {
-	cool_step_enabled_ = false;
-	data_received_flag = false;
-	TMC2209_status = TMC_OK;
-}
-
-/**
  * @brief  Array that contains pre-calculated CRC-Values for the initialization-process
  */
 constexpr uint8_t TMC2209::precomputedCRC[];

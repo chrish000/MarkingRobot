@@ -22,7 +22,7 @@
 /**
  * @brief  TMC Status structures definition
  */
-typedef enum TMC_StatusTypeDef {
+enum TMC_StatusTypeDef {
 	TMC_OK = 0x00,
 	TMC_ERROR = 0x01,
 	TMC_CRC_ERROR = 0x02,
@@ -33,7 +33,11 @@ typedef enum TMC_StatusTypeDef {
 class TMC2209 {
 public:
 
-	TMC2209();
+	TMC2209() {
+		cool_step_enabled_ = false;
+		data_received_flag = false;
+		TMC2209_status = TMC_OK;
+	}
 
 	UART_HandleTypeDef *UART_address;
 	uint16_t hardware_enable_pin;

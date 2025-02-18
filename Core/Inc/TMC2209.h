@@ -22,13 +22,13 @@
 /**
  * @brief  TMC Status structures definition
  */
-typedef enum {
+typedef enum TMC_StatusTypeDef{
 	TMC_OK = 0x00,
 	TMC_ERROR = 0x01,
 	TMC_CRC_ERROR = 0x02,
 	TMC_UART_ERROR = 0x03,
 	TMC_TIMEOUT = 0x04
-} TMC_StatusTypeDef;
+};
 
 class TMC2209 {
 public:

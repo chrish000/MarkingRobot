@@ -22,7 +22,7 @@
 /**
  * @brief  TMC Status structures definition
  */
-typedef enum TMC_StatusTypeDef{
+enum TMC_StatusTypeDef{
 	TMC_OK = 0x00,
 	TMC_ERROR = 0x01,
 	TMC_CRC_ERROR = 0x02,

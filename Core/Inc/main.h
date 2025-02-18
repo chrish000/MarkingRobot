@@ -36,6 +36,8 @@ extern "C" {
 extern CRC_HandleTypeDef hcrc;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern UART_HandleTypeDef huart8;
+extern UART_HandleTypeDef huart2;
 
 typedef enum {
 	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11

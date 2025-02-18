@@ -33,11 +33,19 @@ typedef enum {
 class TMC2209 {
 public:
 
-	TMC2209();
+	TMC2209(UART_HandleTypeDef *UART_address,
+			GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin) :
+			UART_address(UART_address), hardware_enable_port(
+					hardware_enable_port), hardware_enable_pin(
+					hardware_enable_pin) {
+		cool_step_enabled_ = false;
+		data_received_flag = false;
+		TMC2209_status = TMC_OK;
+	}
 
 	UART_HandleTypeDef *UART_address;
-	uint16_t hardware_enable_pin;
 	GPIO_TypeDef *hardware_enable_port;
+	uint16_t hardware_enable_pin;
 	TMC_StatusTypeDef TMC2209_status;
 
 	void setup();

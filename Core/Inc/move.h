@@ -24,8 +24,8 @@ class Robot {
 public:
 	Robot(Pin pins) :
 			motorMaster(pins.TIM_MotorMaster), motorX(X_STEP_PORT, X_STEP_PIN,
-					X_DIR_PORT, X_DIR_PIN), motorY(Y_STEP_PORT, Y_STEP_PIN,
-					Y_DIR_PORT, Y_DIR_PIN), printhead(pins.TIM_Printhead,
+					X_DIR_PORT, X_DIR_PIN, pins.TMC_X_UART_address, X_EN_PORT, X_EN_PIN), motorY(Y_STEP_PORT, Y_STEP_PIN,
+					Y_DIR_PORT, Y_DIR_PIN, pins.TMC_Y_UART_address, Y_EN_PORT, Y_EN_PIN), printhead(pins.TIM_Printhead,
 					TIM_PrintheadChannel) {
 	}
 

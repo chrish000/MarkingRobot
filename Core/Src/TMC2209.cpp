@@ -21,11 +21,9 @@
 /**
  * @brief  Constructor for the TMC2209 class, initializes default settings.
  */
-TMC2209::TMC2209() {
-	cool_step_enabled_ = false;
-	data_received_flag = false;
-	TMC2209_status = TMC_OK;
-}
+//TMC2209::TMC2209(UART_HandleTypeDef *UART_address,
+//		GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin) {
+//}
 
 /**
  * @brief  Array that contains pre-calculated CRC-Values for the initialization-process

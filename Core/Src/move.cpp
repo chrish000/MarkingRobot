@@ -61,6 +61,10 @@ void Robot::init() {
 	motorMaster.moveBuf.consumerClear();
 	printhead.init();
 	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
+	motorX.tmc.setup();
+	motorX.tmc.setMicrostepsPerStep(MICROSTEPS);
+	motorY.tmc.setup();
+	motorY.tmc.setMicrostepsPerStep(MICROSTEPS);
 }
 
 /**

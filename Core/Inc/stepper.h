@@ -18,6 +18,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "ringbuffer.hpp"
+#include "TMC2209.h"
 
 /* Defines -------------------------------------------------------------------*/
 #define F_TIM 1000000 //1MHz
@@ -92,14 +93,19 @@ class StepperMotor {
 public:
 	//Instruktor
 	StepperMotor(GPIO_TypeDef *stepPort, uint16_t stepPin,
-			GPIO_TypeDef *dirPort, uint16_t dirPin) :
-			stepPort(stepPort), stepPin(stepPin), dirPort(dirPort), dirPin(
+			GPIO_TypeDef *dirPort, uint16_t dirPin,
+			UART_HandleTypeDef *TMC_UART_address,
+			GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin) :
+			tmc(TMC_UART_address, hardware_enable_port, hardware_enable_pin), stepPort(
+					stepPort), stepPin(stepPin), dirPort(dirPort), dirPin(
 					dirPin) {
 	}
 	//Destruktor
 	~StepperMotor() {
 
 	}
+
+	TMC2209 tmc;
 
 	void setStepDir(Direction dir);
 	Direction getStepDir();

@@ -37,6 +37,7 @@
 #include "printhead.h"
 #include "move.h"
 #include "pins.h"
+#include "utils.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,7 +83,7 @@ Robot robi(pins);
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
-
+float_t batVoltage, pressure;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -170,6 +171,7 @@ int main(void)
 			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
 			{ 9000, 0 }, { 10000, 0 } };
 	uint8_t i = 0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -181,6 +183,8 @@ int main(void)
 		if (robi.motorMaster.calcInterval())
 			;
 
+		batVoltage = normalize(robi.adcVal.batteryVoltage, 22.2f, 25.2f);
+		pressure = normalize(robi.adcVal.airPressure, 0.0f, 10.0f);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

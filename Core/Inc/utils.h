@@ -31,6 +31,17 @@ inline int normalize(int x, int in_min, int in_max, int out_min, int out_max) {
 }
 
 /**
+ * @brief  Maps a unsigned short value to a float range.
+ * @param  value: The value to be mapped.
+ * @param  min: The minimum value of the range.
+ * @param  max: The maximum value of the range.
+ * @retval float: The mapped value in the output range.
+ */
+inline float normalize(unsigned short value, float min, float max) {
+    return min + ((float)value / 65535.0f) * (max - min);
+}
+
+/**
  * @brief  Reverses the byte order of a given 32-bit data word.
  * @param  data: The 32-bit data word whose byte order is to be reversed.
  * @param  data_size: The number of bytes in the data word.

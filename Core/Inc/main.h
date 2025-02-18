@@ -33,6 +33,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern ADC_HandleTypeDef hadc1;
 extern CRC_HandleTypeDef hcrc;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -77,10 +78,14 @@ void Error_Handler(void);
 #define PWRDET_Pin GPIO_PIN_15
 #define PWRDET_GPIO_Port GPIOC
 #define PWRDET_EXTI_IRQn EXTI15_10_IRQn
-#define Z_MIN_Pin GPIO_PIN_0
-#define Z_MIN_GPIO_Port GPIOC
+#define PRESSURE_Pin GPIO_PIN_0
+#define PRESSURE_GPIO_Port GPIOC
 #define X_MIN_Pin GPIO_PIN_1
 #define X_MIN_GPIO_Port GPIOC
+#define Y_MIN_Pin GPIO_PIN_3
+#define Y_MIN_GPIO_Port GPIOC
+#define BAT_VOLTAGE_Pin GPIO_PIN_0
+#define BAT_VOLTAGE_GPIO_Port GPIOA
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

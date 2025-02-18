@@ -28,6 +28,8 @@ struct Pin {
 //FAN
 #define FAN0_PORT FAN0_GPIO_Port
 #define FAN0_PIN FAN0_Pin
+//ADC
+	ADC_HandleTypeDef *ADC_Handle = &hadc1;
 };
 
 #endif /* INC_PINS_H_ */

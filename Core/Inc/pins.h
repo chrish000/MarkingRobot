@@ -30,6 +30,7 @@ struct Pin {
 #define FAN0_PIN FAN0_Pin
 //ADC
 	ADC_HandleTypeDef *ADC_Handle = &hadc1;
+	TIM_HandleTypeDef *ADC_TIM = &htim8;
 };
 
 #endif /* INC_PINS_H_ */

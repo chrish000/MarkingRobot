@@ -28,7 +28,7 @@ public:
 			motorMaster(pins.TIM_MotorMaster), motorX(X_STEP_PORT, X_STEP_PIN,
 			X_DIR_PORT, X_DIR_PIN), motorY(Y_STEP_PORT, Y_STEP_PIN,
 			Y_DIR_PORT, Y_DIR_PIN), printhead(pins.TIM_Printhead,
-			TIM_PrintheadChannel), ADC_Handle(pins.ADC_Handle) {
+			TIM_PrintheadChannel), ADC_Handle(pins.ADC_Handle), ADC_TIM(pins.ADC_TIM) {
 	}
 
 	MotorManager motorMaster;
@@ -48,6 +48,7 @@ public:
 
 private:
 	ADC_HandleTypeDef *ADC_Handle;
+	TIM_HandleTypeDef *ADC_TIM;
 
 	float_t posX = 0;
 	float_t posY = 0;

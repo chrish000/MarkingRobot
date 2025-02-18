@@ -60,9 +60,10 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 void Robot::init() {
 	motorMaster.moveBuf.consumerClear();
 	printhead.init();
-	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);	//Starte Gehauseluefter
-	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
-	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*)&adcVal.array, 2);
+	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);	//Gehauseluefter starten
+	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);	//ADC Kalibrieren
+	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*)&adcVal.array, 2);	//ADC starten
+	HAL_TIM_Base_Start(ADC_TIM); //Timer für ADC ausloesung starten
 }
 
 /**

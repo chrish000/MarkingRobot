@@ -37,6 +37,7 @@ extern ADC_HandleTypeDef hadc1;
 extern CRC_HandleTypeDef hcrc;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim8;
 
 typedef enum {
 	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11

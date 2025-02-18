@@ -42,7 +42,7 @@ private:
 	float_t posX = 0;
 	float_t posY = 0;
 	float_t speed = DEFAULT_SPEED;
-	const float_t minSpeed = 1;	//TODO constrain einbauen
+	const float_t minSpeed = 1;
 	const float_t maxSpeed = 10000;
 	float_t accel = DEFAULT_ACCEL;
 	const float_t minAccel = 1;

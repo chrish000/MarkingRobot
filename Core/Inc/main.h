@@ -93,6 +93,8 @@ void Error_Handler(void);
 #define HE0_PWM_GPIO_Port GPIOB
 #define HE1_PWM_Pin GPIO_PIN_4
 #define HE1_PWM_GPIO_Port GPIOB
+#define FAN0_Pin GPIO_PIN_7
+#define FAN0_GPIO_Port GPIOB
 #define Z_EN_Pin GPIO_PIN_0
 #define Z_EN_GPIO_Port GPIOE
 #define Z_UART_Pin GPIO_PIN_1
@@ -126,7 +128,7 @@ void Error_Handler(void);
  *	MARKIEREINHEIT
  *	###########################################################################
  */
-#define PRINTHEAD_PERIOD 1000 //ms
+#define PRINTHEAD_PERIOD 100 //ms
 #define PRINTHEAD_DUTY_CYCLE 50 //%
 
 /* USER CODE END Private defines */

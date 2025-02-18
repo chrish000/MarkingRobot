@@ -25,6 +25,9 @@ struct Pin {
 //PRINTHEAD
 	TIM_HandleTypeDef *TIM_Printhead = &htim3;
 #define TIM_PrintheadChannel TIM_CHANNEL_1
+//FAN
+#define FAN0_PORT FAN0_GPIO_Port
+#define FAN0_PIN FAN0_Pin
 };
 
 #endif /* INC_PINS_H_ */

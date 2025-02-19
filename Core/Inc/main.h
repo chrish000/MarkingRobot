@@ -50,11 +50,6 @@ extern ERROR_HandleCode ErrorCode;
 extern volatile float PosX; // in mm
 extern volatile float PosY; // in mm
 
-extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
-extern volatile uint16_t PWMCounterX;
-extern volatile uint32_t TargetStepsX;
-
-extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -122,8 +117,8 @@ void Error_Handler(void);
 //#define REVERSE_MOTOR_DIRECTION
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
-//#define ACCEL_CURVE_BEZIER
-#define ACCEL_CURVE_TRAPEZOID
+#define ACCEL_CURVE_BEZIER
+//#define ACCEL_CURVE_TRAPEZOID
 
 /**
  *	###########################################################################

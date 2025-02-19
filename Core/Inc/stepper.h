@@ -82,7 +82,7 @@ private:
 	} calc;
 
 	bool timerActiveFlag = 0;
-	const uint8_t bezierFactor = 5; //Verschiebung der Kontrollpubnkte in % (Abflachung)
+	const uint8_t bezierFactor = 30; //Verschiebung der Kontrollpubnkte in % (Abflachung)
 	float_t bezierT = 0;
 	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);

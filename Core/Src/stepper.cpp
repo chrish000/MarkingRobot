@@ -111,7 +111,6 @@ bool MotorManager::getTimerState() {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
-//TODO Endposition
 MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
 	if (calc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
 		calculateTrapezoidAccelerationParameters(moveCmd);
@@ -151,7 +150,6 @@ MotorManager::stepCmd MotorManager::trapezoid(moveCommands *moveCmd) {
  * @param None
  * @retval Intervall mit der Sktuktur stepCmd
  */
-//TODO Bugfix Werte
 MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 	if (calc.accelStepCnt == 0) { //Berechne Schrittzahl für Beschleunigung
 		calculateTrapezoidAccelerationParameters(moveCmd);
@@ -168,7 +166,6 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		const float_t P3 = moveCmd->speed;	//Zielgeschwindigkeit
 
 		bezierT += calc.interval / calc.timeAccel;
-		//bezierT = bezierT * calc.timeAccel + calc.interval / calc.timeAccel;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezierT); //Geschwindigkeit in steps/s
 		calc.interval = 1.0f / fmax(velocity, V_MIN);
 		if (calc.stepCnt == calc.accelStepCnt)
@@ -191,7 +188,6 @@ MotorManager::stepCmd MotorManager::bezier(moveCommands *moveCmd) {
 		const float_t P3 = 0;					//Zielgeschwindigkeit
 
 		bezierT += calc.interval / calc.timeAccel;
-		//bezierT = bezierT * calc.timeAccel + calc.interval / calc.timeAccel;
 		float_t velocity = eval_bezier(P0, P1, P2, P3, bezierT); //Geschwindigkeit in steps/s
 		calc.interval = 1.0f / fmax(velocity, V_MIN);
 		if (calc.stepCnt == moveCmd->stepDistance)

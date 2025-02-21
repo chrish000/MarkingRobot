@@ -107,8 +107,7 @@ static void MX_TIM8_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	batVoltage = normalize(robi.adcVal.batteryVoltage, 22.2f, 25.2f);
-	pressure = normalize(robi.adcVal.airPressure, 0.0f, 10.0f);
+	batVoltage = 0.00042305 * robi.adcVal.batteryVoltage - 2.77797271;
 }
 /**
  * @brief GPIO External Interrupt Callback Function

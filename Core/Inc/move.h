@@ -36,11 +36,10 @@ public:
 	StepperMotor motorY;
 	Printhead printhead;
 
-	struct adcData {
-		std::array<uint16_t, 2> array;
-		uint16_t &batteryVoltage = array[0];
-		uint16_t &airPressure = array[1];
-	} adcVal;
+	uint16_t ADC_BatteryVoltage = 0;
+	float_t batteryVoltage = 0;
+	bool lowAirPressure = false;
+	bool batteryAlarm = false;
 
 	void init();
 	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,

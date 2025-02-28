@@ -49,12 +49,6 @@ extern ERROR_HandleCode ErrorCode;
 /* USER CODE BEGIN EC */
 extern volatile float PosX; // in mm
 extern volatile float PosY; // in mm
-
-extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
-extern volatile uint16_t PWMCounterX;
-extern volatile uint32_t TargetStepsX;
-
-extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -79,10 +73,11 @@ void Error_Handler(void);
 #define PWRDET_Pin GPIO_PIN_15
 #define PWRDET_GPIO_Port GPIOC
 #define PWRDET_EXTI_IRQn EXTI15_10_IRQn
-#define PRESSURE_Pin GPIO_PIN_0
-#define PRESSURE_GPIO_Port GPIOC
 #define X_MIN_Pin GPIO_PIN_1
 #define X_MIN_GPIO_Port GPIOC
+#define PRESSURE_Pin GPIO_PIN_2
+#define PRESSURE_GPIO_Port GPIOC
+#define PRESSURE_EXTI_IRQn EXTI2_IRQn
 #define Y_MIN_Pin GPIO_PIN_3
 #define Y_MIN_GPIO_Port GPIOC
 #define BAT_VOLTAGE_Pin GPIO_PIN_0

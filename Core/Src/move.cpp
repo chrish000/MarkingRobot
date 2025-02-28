@@ -62,7 +62,7 @@ void Robot::init() {
 	printhead.init();
 	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);	//Gehauseluefter starten
 	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);	//ADC Kalibrieren
-	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*)&adcVal.array, 2);	//ADC starten
+	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*)&ADC_BatteryVoltage, 1);	//ADC starten
 	HAL_TIM_Base_Start(ADC_TIM); //Timer für ADC ausloesung starten
 }
 

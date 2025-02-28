@@ -31,6 +31,11 @@ struct Pin {
 //ADC
 	ADC_HandleTypeDef *ADC_Handle = &hadc1;
 	TIM_HandleTypeDef *ADC_TIM = &htim8;
+//GPIO
+#define LOW_PRESSURE_PORT PRESSURE_GPIO_Port
+#define LOW_PRESSURE_PIN PRESSURE_Pin
+#define BATTERY_ALARM_PORT PWRDET_GPIO_Port
+#define BATTERY_ALARM_PIN PWRDET_Pin
 };
 
 #endif /* INC_PINS_H_ */

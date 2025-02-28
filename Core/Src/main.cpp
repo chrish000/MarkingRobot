@@ -261,6 +261,10 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1) {
+		if(robi.batteryVoltage < 22.2) {
+			ErrorCode = LOW_VOLTAGE;
+			Error_Handler();
+		}
 		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
 		DEFAULT_SPEED, DEFAULT_ACCEL, true))
 			i++;
@@ -852,6 +856,8 @@ void Error_Handler(void)
 		case MOVE_BUF:
 			break;
 		case STEP_BUF:
+			break;
+		case LOW_VOLTAGE:
 			break;
 		}
 	}

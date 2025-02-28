@@ -40,7 +40,7 @@ extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim8;
 
 typedef enum {
-	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11
+	NONE = 0x00, LOW_VOLTAGE =  0x01, MOVE_BUF = 0x10, STEP_BUF = 0x11
 } ERROR_HandleCode;
 extern ERROR_HandleCode ErrorCode;
 /* USER CODE END ET */

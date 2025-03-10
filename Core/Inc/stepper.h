@@ -51,14 +51,14 @@ public:
 	};
 
 	struct stepCmd {
-		uint32_t interval;	//Dauer in ns
-		Direction directionX;
-		Direction directionY;
-		bool printigMove;
-	};
+			uint16_t interval:13;	//Dauer in ns
+			uint16_t directionX:1;
+			uint16_t directionY:1;
+			uint16_t printigMove:1;
+		};
 
 	const static size_t buffer_size_move = 16;	//size = n-1 elements
-	const static size_t buffer_size_step = 64;	//size = n-1 elements
+	const static size_t buffer_size_step = 128;	//size = n-1 elements
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, 0, 32> moveBuf;
 	jnk0le::Ringbuffer<stepCmd, buffer_size_step, 0, 32> stepBuf;
 
@@ -82,7 +82,7 @@ private:
 	} calc;
 
 	bool timerActiveFlag = 0;
-	const uint8_t bezierFactor = 30; //Verschiebung der Kontrollpubnkte in % (Abflachung)
+	const uint8_t bezierFactor = 0; //Verschiebung der Kontrollpubnkte in % (Abflachung) //BUG: Kurve entwickelt sich in falsche Richtung
 	float_t bezierT = 0;
 	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);

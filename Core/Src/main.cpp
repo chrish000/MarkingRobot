@@ -77,6 +77,7 @@ Pin pins;
 ERROR_HandleCode ErrorCode = NONE;
 Robot robi(pins);
 
+
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
 
@@ -112,7 +113,8 @@ int main(void) {
 	/* USER CODE END 1 */
 
 	/* MPU Configuration--------------------------------------------------------*/
-	MPU_Config();
+
+MPU_Config();
 
 	/* MCU Configuration--------------------------------------------------------*/
 
@@ -152,17 +154,18 @@ int main(void) {
 
 	/* Code before infinite loop */
 	// ################# TESTLAUF ###############################
-	const uint8_t posCnt = 10;
-	int16_t posStorage[10][2] = { { 1000, 0 }, { 2000, 0 }, { 3000, 0 }, { 4000,
+	const uint8_t posCnt = 4;
+	int16_t posStorage[10][2] = { { 1000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
 			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
 			{ 9000, 0 }, { 10000, 0 } };
 	uint8_t i = 0;
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		if (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
+		while (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
 		DEFAULT_SPEED, DEFAULT_ACCEL, true))
 			i++;
 		if (robi.motorMaster.calcInterval())
@@ -559,12 +562,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 			TIM2->ARR = nextCmd.interval - 1;
 
 			// Markierkopf aktivieren
-			if (nextCmd.printigMove && !robi.printhead.isActive())
-				robi.printhead.start();
+//			if (nextCmd.printigMove && !robi.printhead.isActive())
+//				robi.printhead.start();
 
 			// Schritt ausführen
-			robi.motorX.setStepDir(nextCmd.directionX);
-			robi.motorY.setStepDir(nextCmd.directionY);
+			robi.motorX.setStepDir((Direction)nextCmd.directionX);
+			robi.motorY.setStepDir((Direction)nextCmd.directionY);
 			robi.motorX.handleStep();
 			robi.motorY.handleStep();
 		}
@@ -657,7 +660,6 @@ void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-
 
 	while (1) {
 		switch (ErrorCode) {

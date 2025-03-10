@@ -36,6 +36,8 @@ bool MotorManager::calcInterval() {
 			stepBuf.insert(trapezoid(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_BEZIER)
 			stepBuf.insert(bezier(moveCmdCalcBuf));
+#elif defined(ACCEL_CURVE_SINUS)
+			stepBuf.insert(sinus(moveCmdCalcBuf));
 #endif
 		}
 		//Berechnung abgeschlossen
@@ -43,6 +45,7 @@ bool MotorManager::calcInterval() {
 			calc.stepCnt = 0;
 			calc.accelStepCnt = 0;
 			calc.timeAccel = 0;
+			calc.time = 0;
 			bezierT = 0;
 			if (moveBuf.remove()) {
 				if (!timerActiveFlag)
@@ -225,6 +228,67 @@ void MotorManager::calculateTrapezoidAccelerationParameters(
 	}
 }
 
+MotorManager::stepCmd MotorManager::sinus(moveCommands *moveCmd) {
+	if (calc.accelStepCnt == 0) {
+		calculateSinusAccelerationParameters(moveCmd);
+	}
+	float_t a_max = moveCmd->accel, v_max = moveCmd->speed;
+
+	// 1. Beschleunigungsphase
+	if (calc.stepCnt <= calc.accelStepCnt) {
+		//calc.currentSpeed = (v_max + V_MIN)/2-(v_max-V_MIN)/2*cos(2*a_max/v_max*calc.time);
+		calc.currentAccel = a_max * (v_max - V_MIN) / v_max * sin(2 * a_max / v_max * calc.time);
+	}
+
+	// 2. Phase konstanter Geschwindigkeit
+	else if (calc.stepCnt < moveCmd->stepDistance - calc.accelStepCnt) {
+		calc.currentAccel = 0;
+		calc.time = 0;
+		calc.currentSpeed = moveCmd->speed;
+	}
+
+	// 3. Abbremsphase
+	else if (calc.stepCnt < moveCmd->stepDistance) {
+		//calc.currentSpeed = (v_max + V_MIN)/2+(v_max-V_MIN)/2*cos(2*a_max/v_max*calc.time);
+		calc.currentAccel = -a_max * (v_max - V_MIN) / v_max	* sin(2 * a_max / v_max * calc.time);
+
+		if (calc.stepCnt == moveCmd->stepDistance) {
+			calc.accelStepCnt = 0;
+			calc.time = 0;
+		}
+	}
+	calc.currentSpeed += calc.currentAccel * calc.interval;
+	calc.interval = 1.0f / calc.currentSpeed;
+	calc.time += calc.interval;
+
+	calc.stepCnt++;
+
+	MotorManager::stepCmd stepCmd { stepCmd.interval = fmin(8191,
+			calc.interval * F_TIM), stepCmd.directionX =
+			(uint16_t) moveCmd->directionX, stepCmd.directionY =
+			(uint16_t) moveCmd->directionY, stepCmd.printigMove =
+			moveCmd->printigMove };
+	return stepCmd;
+}
+
+void MotorManager::calculateSinusAccelerationParameters(moveCommands *moveCmd) {//TODO accelStepCnt berechnung stimmt noch nicht
+	float_t stepCnt = 0, speed = 0, accel = 0, time = 1 / V_MIN, interval = 1
+			/ V_MIN;
+	float_t a_max = moveCmd->accel, v_max = moveCmd->speed;
+	for (; speed < v_max; stepCnt++) {
+		accel = a_max * (v_max - V_MIN) / v_max * sin(2 * a_max / v_max * time);
+		speed += accel * interval;
+		interval = 1 / speed;
+		time += interval;
+	}
+	calc.accelStepCnt = stepCnt;
+	//calc.accelStepCnt = M_PI*pow(v_max-V_MIN,2)/(2*a_max);
+	if(calc.accelStepCnt > moveCmd->stepDistance / 2){
+		calc.accelStepCnt = moveCmd->stepDistance / 2;
+		moveCmd->speed = sqrt(2*a_max*moveCmd->stepDistance/M_PI)-V_MIN;
+	}
+}
+
 /* StepperMotor --------------------------------------------------------------*/
 
 /**
@@ -233,7 +297,7 @@ void MotorManager::calculateTrapezoidAccelerationParameters(
  * @retval None
  */
 void StepperMotor::setStepDir(Direction dir) {
-	direction = (Direction)((bool)dir^inverseMotorDirection);  // Keine bool-Umwandlung nötig
+	direction = (Direction) ((bool) dir ^ inverseMotorDirection); // Keine bool-Umwandlung nötig
 	assert(dirPort != nullptr && "Dir-Port darf nicht NULL sein!");
 	HAL_GPIO_WritePin(dirPort, dirPin,
 			(direction == Direction::Forward ? GPIO_PIN_SET : GPIO_PIN_RESET));

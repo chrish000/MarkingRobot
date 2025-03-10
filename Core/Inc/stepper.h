@@ -78,7 +78,8 @@ private:
 		float_t timeAccel = 0.0f;
 		float_t currentSpeed = 0.0f; // Aktuelle Geschwindigkeit (Schritte/s)
 		float_t currentAccel = 0.0f;
-		float_t interval = stepIntervalDefault;	// Zeitintervall zwischen Schritten (ns)
+		float_t interval = 1/V_MIN;	// Zeitintervall zwischen Schritten (ns)
+		float_t time = 1/V_MIN;
 	} calc;
 
 	bool timerActiveFlag = 0;
@@ -86,7 +87,9 @@ private:
 	float_t bezierT = 0;
 	struct stepCmd trapezoid(moveCommands*);
 	struct stepCmd bezier(moveCommands*);
+	struct stepCmd sinus(moveCommands*);
 	void calculateTrapezoidAccelerationParameters(moveCommands*);
+	void calculateSinusAccelerationParameters(moveCommands*);
 };
 
 class StepperMotor {

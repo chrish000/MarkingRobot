@@ -111,7 +111,7 @@ void Error_Handler(void);
 #define DEFAULT_ACCEL 500
 #define MAX_ACCEL 3000
 
-#define RUN_CURRENT_DEFAULT 500
+#define RUN_CURRENT_DEFAULT 2000
 #define HOLD_CURRENT_DEFAULT 100
 
 #define INVERSE_MOTOR_X_DIRECTION false
@@ -120,8 +120,9 @@ void Error_Handler(void);
 //#define REVERSE_MOTOR_DIRECTION
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
-//#define ACCEL_CURVE_BEZIER
 #define ACCEL_CURVE_TRAPEZOID
+//#define ACCEL_CURVE_SINUS
+//#define ACCEL_CURVE_BEZIER
 
 /**
  *	###########################################################################

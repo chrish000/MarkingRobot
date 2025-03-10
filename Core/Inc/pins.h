@@ -20,6 +20,7 @@ struct Pin {
 	UART_HandleTypeDef *TMC_X_UART_address = &huart2;
 #define X_EN_PORT X_EN_GPIO_Port
 #define X_EN_PIN X_EN_Pin
+#define INVERSE_MOTOR_DIR_X INVERSE_MOTOR_X_DIRECTION
 //Y
 #define Y_STEP_PORT Z_STEP_GPIO_Port
 #define Y_STEP_PIN Z_STEP_Pin
@@ -28,6 +29,7 @@ struct Pin {
 	UART_HandleTypeDef *TMC_Y_UART_address = &huart8;
 #define Y_EN_PORT Z_EN_GPIO_Port
 #define Y_EN_PIN Z_EN_Pin
+#define INVERSE_MOTOR_DIR_Y INVERSE_MOTOR_Y_DIRECTION
 //PRINTHEAD
 	TIM_HandleTypeDef *TIM_Printhead = &htim3;
 #define TIM_PrintheadChannel TIM_CHANNEL_1

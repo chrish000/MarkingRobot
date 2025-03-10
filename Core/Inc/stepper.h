@@ -95,10 +95,10 @@ public:
 	StepperMotor(GPIO_TypeDef *stepPort, uint16_t stepPin,
 			GPIO_TypeDef *dirPort, uint16_t dirPin,
 			UART_HandleTypeDef *TMC_UART_address,
-			GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin) :
+			GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin, bool inverse_motor_dir) :
 			tmc(TMC_UART_address, hardware_enable_port, hardware_enable_pin), stepPort(
 					stepPort), stepPin(stepPin), dirPort(dirPort), dirPin(
-					dirPin) {
+					dirPin), inverseMotorDirection(inverse_motor_dir) {
 	}
 	//Destruktor
 	~StepperMotor() {
@@ -118,6 +118,7 @@ private:
 	uint16_t dirPin;
 
 	Direction direction = Direction::Forward;
+	bool inverseMotorDirection;
 
 	void step();
 };

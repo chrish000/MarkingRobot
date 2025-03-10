@@ -108,17 +108,20 @@ void Error_Handler(void);
 #define STEPS_PER_DEG 819.873
 #define DEFAULT_SPEED 500 //in mm/s
 #define MAX_SPEED 680
-#define DEFAULT_ACCEL 1000
+#define DEFAULT_ACCEL 500
 #define MAX_ACCEL 3000
 
-#define RUN_CURRENT_DEFAULT 2000
+#define RUN_CURRENT_DEFAULT 500
 #define HOLD_CURRENT_DEFAULT 100
+
+#define INVERSE_MOTOR_X_DIRECTION false
+#define INVERSE_MOTOR_Y_DIRECTION false
 
 //#define REVERSE_MOTOR_DIRECTION
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
-#define ACCEL_CURVE_BEZIER
-//#define ACCEL_CURVE_TRAPEZOID
+//#define ACCEL_CURVE_BEZIER
+#define ACCEL_CURVE_TRAPEZOID
 
 /**
  *	###########################################################################

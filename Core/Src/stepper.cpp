@@ -20,6 +20,27 @@
 
 /* MotorManager --------------------------------------------------------------*/
 
+// Speicher im .dtcmram reservieren
+__attribute__((section(".dtcmram"))) static uint8_t stepBufMemory[sizeof(jnk0le::Ringbuffer<MotorManager::stepCmd, MotorManager::buffer_size_step, 0, 32>)];
+
+// Initialisierung des statischen Zeigers
+jnk0le::Ringbuffer<MotorManager::stepCmd, MotorManager::buffer_size_step, 0, 32>* MotorManager::stepBuf = nullptr;
+
+// Konstruktor
+MotorManager::MotorManager(TIM_HandleTypeDef *htim) :
+    htim(htim), moveCmdCalcBuf(new moveCommands { }) {
+
+    if (stepBuf == nullptr) { // Nur einmal initialisieren
+        stepBuf = new (stepBufMemory) jnk0le::Ringbuffer<stepCmd, buffer_size_step, 0, 32>();
+    }
+}
+
+// Destruktor
+MotorManager::~MotorManager() {
+    delete moveCmdCalcBuf;  // Normaler Heap-Speicher -> delete ok
+    stepBuf->~Ringbuffer(); // Manuelles Aufrufen des Destruktors
+}
+
 /**
  * @brief Berechnet das Zeitintervall zwischen Schritten basierend auf Geschwindigkeit und Beschleunigung
  * @param None
@@ -29,15 +50,15 @@ bool MotorManager::calcInterval() {
 	if (moveBuf.isEmpty() == false) {	//Berechne falls Daten vorhanden
 		moveCmdCalcBuf = moveBuf.peek();
 		//Berechne solange, bis Puffer voll oder Berechung abgeschlossen
-		while (stepBuf.isFull() == false
+		while (stepBuf->isFull() == false
 				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 
 #if defined(ACCEL_CURVE_TRAPEZOID)
-			stepBuf.insert(trapezoid(moveCmdCalcBuf));
+			stepBuf->insert(trapezoid(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_BEZIER)
-			stepBuf.insert(bezier(moveCmdCalcBuf));
+			stepBuf->insert(bezier(moveCmdCalcBuf));
 #elif defined(ACCEL_CURVE_SINUS)
-			stepBuf.insert(sinus(moveCmdCalcBuf));
+			stepBuf->insert(sinus(moveCmdCalcBuf));
 #endif
 		}
 		//Berechnung abgeschlossen
@@ -59,7 +80,7 @@ bool MotorManager::calcInterval() {
 		}
 
 		//Berechnung nicht abgeschlossen aber Puffer voll
-		else if (stepBuf.isFull()
+		else if (stepBuf->isFull()
 				&& calc.stepCnt < moveCmdCalcBuf->stepDistance) {
 			if (!timerActiveFlag)
 				startTimer();
@@ -67,7 +88,7 @@ bool MotorManager::calcInterval() {
 		}
 
 		//Berechnung nicht abgeschlossen und Puffer nicht voll
-		else if (!stepBuf.isFull()
+		else if (!stepBuf->isFull()
 				&& calc.stepCnt >= moveCmdCalcBuf->stepDistance) {
 			ErrorCode = STEP_BUF;
 			Error_Handler();

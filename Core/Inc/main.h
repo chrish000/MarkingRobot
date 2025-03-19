@@ -86,8 +86,6 @@ void Error_Handler(void);
 #define X_UART_GPIO_Port GPIOD
 #define X_EN_Pin GPIO_PIN_6
 #define X_EN_GPIO_Port GPIOD
-#define HE0_PWM_Pin GPIO_PIN_3
-#define HE0_PWM_GPIO_Port GPIOB
 #define HE1_PWM_Pin GPIO_PIN_4
 #define HE1_PWM_GPIO_Port GPIOB
 #define FAN0_Pin GPIO_PIN_7

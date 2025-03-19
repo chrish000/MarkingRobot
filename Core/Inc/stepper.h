@@ -21,7 +21,7 @@
 #include "TMC2209.h"
 
 /* Defines -------------------------------------------------------------------*/
-#define F_TIM 1000000 //1MHz
+#define F_TIM 275000000 //1MHz
 #define V_MIN (STEPS_PER_MM * 0.5) //Mindestgeschwindigkeit in steps/s (= x.x mm/s), MUSS mindestens *0.2 sein!
 
 enum class Direction : bool {
@@ -30,14 +30,10 @@ enum class Direction : bool {
 
 class MotorManager {
 public:
-	//Instruktor
-	MotorManager(TIM_HandleTypeDef *htim) :
-			htim(htim), moveCmdCalcBuf(new moveCommands { }) {
-	}
+	//Konstruktor
+	MotorManager(TIM_HandleTypeDef *htim);
 	//Destruktor
-	~MotorManager() {
-		delete moveCmdCalcBuf;
-	}
+	~MotorManager();
 
 	TIM_HandleTypeDef *htim;
 
@@ -59,8 +55,8 @@ public:
 
 	const static size_t buffer_size_move = 16;	//size = n-1 elements
 	const static size_t buffer_size_step = 128;	//size = n-1 elements
-	jnk0le::Ringbuffer<moveCommands, buffer_size_move, 0, 32> moveBuf;
-	jnk0le::Ringbuffer<stepCmd, buffer_size_step, 0, 32> stepBuf;
+	jnk0le::Ringbuffer<moveCommands, buffer_size_move, false, 32> moveBuf;
+	static jnk0le::Ringbuffer<stepCmd, buffer_size_step, false, 32>* stepBuf;
 
 	static constexpr uint8_t stepIntervalDefault = 9;
 	bool calcInterval();

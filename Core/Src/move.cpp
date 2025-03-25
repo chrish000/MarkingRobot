@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
  * @file           : move.c
- * @brief          :
+ * @brief          : Befehlsberechnung
  * @author         : Chris Hauser
  ******************************************************************************
  * @attention
@@ -59,12 +59,16 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
  */
 void Robot::init() {
 	motorMaster.moveBuf.consumerClear();
+	motorMaster.motorX.init();
+	motorMaster.motorY.init();
 	printhead.init();
 	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
-	motorX.tmc.setup();
-	motorX.tmc.setMicrostepsPerStep(MICROSTEPS);
-	motorY.tmc.setup();
-	motorY.tmc.setMicrostepsPerStep(MICROSTEPS);
+	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
+	motorMaster.motorX.tmc.setup();
+	motorMaster.motorX.tmc.setMicrostepsPerStep(MICROSTEPS);
+	motorMaster.motorY.tmc.setup();
+	motorMaster.motorY.tmc.setMicrostepsPerStep(MICROSTEPS);
 }
 
 /**
@@ -121,17 +125,27 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 			{
 		uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
 		bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen
-#ifdef REVERSE_MOTOR_DIRECTION
+#ifdef REVERSE_BOTH_MOTOR_DIRECTION
 		direction = !direction;
 #endif
+		MotorManager::moveCommands cmd;
+		cmd.speed = speed * STEPS_PER_MM;
+		cmd.accel = accel * STEPS_PER_MM;
+		cmd.stepDistance = steps;
+		if (Inverse_Motor_X_Dir)
+			cmd.directionX = (
+					direction ? Direction::Reverse : Direction::Forward);
+		else
+			cmd.directionX = (
+					direction ? Direction::Forward : Direction::Reverse);
 
-		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
-				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = (
-						direction ? Direction::Forward : Direction::Reverse),
-				cmd.directionY = (
-						!direction ? Direction::Forward : Direction::Reverse),
-				cmd.printigMove = printing };
+		if (Inverse_Motor_Y_Dir)
+			cmd.directionY = (
+					!direction ? Direction::Reverse : Direction::Forward);
+		else
+			cmd.directionY = (
+					!direction ? Direction::Forward : Direction::Reverse);
+		cmd.printigMove = printing;
 
 		return motorMaster.moveBuf.insert(cmd);
 	} else
@@ -150,17 +164,27 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 			{
 		uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
 		bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
-#ifdef REVERSE_MOTOR_DIRECTION
+#ifdef REVERSE_BOTH_MOTOR_DIRECTION
 		direction = !direction;
 #endif
+		MotorManager::moveCommands cmd;
+		cmd.speed = speed * STEPS_PER_MM;
+		cmd.accel = accel * STEPS_PER_MM;
+		cmd.stepDistance = steps;
+		if (Inverse_Motor_X_Dir)
+			cmd.directionX = (
+					!direction ? Direction::Reverse : Direction::Forward);
+		else
+			cmd.directionX = (
+					!direction ? Direction::Forward : Direction::Reverse);
 
-		MotorManager::moveCommands cmd { cmd.speed = speed * STEPS_PER_MM,
-				cmd.accel = accel * STEPS_PER_MM, cmd.stepDistance = steps,
-				cmd.directionX = (
-						!direction ? Direction::Forward : Direction::Reverse),
-				cmd.directionY = (
-						!direction ? Direction::Forward : Direction::Reverse),
-				cmd.printigMove = false };
+		if (Inverse_Motor_Y_Dir)
+			cmd.directionY = (
+					!direction ? Direction::Reverse : Direction::Forward);
+		else
+			cmd.directionY = (
+					!direction ? Direction::Forward : Direction::Reverse);
+		cmd.printigMove = false;
 
 		orientation += degrees;
 		return motorMaster.moveBuf.insert(cmd);

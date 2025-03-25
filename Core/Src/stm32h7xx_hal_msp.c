@@ -23,6 +23,14 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
+extern DMA_HandleTypeDef hdma_tim23_ch1;
+
+extern DMA_HandleTypeDef hdma_tim23_ch2;
+
+extern DMA_HandleTypeDef hdma_tim24_ch1;
+
+extern DMA_HandleTypeDef hdma_tim24_ch2;
+
 extern DMA_HandleTypeDef hdma_uart8_tx;
 
 extern DMA_HandleTypeDef hdma_uart8_rx;
@@ -66,7 +74,7 @@ extern DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE END 0 */
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-                    /**
+                                        /**
   * Initializes the Global MSP.
   */
 void HAL_MspInit(void)
@@ -86,95 +94,194 @@ void HAL_MspInit(void)
 }
 
 /**
-* @brief CRC MSP Initialization
-* This function configures the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
+  * @brief CRC MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param hcrc: CRC handle pointer
+  * @retval None
+  */
 void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc)
 {
   if(hcrc->Instance==CRC)
   {
-  /* USER CODE BEGIN CRC_MspInit 0 */
+    /* USER CODE BEGIN CRC_MspInit 0 */
 
-  /* USER CODE END CRC_MspInit 0 */
+    /* USER CODE END CRC_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_CRC_CLK_ENABLE();
-  /* USER CODE BEGIN CRC_MspInit 1 */
+    /* USER CODE BEGIN CRC_MspInit 1 */
 
-  /* USER CODE END CRC_MspInit 1 */
+    /* USER CODE END CRC_MspInit 1 */
 
   }
 
 }
 
 /**
-* @brief CRC MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param hcrc: CRC handle pointer
-* @retval None
-*/
+  * @brief CRC MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param hcrc: CRC handle pointer
+  * @retval None
+  */
 void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
 {
   if(hcrc->Instance==CRC)
   {
-  /* USER CODE BEGIN CRC_MspDeInit 0 */
+    /* USER CODE BEGIN CRC_MspDeInit 0 */
 
-  /* USER CODE END CRC_MspDeInit 0 */
+    /* USER CODE END CRC_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_CRC_CLK_DISABLE();
-  /* USER CODE BEGIN CRC_MspDeInit 1 */
+    /* USER CODE BEGIN CRC_MspDeInit 1 */
 
-  /* USER CODE END CRC_MspDeInit 1 */
+    /* USER CODE END CRC_MspDeInit 1 */
   }
 
 }
 
 /**
-* @brief TIM_Base MSP Initialization
-* This function configures the hardware resources used in this example
-* @param htim_base: TIM_Base handle pointer
-* @retval None
-*/
-void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
-{
-  if(htim_base->Instance==TIM2)
-  {
-  /* USER CODE BEGIN TIM2_MspInit 0 */
-
-  /* USER CODE END TIM2_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_TIM2_CLK_ENABLE();
-    /* TIM2 interrupt Init */
-    HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM2_IRQn);
-  /* USER CODE BEGIN TIM2_MspInit 1 */
-
-  /* USER CODE END TIM2_MspInit 1 */
-
-  }
-
-}
-
-/**
-* @brief TIM_PWM MSP Initialization
-* This function configures the hardware resources used in this example
-* @param htim_pwm: TIM_PWM handle pointer
-* @retval None
-*/
+  * @brief TIM_PWM MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param htim_pwm: TIM_PWM handle pointer
+  * @retval None
+  */
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {
-  if(htim_pwm->Instance==TIM3)
+  if(htim_pwm->Instance==TIM2)
   {
-  /* USER CODE BEGIN TIM3_MspInit 0 */
+    /* USER CODE BEGIN TIM2_MspInit 0 */
 
-  /* USER CODE END TIM3_MspInit 0 */
+    /* USER CODE END TIM2_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM2_CLK_ENABLE();
+    /* USER CODE BEGIN TIM2_MspInit 1 */
+
+    /* USER CODE END TIM2_MspInit 1 */
+  }
+  else if(htim_pwm->Instance==TIM3)
+  {
+    /* USER CODE BEGIN TIM3_MspInit 0 */
+
+    /* USER CODE END TIM3_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_TIM3_CLK_ENABLE();
-  /* USER CODE BEGIN TIM3_MspInit 1 */
+    /* USER CODE BEGIN TIM3_MspInit 1 */
 
-  /* USER CODE END TIM3_MspInit 1 */
+    /* USER CODE END TIM3_MspInit 1 */
+  }
 
+}
+
+/**
+  * @brief TIM_Base MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param htim_base: TIM_Base handle pointer
+  * @retval None
+  */
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
+{
+  if(htim_base->Instance==TIM23)
+  {
+    /* USER CODE BEGIN TIM23_MspInit 0 */
+
+    /* USER CODE END TIM23_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM23_CLK_ENABLE();
+
+    /* TIM23 DMA Init */
+    /* TIM23_CH1 Init */
+    hdma_tim23_ch1.Instance = DMA1_Stream7;
+    hdma_tim23_ch1.Init.Request = DMA_REQUEST_TIM23_CH1;
+    hdma_tim23_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_tim23_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim23_ch1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim23_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_tim23_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_tim23_ch1.Init.Mode = DMA_CIRCULAR;
+    hdma_tim23_ch1.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_tim23_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_tim23_ch1) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC1],hdma_tim23_ch1);
+
+    /* TIM23_CH2 Init */
+    hdma_tim23_ch2.Instance = DMA2_Stream0;
+    hdma_tim23_ch2.Init.Request = DMA_REQUEST_TIM23_CH2;
+    hdma_tim23_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_tim23_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim23_ch2.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim23_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_tim23_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_tim23_ch2.Init.Mode = DMA_CIRCULAR;
+    hdma_tim23_ch2.Init.Priority = DMA_PRIORITY_MEDIUM;
+    hdma_tim23_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_tim23_ch2) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC2],hdma_tim23_ch2);
+
+    /* TIM23 interrupt Init */
+    HAL_NVIC_SetPriority(TIM23_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM23_IRQn);
+    /* USER CODE BEGIN TIM23_MspInit 1 */
+
+    /* USER CODE END TIM23_MspInit 1 */
+  }
+  else if(htim_base->Instance==TIM24)
+  {
+    /* USER CODE BEGIN TIM24_MspInit 0 */
+
+    /* USER CODE END TIM24_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM24_CLK_ENABLE();
+
+    /* TIM24 DMA Init */
+    /* TIM24_CH1 Init */
+    hdma_tim24_ch1.Instance = DMA1_Stream4;
+    hdma_tim24_ch1.Init.Request = DMA_REQUEST_TIM24_CH1;
+    hdma_tim24_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_tim24_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim24_ch1.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim24_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_tim24_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_tim24_ch1.Init.Mode = DMA_CIRCULAR;
+    hdma_tim24_ch1.Init.Priority = DMA_PRIORITY_HIGH;
+    hdma_tim24_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_tim24_ch1) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC1],hdma_tim24_ch1);
+
+    /* TIM24_CH2 Init */
+    hdma_tim24_ch2.Instance = DMA1_Stream5;
+    hdma_tim24_ch2.Init.Request = DMA_REQUEST_TIM24_CH2;
+    hdma_tim24_ch2.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_tim24_ch2.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim24_ch2.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim24_ch2.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_tim24_ch2.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    hdma_tim24_ch2.Init.Mode = DMA_CIRCULAR;
+    hdma_tim24_ch2.Init.Priority = DMA_PRIORITY_MEDIUM;
+    hdma_tim24_ch2.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_tim24_ch2) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC2],hdma_tim24_ch2);
+
+    /* TIM24 interrupt Init */
+    HAL_NVIC_SetPriority(TIM24_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM24_IRQn);
+    /* USER CODE BEGIN TIM24_MspInit 1 */
+
+    /* USER CODE END TIM24_MspInit 1 */
   }
 
 }
@@ -182,11 +289,31 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  if(htim->Instance==TIM3)
+  if(htim->Instance==TIM2)
   {
-  /* USER CODE BEGIN TIM3_MspPostInit 0 */
+    /* USER CODE BEGIN TIM2_MspPostInit 0 */
 
-  /* USER CODE END TIM3_MspPostInit 0 */
+    /* USER CODE END TIM2_MspPostInit 0 */
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**TIM2 GPIO Configuration
+    PB3(JTDO/TRACESWO)     ------> TIM2_CH2
+    */
+    GPIO_InitStruct.Pin = HE0_PWM_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+    HAL_GPIO_Init(HE0_PWM_GPIO_Port, &GPIO_InitStruct);
+
+    /* USER CODE BEGIN TIM2_MspPostInit 1 */
+
+    /* USER CODE END TIM2_MspPostInit 1 */
+  }
+  else if(htim->Instance==TIM3)
+  {
+    /* USER CODE BEGIN TIM3_MspPostInit 0 */
+
+    /* USER CODE END TIM3_MspPostInit 0 */
 
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**TIM3 GPIO Configuration
@@ -199,74 +326,107 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
     GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
     HAL_GPIO_Init(HE1_PWM_GPIO_Port, &GPIO_InitStruct);
 
-  /* USER CODE BEGIN TIM3_MspPostInit 1 */
+    /* USER CODE BEGIN TIM3_MspPostInit 1 */
 
-  /* USER CODE END TIM3_MspPostInit 1 */
+    /* USER CODE END TIM3_MspPostInit 1 */
   }
 
 }
 /**
-* @brief TIM_Base MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param htim_base: TIM_Base handle pointer
-* @retval None
-*/
-void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
-{
-  if(htim_base->Instance==TIM2)
-  {
-  /* USER CODE BEGIN TIM2_MspDeInit 0 */
-
-  /* USER CODE END TIM2_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_TIM2_CLK_DISABLE();
-
-    /* TIM2 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(TIM2_IRQn);
-  /* USER CODE BEGIN TIM2_MspDeInit 1 */
-
-  /* USER CODE END TIM2_MspDeInit 1 */
-  }
-
-}
-
-/**
-* @brief TIM_PWM MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param htim_pwm: TIM_PWM handle pointer
-* @retval None
-*/
+  * @brief TIM_PWM MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param htim_pwm: TIM_PWM handle pointer
+  * @retval None
+  */
 void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
 {
-  if(htim_pwm->Instance==TIM3)
+  if(htim_pwm->Instance==TIM2)
   {
-  /* USER CODE BEGIN TIM3_MspDeInit 0 */
+    /* USER CODE BEGIN TIM2_MspDeInit 0 */
 
-  /* USER CODE END TIM3_MspDeInit 0 */
+    /* USER CODE END TIM2_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM2_CLK_DISABLE();
+    /* USER CODE BEGIN TIM2_MspDeInit 1 */
+
+    /* USER CODE END TIM2_MspDeInit 1 */
+  }
+  else if(htim_pwm->Instance==TIM3)
+  {
+    /* USER CODE BEGIN TIM3_MspDeInit 0 */
+
+    /* USER CODE END TIM3_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_TIM3_CLK_DISABLE();
-  /* USER CODE BEGIN TIM3_MspDeInit 1 */
+    /* USER CODE BEGIN TIM3_MspDeInit 1 */
 
-  /* USER CODE END TIM3_MspDeInit 1 */
+    /* USER CODE END TIM3_MspDeInit 1 */
   }
 
 }
 
 /**
-* @brief UART MSP Initialization
-* This function configures the hardware resources used in this example
-* @param huart: UART handle pointer
-* @retval None
-*/
+  * @brief TIM_Base MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param htim_base: TIM_Base handle pointer
+  * @retval None
+  */
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
+{
+  if(htim_base->Instance==TIM23)
+  {
+    /* USER CODE BEGIN TIM23_MspDeInit 0 */
+
+    /* USER CODE END TIM23_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM23_CLK_DISABLE();
+
+    /* TIM23 DMA DeInit */
+    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC1]);
+    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC2]);
+
+    /* TIM23 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(TIM23_IRQn);
+    /* USER CODE BEGIN TIM23_MspDeInit 1 */
+
+    /* USER CODE END TIM23_MspDeInit 1 */
+  }
+  else if(htim_base->Instance==TIM24)
+  {
+    /* USER CODE BEGIN TIM24_MspDeInit 0 */
+
+    /* USER CODE END TIM24_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM24_CLK_DISABLE();
+
+    /* TIM24 DMA DeInit */
+    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC1]);
+    HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC2]);
+
+    /* TIM24 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(TIM24_IRQn);
+    /* USER CODE BEGIN TIM24_MspDeInit 1 */
+
+    /* USER CODE END TIM24_MspDeInit 1 */
+  }
+
+}
+
+/**
+  * @brief UART MSP Initialization
+  * This function configures the hardware resources used in this example
+  * @param huart: UART handle pointer
+  * @retval None
+  */
 void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(huart->Instance==UART8)
   {
-  /* USER CODE BEGIN UART8_MspInit 0 */
+    /* USER CODE BEGIN UART8_MspInit 0 */
 
-  /* USER CODE END UART8_MspInit 0 */
+    /* USER CODE END UART8_MspInit 0 */
 
   /** Initializes the peripherals clock
   */
@@ -331,15 +491,15 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     /* UART8 interrupt Init */
     HAL_NVIC_SetPriority(UART8_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(UART8_IRQn);
-  /* USER CODE BEGIN UART8_MspInit 1 */
+    /* USER CODE BEGIN UART8_MspInit 1 */
 
-  /* USER CODE END UART8_MspInit 1 */
+    /* USER CODE END UART8_MspInit 1 */
   }
   else if(huart->Instance==USART2)
   {
-  /* USER CODE BEGIN USART2_MspInit 0 */
+    /* USER CODE BEGIN USART2_MspInit 0 */
 
-  /* USER CODE END USART2_MspInit 0 */
+    /* USER CODE END USART2_MspInit 0 */
 
   /** Initializes the peripherals clock
   */
@@ -404,26 +564,26 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     /* USART2 interrupt Init */
     HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
-  /* USER CODE BEGIN USART2_MspInit 1 */
+    /* USER CODE BEGIN USART2_MspInit 1 */
 
-  /* USER CODE END USART2_MspInit 1 */
+    /* USER CODE END USART2_MspInit 1 */
   }
 
 }
 
 /**
-* @brief UART MSP De-Initialization
-* This function freeze the hardware resources used in this example
-* @param huart: UART handle pointer
-* @retval None
-*/
+  * @brief UART MSP De-Initialization
+  * This function freeze the hardware resources used in this example
+  * @param huart: UART handle pointer
+  * @retval None
+  */
 void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 {
   if(huart->Instance==UART8)
   {
-  /* USER CODE BEGIN UART8_MspDeInit 0 */
+    /* USER CODE BEGIN UART8_MspDeInit 0 */
 
-  /* USER CODE END UART8_MspDeInit 0 */
+    /* USER CODE END UART8_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_UART8_CLK_DISABLE();
 
@@ -438,15 +598,15 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
     /* UART8 interrupt DeInit */
     HAL_NVIC_DisableIRQ(UART8_IRQn);
-  /* USER CODE BEGIN UART8_MspDeInit 1 */
+    /* USER CODE BEGIN UART8_MspDeInit 1 */
 
-  /* USER CODE END UART8_MspDeInit 1 */
+    /* USER CODE END UART8_MspDeInit 1 */
   }
   else if(huart->Instance==USART2)
   {
-  /* USER CODE BEGIN USART2_MspDeInit 0 */
+    /* USER CODE BEGIN USART2_MspDeInit 0 */
 
-  /* USER CODE END USART2_MspDeInit 0 */
+    /* USER CODE END USART2_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_USART2_CLK_DISABLE();
 
@@ -461,9 +621,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
     /* USART2 interrupt DeInit */
     HAL_NVIC_DisableIRQ(USART2_IRQn);
-  /* USER CODE BEGIN USART2_MspDeInit 1 */
+    /* USER CODE BEGIN USART2_MspDeInit 1 */
 
-  /* USER CODE END USART2_MspDeInit 1 */
+    /* USER CODE END USART2_MspDeInit 1 */
   }
 
 }

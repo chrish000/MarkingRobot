@@ -17,6 +17,7 @@
 #define PRINTHEAD_H_
 
 #include "main.h"
+#include "config.h"
 #include <limits>
 #include <algorithm>
 

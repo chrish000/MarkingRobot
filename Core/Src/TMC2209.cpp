@@ -13,15 +13,11 @@
  *
  ******************************************************************************
  */
+#include "main.h"
 #include "TMC2209.h"
 #include "utils.h"
 #include <cstring>
 #include <algorithm>
-
-/**
- * @brief  Array that contains pre-calculated CRC-Values for the initialization-process
- */
-constexpr uint8_t TMC2209::precomputedCRC[];
 
 /**
  * @brief  Configures the TMC2209 communication interface.
@@ -137,8 +133,8 @@ void TMC2209::setHoldCurrent(uint16_t holdCurrent) {
 
 void TMC2209::setHoldDelay(uint8_t holdDelayPercent) {
 	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
-	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
-			HOLD_DELAY_MIN, HOLD_DELAY_MAX);
+	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN,
+			PERCENT_MAX, HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
 }
 
@@ -162,8 +158,8 @@ void TMC2209::setAllCurrentValues(uint16_t runCurrent, uint16_t holdCurrent,
 			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
 			RUN_CURRENT_SETTING_MAX);
 	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
-	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN, PERCENT_MAX,
-			HOLD_DELAY_MIN, HOLD_DELAY_MAX);
+	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN,
+			PERCENT_MAX, HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
 }
 
@@ -751,8 +747,6 @@ uint16_t TMC2209::getMicrostepCounter() {
  * @brief  Initializes the TMC2209 driver by setting operation mode, clearing errors, and configuring settings.
  */
 void TMC2209::initialize() {
-	//precomputedCRC[] needs to be recalculated if modified
-	init_flag = 1;
 	setRegistersToDefaults();
 	clearDriveError();
 	clearReset();
@@ -760,11 +754,9 @@ void TMC2209::initialize() {
 	setOperationModeToSerial();
 
 	setAllCurrentValues(RUN_CURRENT_DEFAULT, HOLD_CURRENT_DEFAULT, 10);
-	disableAutomaticCurrentScaling();
-	disableAutomaticGradientAdaptation();
+	//disableAutomaticCurrentScaling();
+	//disableAutomaticGradientAdaptation();
 	enableDoubleEdge();
-	init_flag = 0;
-	precomputedCRCIndex = 0;
 }
 
 /**
@@ -877,13 +869,8 @@ void TMC2209::write(uint8_t register_address, uint32_t data) {
 	write_datagram.register_address = register_address;
 	write_datagram.rw = RW_WRITE;
 	write_datagram.data = reverseData(data, DATA_SIZE);
-	if (init_flag) {
-		write_datagram.crc = precomputedCRC[precomputedCRCIndex];
-		precomputedCRCIndex++;
-	} else
-		write_datagram.crc = HAL_CRC_Calculate(&hcrc,
-				(uint32_t*) &write_datagram,
-				WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
+	write_datagram.crc = HAL_CRC_Calculate(CRC_Handle,
+			(uint32_t*) &write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
 
 	sendDatagram(write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE);
 
@@ -909,13 +896,8 @@ uint32_t TMC2209::read(uint8_t register_address) {
 	read_request_datagram.serial_address = DEFAULT_SERIAL_ADDRESS;
 	read_request_datagram.register_address = register_address;
 	read_request_datagram.rw = RW_READ;
-	if (init_flag) {
-		read_request_datagram.crc = precomputedCRC[precomputedCRCIndex];
-		precomputedCRCIndex++;
-	} else
-		read_request_datagram.crc = HAL_CRC_Calculate(&hcrc,
-				(uint32_t*) &read_request_datagram,
-				READ_REQUEST_DATAGRAM_SIZE - 1);
+	read_request_datagram.crc = HAL_CRC_Calculate(CRC_Handle,
+			(uint32_t*) &read_request_datagram, READ_REQUEST_DATAGRAM_SIZE - 1);
 
 	sendDatagram(read_request_datagram, READ_REQUEST_DATAGRAM_SIZE);
 
@@ -927,7 +909,7 @@ uint32_t TMC2209::read(uint8_t register_address) {
 		}
 	}
 
-	uint8_t crc_check = HAL_CRC_Calculate(&hcrc, (uint32_t*) &rxBufferRaw,
+	uint8_t crc_check = HAL_CRC_Calculate(CRC_Handle, (uint32_t*) &rxBufferRaw,
 			WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
 	if (crc_check == rxBufferRaw[7]) {
 		WriteReadReplyDatagram read_reply_datagram;
@@ -957,8 +939,8 @@ uint32_t TMC2209::read(uint8_t register_address) {
  * @retval uint8_t: The corresponding percentage value.
  */
 uint8_t TMC2209::holdDelaySettingToPercent(uint8_t hold_delay_setting) {
-	uint8_t percent = normalize(hold_delay_setting, HOLD_DELAY_MIN, HOLD_DELAY_MAX,
-			PERCENT_MIN, PERCENT_MAX);
+	uint8_t percent = normalize(hold_delay_setting, HOLD_DELAY_MIN,
+			HOLD_DELAY_MAX, PERCENT_MIN, PERCENT_MAX);
 	return percent;
 }
 

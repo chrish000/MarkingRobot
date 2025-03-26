@@ -16,22 +16,22 @@
 #define MOVE_H
 
 /* Includes ------------------------------------------------------------------*/
+#include "main.h"
 #include "stepper.h"
+#include "parser.h"
 #include "printhead.h"
 #include "pins.h"
+#include "config.h"
 
 class Robot {
 public:
-	Robot(Pin pins) :
-			motorMaster(pins.TIM_MotorMaster), motorX(X_STEP_PORT, X_STEP_PIN,
-					X_DIR_PORT, X_DIR_PIN, pins.TMC_X_UART_address, X_EN_PORT, X_EN_PIN), motorY(Y_STEP_PORT, Y_STEP_PIN,
-					Y_DIR_PORT, Y_DIR_PIN, pins.TMC_Y_UART_address, Y_EN_PORT, Y_EN_PIN), printhead(pins.TIM_Printhead,
-					TIM_PrintheadChannel) {
+	Robot() :
+			motorMaster(pins), printhead(pins.TIM_Printhead,
+			TIM_PrintheadChannel) {
 	}
 
+	Pin pins;
 	MotorManager motorMaster;
-	StepperMotor motorX;
-	StepperMotor motorY;
 	Printhead printhead;
 
 	void init();
@@ -42,11 +42,7 @@ private:
 	float_t posX = 0;
 	float_t posY = 0;
 	float_t speed = DEFAULT_SPEED;
-	const float_t minSpeed = 1;
-	const float_t maxSpeed = 10000;
 	float_t accel = DEFAULT_ACCEL;
-	const float_t minAccel = 1;
-	const float_t maxAccel = 10000;
 	float_t orientation = 0; //0°-360°
 
 	bool moveLin(float_t distance, float_t speed, float_t accel, bool printing);

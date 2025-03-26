@@ -34,8 +34,16 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
 extern CRC_HandleTypeDef hcrc;
+
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim23;
+extern TIM_HandleTypeDef htim24;
+extern DMA_HandleTypeDef hdma_tim23_ch1;
+extern DMA_HandleTypeDef hdma_tim23_ch2;
+extern DMA_HandleTypeDef hdma_tim24_ch1;
+extern DMA_HandleTypeDef hdma_tim24_ch2;
+
 extern UART_HandleTypeDef huart8;
 extern UART_HandleTypeDef huart2;
 
@@ -43,18 +51,13 @@ typedef enum {
 	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11
 } ERROR_HandleCode;
 extern ERROR_HandleCode ErrorCode;
+extern uint8_t printFlag;
+
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-extern volatile float PosX; // in mm
-extern volatile float PosY; // in mm
 
-extern volatile uint32_t PWMStepX; // Zähler für die X PWM-Impulse
-extern volatile uint16_t PWMCounterX;
-extern volatile uint32_t TargetStepsX;
-
-extern volatile uint8_t PWMEnabledX; // Variable zum Ein-/Ausschalten der X-PWM
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -68,7 +71,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void DMA_Callback(DMA_HandleTypeDef *hdma);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -79,10 +82,15 @@ void Error_Handler(void);
 #define PWRDET_Pin GPIO_PIN_15
 #define PWRDET_GPIO_Port GPIOC
 #define PWRDET_EXTI_IRQn EXTI15_10_IRQn
-#define Z_MIN_Pin GPIO_PIN_0
-#define Z_MIN_GPIO_Port GPIOC
-#define X_MIN_Pin GPIO_PIN_1
-#define X_MIN_GPIO_Port GPIOC
+#define Z_STOP_Pin GPIO_PIN_0
+#define Z_STOP_GPIO_Port GPIOC
+#define Z_STOP_EXTI_IRQn EXTI0_IRQn
+#define X_STOP_Pin GPIO_PIN_1
+#define X_STOP_GPIO_Port GPIOC
+#define X_STOP_EXTI_IRQn EXTI1_IRQn
+#define E0DET_Pin GPIO_PIN_2
+#define E0DET_GPIO_Port GPIOC
+#define E0DET_EXTI_IRQn EXTI2_IRQn
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4
@@ -95,6 +103,10 @@ void Error_Handler(void);
 #define HE0_PWM_GPIO_Port GPIOB
 #define HE1_PWM_Pin GPIO_PIN_4
 #define HE1_PWM_GPIO_Port GPIOB
+#define FAN2_Pin GPIO_PIN_5
+#define FAN2_GPIO_Port GPIOB
+#define FAN1_Pin GPIO_PIN_6
+#define FAN1_GPIO_Port GPIOB
 #define FAN0_Pin GPIO_PIN_7
 #define FAN0_GPIO_Port GPIOB
 #define Z_EN_Pin GPIO_PIN_0
@@ -103,35 +115,6 @@ void Error_Handler(void);
 #define Z_UART_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
-/**
- *	###########################################################################
- *	BEWEGUNG
- *	###########################################################################
- */
-#define MICROSTEPS 256
-#define STEPS_PER_MM 182.465
-#define STEPS_PER_DEG 802.077
-#define DEFAULT_SPEED 500 //in mm/s
-#define MAX_SPEED 680
-#define DEFAULT_ACCEL 1000
-#define MAX_ACCEL 3000
-
-#define RUN_CURRENT_DEFAULT 2000
-#define HOLD_CURRENT_DEFAULT 500
-
-//#define REVERSE_MOTOR_DIRECTION
-
-//Beschleunigungskurve: {Trapezoid; Bezier}
-//#define ACCEL_CURVE_BEZIER
-#define ACCEL_CURVE_TRAPEZOID
-
-/**
- *	###########################################################################
- *	MARKIEREINHEIT
- *	###########################################################################
- */
-#define PRINTHEAD_PERIOD 100 //ms
-#define PRINTHEAD_DUTY_CYCLE 50 //%
 
 /* USER CODE END Private defines */
 

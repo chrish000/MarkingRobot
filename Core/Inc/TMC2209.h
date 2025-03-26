@@ -18,6 +18,7 @@
 #define TMC2209_H
 
 #include "main.h"
+#include "config.h"
 
 /**
  * @brief  TMC Status structures definition
@@ -33,9 +34,9 @@ enum TMC_StatusTypeDef{
 class TMC2209 {
 public:
 
-	TMC2209(UART_HandleTypeDef *UART_address,
+	TMC2209(UART_HandleTypeDef *UART_address, CRC_HandleTypeDef *CRC_Handle,
 			GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin) :
-			UART_address(UART_address), hardware_enable_port(
+			UART_address(UART_address), CRC_Handle(CRC_Handle), hardware_enable_port(
 					hardware_enable_port), hardware_enable_pin(
 					hardware_enable_pin) {
 		cool_step_enabled_ = false;
@@ -44,6 +45,7 @@ public:
 	}
 
 	UART_HandleTypeDef *UART_address;
+	CRC_HandleTypeDef *CRC_Handle;
 	GPIO_TypeDef *hardware_enable_port;
 	uint16_t hardware_enable_pin;
 	TMC_StatusTypeDef TMC2209_status;
@@ -234,14 +236,6 @@ public:
 
 private:
 
-	//Initialization of TMC
-	volatile bool init_flag = 0;
-	static constexpr uint8_t precomputedCRC[] = {//fixed order in initialize()
-			0xdf, 0x97, 0x06, 0x45, 0x1f, 0x0f, 0x0e, 0x34, 0x8d, 0x45, 0x19,
-					0x57, 0xd9, 0xf6, 0x0c, 0x45, 0xe7, 0x81, 0xdf, 0x97, 0x06,
-					0x45, 0x1f, 0x0f, 0x0e, 0x34, 0x8d, 0x45, 0x19, 0x57, 0xd9,
-					0xf6, 0x0c, 0x45, 0xe7, 0x81 };
-	uint8_t precomputedCRCIndex = 0;
 	void initialize();
 
 	// Serial Settings

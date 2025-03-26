@@ -88,7 +88,7 @@ private:
 	void calculateSinusAccelerationParameters(moveCommands*);
 #endif
 
-	bool calcRoutine(moveCommands*, intervalCalcStruct*, StepperMotor*);
+	void calcRoutine(moveCommands*, intervalCalcStruct*, StepperMotor*);
 };
 
 #endif /* PARSER_H */

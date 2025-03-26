@@ -25,11 +25,11 @@
 MotorManager::MotorManager(Pin pins) :
 		motorX(pins.TIM_Motor_X, pins.TIM_DMA_ARR_X, pins.TIM_DMA_BSRR_X,
 		X_STEP_PORT, X_STEP_PIN, X_DIR_PORT, X_DIR_PIN, pins.TMC_UART_address_X,
-				pins.CRC_Handle_X, X_EN_PORT, X_EN_PIN, 0), motorY(
+				pins.CRC_Handle_X, X_EN_PORT, X_EN_PIN), motorY(
 				pins.TIM_Motor_Y, pins.TIM_DMA_ARR_Y, pins.TIM_DMA_BSRR_Y,
 				Y_STEP_PORT, Y_STEP_PIN, Y_DIR_PORT, Y_DIR_PIN,
 				pins.TMC_UART_address_Y, pins.CRC_Handle_Y, Y_EN_PORT,
-				Y_EN_PIN, 1) {
+				Y_EN_PIN) {
 }
 
 // Destruktor
@@ -44,7 +44,7 @@ MotorManager::~MotorManager() {
  * @param None
  * @retval true wenn Speicherung erfolgereich
  */
-bool MotorManager::calcRoutine(moveCommands *mCmdBuf, intervalCalcStruct *calc,
+void MotorManager::calcRoutine(moveCommands *mCmdBuf, intervalCalcStruct *calc,
 		StepperMotor *M) {
 	while (!M->stepBuf.isFull() && calc->stepCnt < mCmdBuf->stepDistance) {
 		StepperMotor::stepCmd sCmd;
@@ -64,7 +64,7 @@ bool MotorManager::calcRoutine(moveCommands *mCmdBuf, intervalCalcStruct *calc,
 				| (M->stepFlag ? (M->stepPin << 16) : M->stepPin);
 
 		M->stepFlag = !M->stepFlag;
-		return M->stepBuf.insert(sCmd);
+		M->stepBuf.insert(sCmd);
 	}
 }
 

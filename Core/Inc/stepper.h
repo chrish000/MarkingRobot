@@ -30,7 +30,7 @@ public:
 			GPIO_TypeDef *stepPort, uint16_t stepPin, GPIO_TypeDef *dirPort,
 			uint16_t dirPin, UART_HandleTypeDef *TMC_UART_address,
 			CRC_HandleTypeDef *TMC_CRC_Handle, GPIO_TypeDef *hardware_enable_port,
-			uint16_t hardware_enable_pin, uint8_t motorIndex);
+			uint16_t hardware_enable_pin);
 	//Destruktor
 	~StepperMotor();
 

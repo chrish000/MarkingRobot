@@ -96,19 +96,8 @@ bool MotorManager::calcInterval() {
 	calcRoutine(&moveCmdCalcBufX, &calcX, &motorX);
 	calcRoutine(&moveCmdCalcBufY, &calcY, &motorY);
 
-	//Wenn X voll oder fertig und Y voll oder fertig
-	if ((motorX.stepBuf.isFull()
-			|| calcX.stepCnt == moveCmdCalcBufX.stepDistance)
-			&& (motorY.stepBuf.isFull()
-					|| calcY.stepCnt == moveCmdCalcBufY.stepDistance)) {
-		if (!motorX.timerActiveFlag)
-			motorX.startTimer();
-		if (!motorY.timerActiveFlag)
-			motorY.startTimer();
-		return true;
-	}
 	//Berechnung abgeschlossen
-	else if (calcX.stepCnt == moveCmdCalcBufX.stepDistance
+	if (calcX.stepCnt == moveCmdCalcBufX.stepDistance
 			&& calcY.stepCnt == moveCmdCalcBufY.stepDistance) {
 
 		calcX = intervalCalcStruct { };
@@ -126,7 +115,19 @@ bool MotorManager::calcInterval() {
 			return false; //niemals erreicht
 		}
 	}
-	return true;
+	//Wenn X voll oder fertig und Y voll oder fertig
+	else if ((motorX.stepBuf.isFull()
+			|| calcX.stepCnt == moveCmdCalcBufX.stepDistance)
+			&& (motorY.stepBuf.isFull()
+					|| calcY.stepCnt == moveCmdCalcBufY.stepDistance)) {
+		printFlag = moveCmdCalcBufX.printigMove;
+		if (!motorX.timerActiveFlag)
+			motorX.startTimer();
+		if (!motorY.timerActiveFlag)
+			motorY.startTimer();
+		return true;
+	}
+	return false;
 }
 
 #if defined(ACCEL_CURVE_TRAPEZOID)

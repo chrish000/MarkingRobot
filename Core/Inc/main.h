@@ -51,6 +51,7 @@ typedef enum {
 	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11
 } ERROR_HandleCode;
 extern ERROR_HandleCode ErrorCode;
+extern uint8_t printFlag;
 
 /* USER CODE END ET */
 

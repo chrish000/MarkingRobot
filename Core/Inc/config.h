@@ -49,7 +49,7 @@
  *	MARKIEREINHEIT
  *	###########################################################################
  */
-#define PRINTHEAD_PERIOD 100 //ms
-#define PRINTHEAD_DUTY_CYCLE 50 //%
+#define PRINTHEAD_PERIOD 2000 //ms
+#define PRINTHEAD_DUTY_CYCLE 5 //%
 
 #endif /* CONFIG_H */

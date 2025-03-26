@@ -71,6 +71,7 @@ void StepperMotor::stopTimer() {
 	assert(TIM_Motor != nullptr && "Timer Handle darf nicht NULL sein!");
 	TIM_Motor->Instance->ARR = timARRDefault;
 	timerActiveFlag = false;
+	printFlag = false;
 	HAL_TIM_Base_Stop(TIM_Motor);
 }
 

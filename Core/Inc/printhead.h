@@ -1,8 +1,8 @@
 /**
  ******************************************************************************
  * @file           : printhead.h
- * @brief          : Header for main.c file.
- *                   This file contains the functions and variavles to operate the printhead.
+ * @brief          : Spritzapparatansteuerung
+ * @author         : Chris Hauser
  ******************************************************************************
  * @attention
  *

@@ -18,6 +18,15 @@
 #include "move.h"
 #include <algorithm>
 
+void Robot::resetPos(){
+	orientation = posX = posY = 0;
+}
+void Robot::setPos(float_t newOrientation, float_t newX, float_t newY){
+	orientation = newOrientation;
+	posX = newX;
+	posY = newY;
+}
+
 /**
  * @brief Berechnung des Drehwinkels für eine Zielposition
  * @param newX Zielposition X-Koordinate
@@ -58,6 +67,8 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
  * @retval None
  */
 void Robot::init() {
+	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
+	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
 	motorMaster.moveBuf.consumerClear();
 	motorMaster.motorX.init();
 	motorMaster.motorY.init();

@@ -44,6 +44,16 @@ struct Pin {
 	DMA_HandleTypeDef *TIM_DMA_BSRR_Y= &hdma_tim24_ch2;
 	UART_HandleTypeDef *TMC_UART_address_Y = &huart8;
 	CRC_HandleTypeDef *CRC_Handle_Y = &hcrc;
+//ENDSTOP
+#define X_STOP_PIN X_STOP_Pin
+#define Y_STOP_PIN Z_STOP_Pin
+#define PWRDET_PIN PWRDET_Pin
+#define PRESSURE_PIN PRESSURE_Pin
+#define X_STOP_EXTI X_STOP_EXTI_IRQn
+#define Y_STOP_EXTI Z_STOP_EXTI_IRQn
+#define PWRDET_EXTI PWRDET_EXTI_IRQn
+#define	PRESSURE_EXTI PRESSURE_EXTI_IRQn
+
 //PRINTHEAD
 	TIM_HandleTypeDef *TIM_Printhead = &htim3;
 #define TIM_PrintheadChannel TIM_CHANNEL_1

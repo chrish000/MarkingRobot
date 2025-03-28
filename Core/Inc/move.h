@@ -37,6 +37,12 @@ public:
 	void init();
 	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
 			float_t accel = DEFAULT_ACCEL, bool printing = false);
+	bool moveLin(float_t distance, float_t speed = DEFAULT_SPEED,
+			float_t accel = DEFAULT_ACCEL, bool printing = false);
+	bool moveRot(float_t degrees, float_t speed = DEFAULT_SPEED, float_t accel =
+			DEFAULT_ACCEL);
+	void resetPos();
+	void setPos(float_t newOrientation, float_t newX, float_t newY);
 
 private:
 	float_t posX = 0;
@@ -44,9 +50,6 @@ private:
 	float_t speed = DEFAULT_SPEED;
 	float_t accel = DEFAULT_ACCEL;
 	float_t orientation = 0; //0°-360°
-
-	bool moveLin(float_t distance, float_t speed, float_t accel, bool printing);
-	bool moveRot(float_t degrees, float_t speed, float_t accel);
 };
 
 #endif /* MOVE_H */

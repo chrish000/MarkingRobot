@@ -88,9 +88,9 @@ void DMA_Callback(DMA_HandleTypeDef *hdma);
 #define X_STOP_Pin GPIO_PIN_1
 #define X_STOP_GPIO_Port GPIOC
 #define X_STOP_EXTI_IRQn EXTI1_IRQn
-#define E0DET_Pin GPIO_PIN_2
-#define E0DET_GPIO_Port GPIOC
-#define E0DET_EXTI_IRQn EXTI2_IRQn
+#define PRESSURE_Pin GPIO_PIN_2
+#define PRESSURE_GPIO_Port GPIOC
+#define PRESSURE_EXTI_IRQn EXTI2_IRQn
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

@@ -52,6 +52,7 @@ public:
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, false, 32> moveBuf;
 
 	bool calcInterval();
+	void resetCalc();
 
 private:
 

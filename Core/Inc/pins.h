@@ -47,6 +47,8 @@ struct Pin {
 //ENDSTOP
 #define X_STOP_PIN X_STOP_Pin
 #define Y_STOP_PIN Z_STOP_Pin
+#define X_STOP_PORT X_STOP_GPIO_Port
+#define Y_STOP_PORT Z_STOP_GPIO_Port
 #define PWRDET_PIN PWRDET_Pin
 #define PRESSURE_PIN PRESSURE_Pin
 #define X_STOP_EXTI X_STOP_EXTI_IRQn
@@ -63,7 +65,7 @@ struct Pin {
 #define FAN1_PORT FAN1_GPIO_Port
 #define FAN1_PIN FAN1_Pin
 #define FAN2_PORT FAN2_GPIO_Port
-#define FAN2_PIN FAN1_Pin
+#define FAN2_PIN FAN2_Pin
 //HE0
 	TIM_HandleTypeDef *TIM_HE0 = &htim2;
 #define TIM_HE0Channel TIM_CHANNEL_2

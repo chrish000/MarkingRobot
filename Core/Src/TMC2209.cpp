@@ -879,6 +879,7 @@ void TMC2209::write(uint8_t register_address, uint32_t data) {
 		if (HAL_GetTick() > sent_timeout) {
 			TMC2209_status = TMC_TIMEOUT;
 			Error_Handler();
+			break;
 		}
 	}
 	data_sent_flag = false;
@@ -906,6 +907,7 @@ uint32_t TMC2209::read(uint8_t register_address) {
 		if (HAL_GetTick() > recive_timeout) {
 			TMC2209_status = TMC_TIMEOUT;
 			Error_Handler();
+			break;
 		}
 	}
 
@@ -923,11 +925,11 @@ uint32_t TMC2209::read(uint8_t register_address) {
 			return read_reply_datagram.data;
 		else {
 			TMC2209_status = TMC_UART_ERROR;
-			//Error_Handler();
+			Error_Handler();
 		}
 	} else {
 		TMC2209_status = TMC_CRC_ERROR;
-		//Error_Handler();
+		Error_Handler();
 	}
 	//Never reached
 	return 0;

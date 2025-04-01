@@ -165,18 +165,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_UART_Receive_DMA(robi.motorMaster.motorX.tmc.UART_address,
 				robi.motorMaster.motorX.tmc.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
-		robi.motorMaster.motorX.tmc.data_sent_flag = true;
+		robi.motorMaster.motorX.tmc.data_received_flag = true;
 	}
 	if (huart->Instance == robi.motorMaster.motorY.tmc.UART_address->Instance) {
 		HAL_UART_Receive_DMA(robi.motorMaster.motorY.tmc.UART_address,
 				robi.motorMaster.motorY.tmc.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
-		robi.motorMaster.motorY.tmc.data_sent_flag = true;
+		robi.motorMaster.motorY.tmc.data_received_flag = true;
 	}
 }
 
 void DMA_Callback(DMA_HandleTypeDef *hdma) {
-	register StepperMotor *motor = nullptr;
+	StepperMotor *motor = nullptr;
 
     if (hdma->Instance == robi.motorMaster.motorX.TIM_DMA_BSRR->Instance) {
         motor = &robi.motorMaster.motorX;
@@ -190,12 +190,14 @@ void DMA_Callback(DMA_HandleTypeDef *hdma) {
         motor->stopTimer();
     }
 }
-/*
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	if(htim->Instance == TIM4)
+	if(htim->Instance == TIM24){
+		int i = 0;
+	}
 
 }
-*/
+
 /* USER CODE END 0 */
 
 /**
@@ -925,7 +927,7 @@ void Error_Handler(void)
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 
-	while (1) {
+//	while (1) {
 		switch (ErrorCode) {
 		case NONE:
 			break;
@@ -934,7 +936,7 @@ void Error_Handler(void)
 		case STEP_BUF:
 			break;
 		}
-	}
+//	}
   /* USER CODE END Error_Handler_Debug */
 }
 

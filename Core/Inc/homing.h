@@ -15,11 +15,11 @@
 #define MAX_HOMING_DIST 200 //mm
 #define MAX_HOMING_TRY 3
 #define MAX_HOMING_TIMEOUT HAL_MAX_DELAY //ms
-#define HOMING_SPEED 50 //mm/s
-#define HOMING_MAX_FAULT 0.0001 //deg
-#define	SENSOR_DIST 1234 //mm
-#define HOMING_OFFSET_X 1234 //mm	(von Roboter aussen hinten zu Duese)
-#define HOMING_OFFSET_Y 1234 //mm	(von Roboter aussen seitlich zu Duese)
+#define HOMING_SPEED 10 //mm/s
+#define HOMING_MAX_FAULT 1 //deg
+#define	SENSOR_DIST 600 //mm
+#define HOMING_OFFSET_X 200 //mm	(von Roboter Rahmen aussen hinten zu Duese)
+#define HOMING_OFFSET_Y 350 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
 
 #include "move.h"
 #include "parser.h"
@@ -41,14 +41,20 @@ uint8_t phase = 0;
 uint32_t timeout = 0xffffffff;
 uint8_t counterTry = 0;
 
-void enableEXTI() {
+void enableSensors() {
 	homingActive = true;
 	xFlag = yFlag = false;
+	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI);
 	HAL_NVIC_EnableIRQ(Y_STOP_EXTI);
 }
-void disableEXTI() {
+void disableSensors() {
 	homingActive = false;
+	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(X_STOP_PORT, X_STOP_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(Y_STOP_PORT, Y_STOP_PIN, GPIO_PIN_RESET);
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
 }
@@ -57,6 +63,7 @@ void stopMotors(Robot *rob) {
 	rob->motorMaster.motorY.stopTimer();
 	rob->motorMaster.motorX.stepBuf.consumerClear();
 	rob->motorMaster.motorY.stepBuf.consumerClear();
+	rob->motorMaster.moveBuf.consumerClear();
 	rob->motorMaster.resetCalc();
 	rob->resetPos();
 }
@@ -80,12 +87,13 @@ HOMING_StatusTypeDef home(Robot *rob) {
 
 	switch (phase) {
 	case 0:	//Vorbereiten
+		disableSensors();
 		phase = 1;
 		break;
 	case 1:	//Y abtasten (Rotation)
 		if (!rob->motorMaster.motorX.timerActiveFlag) {
 			Dist = xDist = yDist = 0;
-			enableEXTI();
+			enableSensors();
 			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED);
 			timeout = HAL_GetTick();
 			phase = 2;
@@ -94,8 +102,8 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	case 2:	//Y abgetastet (Rotation)
 		if (xFlag && yFlag) {
 			timeout = 0xffffffff;
-			stopMotors(rob);
-			disableEXTI();
+			//stopMotors(rob);
+			disableSensors();
 
 			//Distanzen an Radgrößen anpassen
 			adjustDistWithMotorRatio();
@@ -128,7 +136,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	case 3: //Y nullen
 		if (!rob->motorMaster.motorX.timerActiveFlag) {
 			Dist = xDist = yDist = 0;
-			enableEXTI();
+			enableSensors();
 			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED);
 			timeout = HAL_GetTick();
 			phase = 4;
@@ -138,7 +146,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 		if (xFlag || yFlag) {
 			timeout = 0xffffffff;
 			stopMotors(rob);
-			disableEXTI();
+			disableSensors();
 
 			rob->moveLin(HOMING_OFFSET_Y + 50, HOMING_SPEED);
 			phase = 5;
@@ -151,7 +159,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	case 6:	//X nullen
 		if (!rob->motorMaster.motorX.timerActiveFlag) {
 			Dist = xDist = yDist = 0;
-			enableEXTI();
+			enableSensors();
 			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED);
 			timeout = HAL_GetTick();
 			phase = 7;
@@ -161,7 +169,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 		if (xFlag || yFlag) {
 			timeout = 0xffffffff;
 			stopMotors(rob);
-			disableEXTI();
+			disableSensors();
 
 			rob->moveLin(HOMING_OFFSET_Y + 50, HOMING_SPEED);
 			phase = 8;

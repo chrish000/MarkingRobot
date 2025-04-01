@@ -13,7 +13,6 @@
  *
  ******************************************************************************
  */
-#include "main.h"
 #include "TMC2209.h"
 #include "utils.h"
 #include <cstring>

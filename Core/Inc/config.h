@@ -25,19 +25,19 @@
 #define STEPS_PER_MM 91.911//183.822
 #define STEPS_PER_DEG 409.937//819.873
 
-#define DEFAULT_SPEED 1200 //in mm/s
+#define DEFAULT_SPEED 1000 //in mm/s
 #define MAX_SPEED 1200//680
-#define DEFAULT_ACCEL 500
+#define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 3000
 
 
-#define RUN_CURRENT_DEFAULT 500
+#define RUN_CURRENT_DEFAULT 2000
 #define HOLD_CURRENT_DEFAULT 100
 
 //#define REVERSE_BOTH_MOTOR_DIRECTION
 #define Inverse_Motor_X_Dir false
 #define Inverse_Motor_Y_Dir false
-#define MOTOR_XY_RATIO 100.0f	//%
+#define MOTOR_XY_RATIO 100.3f	//%
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
 #define ACCEL_CURVE_TRAPEZOID

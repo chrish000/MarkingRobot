@@ -147,13 +147,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 		HAL_UART_Receive_DMA(robi.motorMaster.motorX.tmc.UART_address,
 				robi.motorMaster.motorX.tmc.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
-		robi.motorMaster.motorX.tmc.data_sent_flag = true;
+		robi.motorMaster.motorX.tmc.data_received_flag = true;
 	}
 	if (huart->Instance == robi.motorMaster.motorY.tmc.UART_address->Instance) {
 		HAL_UART_Receive_DMA(robi.motorMaster.motorY.tmc.UART_address,
 				robi.motorMaster.motorY.tmc.rxBufferRaw,
 				TMC2209::WRITE_READ_REPLY_DATAGRAM_SIZE);
-		robi.motorMaster.motorY.tmc.data_sent_flag = true;
+		robi.motorMaster.motorY.tmc.data_received_flag = true;
 	}
 }
 

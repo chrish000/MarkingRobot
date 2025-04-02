@@ -28,6 +28,7 @@ StepperMotor::StepperMotor(TIM_HandleTypeDef *TIM_Motor,
 				hardware_enable_pin), TIM_Motor(TIM_Motor), TIM_DMA_ARR(
 				TIM_DMA_ARR), TIM_DMA_BSRR(TIM_DMA_BSRR), stepPort(stepPort), stepPin(
 				stepPin), dirPort(dirPort), dirPin(dirPin) {
+
 }
 
 // Destruktor
@@ -35,14 +36,19 @@ StepperMotor::~StepperMotor() {
 	stopTimer();
 }
 
- uint32_t data[2] = { X_STEP_Pin, X_STEP_Pin << 16 };
 void StepperMotor::init() {
 	stepBuf.consumerClear();
 
+	StepCmdBuffer = { timARRDefault, 0 };
 	TIM_Motor->Instance->ARR = timARRDefault;
 	__HAL_TIM_ENABLE_DMA(TIM_Motor, TIM_DMA_CC1);
 	__HAL_TIM_ENABLE_DMA(TIM_Motor, TIM_DMA_CC2);
-	HAL_DMA_RegisterCallback(TIM_DMA_BSRR, HAL_DMA_XFER_CPLT_CB_ID, DMA_Callback);
+	HAL_DMA_RegisterCallback(TIM_DMA_BSRR, HAL_DMA_XFER_CPLT_CB_ID,
+			DMA_Callback);
+	HAL_DMA_Start(TIM_DMA_ARR, (uint32_t) &StepCmdBuffer.interval,
+			(uint32_t) &TIM_Motor->Instance->ARR, 1);
+	HAL_DMA_Start_IT(TIM_DMA_BSRR, (uint32_t) &StepCmdBuffer.gpioMask,
+			(uint32_t) &stepPort->BSRR, 2);
 }
 
 /**
@@ -52,12 +58,8 @@ void StepperMotor::init() {
  */
 void StepperMotor::startTimer() {
 	assert(TIM_Motor != nullptr && "Timer Handle darf nicht NULL sein!");
-	TIM_Motor->Instance->ARR = timARRDefault;
 	stepBuf.remove(&StepCmdBuffer);
-	HAL_DMA_Start(TIM_DMA_ARR, (uint32_t) &StepCmdBuffer.interval,
-			(uint32_t) &TIM_Motor->Instance->ARR, 1);
-	HAL_DMA_Start_IT(TIM_DMA_BSRR, (uint32_t) &StepCmdBuffer.gpioMask,
-			(uint32_t) &stepPort->BSRR, 2);
+	TIM_Motor->Instance->ARR = timARRDefault;
 	timerActiveFlag = true;
 	HAL_TIM_Base_Start(TIM_Motor);
 }
@@ -69,10 +71,11 @@ void StepperMotor::startTimer() {
  */
 void StepperMotor::stopTimer() {
 	assert(TIM_Motor != nullptr && "Timer Handle darf nicht NULL sein!");
+	HAL_TIM_Base_Stop(TIM_Motor);
 	TIM_Motor->Instance->ARR = timARRDefault;
 	timerActiveFlag = false;
 	printFlag = false;
-	HAL_TIM_Base_Stop(TIM_Motor);
+
 }
 
 /**

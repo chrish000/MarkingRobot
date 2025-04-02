@@ -15,7 +15,7 @@
 #define MAX_HOMING_DIST 200 //mm
 #define MAX_HOMING_TRY 3
 #define MAX_HOMING_TIMEOUT HAL_MAX_DELAY //ms
-#define HOMING_SPEED 10 //mm/s
+#define HOMING_SPEED 100 //mm/s
 #define HOMING_MAX_FAULT 1 //deg
 #define	SENSOR_DIST 600 //mm
 #define HOMING_OFFSET_X 200 //mm	(von Roboter Rahmen aussen hinten zu Duese)
@@ -53,8 +53,6 @@ void disableSensors() {
 	homingActive = false;
 	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(X_STOP_PORT, X_STOP_PIN, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(Y_STOP_PORT, Y_STOP_PIN, GPIO_PIN_RESET);
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
 }
@@ -64,7 +62,7 @@ void stopMotors(Robot *rob) {
 	rob->motorMaster.motorX.stepBuf.consumerClear();
 	rob->motorMaster.motorY.stepBuf.consumerClear();
 	rob->motorMaster.moveBuf.consumerClear();
-	rob->motorMaster.resetCalc();
+	//rob->motorMaster.resetCalc();
 	rob->resetPos();
 }
 
@@ -102,7 +100,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	case 2:	//Y abgetastet (Rotation)
 		if (xFlag && yFlag) {
 			timeout = 0xffffffff;
-			//stopMotors(rob);
+			stopMotors(rob);
 			disableSensors();
 
 			//Distanzen an Radgrößen anpassen

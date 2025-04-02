@@ -25,12 +25,12 @@
 class StepperMotor {
 public:
 	//Instruktor
-	StepperMotor(TIM_HandleTypeDef *TIM_Motor,
-			DMA_HandleTypeDef *TIM_DMA_ARR, DMA_HandleTypeDef *TIM_DMA_BSRR,
-			GPIO_TypeDef *stepPort, uint16_t stepPin, GPIO_TypeDef *dirPort,
-			uint16_t dirPin, UART_HandleTypeDef *TMC_UART_address,
-			CRC_HandleTypeDef *TMC_CRC_Handle, GPIO_TypeDef *hardware_enable_port,
-			uint16_t hardware_enable_pin);
+	StepperMotor(TIM_HandleTypeDef *TIM_Motor, DMA_HandleTypeDef *TIM_DMA_ARR,
+			DMA_HandleTypeDef *TIM_DMA_BSRR, GPIO_TypeDef *stepPort,
+			uint16_t stepPin, GPIO_TypeDef *dirPort, uint16_t dirPin,
+			UART_HandleTypeDef *TMC_UART_address,
+			CRC_HandleTypeDef *TMC_CRC_Handle,
+			GPIO_TypeDef *hardware_enable_port, uint16_t hardware_enable_pin);
 	//Destruktor
 	~StepperMotor();
 
@@ -47,12 +47,12 @@ public:
 	struct stepCmd {
 		uint32_t interval;	//Dauer in ns
 		uint32_t gpioMask;
-	}StepCmdBuffer;
+	} StepCmdBuffer;
 
 	const static size_t buffer_size_step = 1024;	//size = n-1 elements
-	static constexpr uint8_t timARRDefault = 9;
+	static constexpr uint8_t timARRDefault = 1000;
 
-    jnk0le::Ringbuffer<stepCmd, buffer_size_step, false, 32> stepBuf;
+	jnk0le::Ringbuffer<stepCmd, buffer_size_step, false, 32> stepBuf;
 
 	bool timerActiveFlag = 0;
 	bool stepFlag = 0;

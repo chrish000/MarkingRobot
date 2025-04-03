@@ -36,7 +36,7 @@
 //#define REVERSE_BOTH_MOTOR_DIRECTION
 #define Inverse_Motor_X_Dir false
 #define Inverse_Motor_Y_Dir false
-#define MOTOR_XY_RATIO 100.3f	//%
+#define MOTOR_XY_RATIO 100.06f	//%
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
 #define ACCEL_CURVE_TRAPEZOID

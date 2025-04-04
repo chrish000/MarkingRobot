@@ -17,9 +17,9 @@
 #define MAX_HOMING_TIMEOUT HAL_MAX_DELAY //ms
 #define HOMING_SPEED 100 //mm/s
 #define HOMING_MAX_FAULT 1 //deg
-#define	SENSOR_DIST 600 //mm
-#define HOMING_OFFSET_X 200 //mm	(von Roboter Rahmen aussen hinten zu Duese)
-#define HOMING_OFFSET_Y 350 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
+#define	SENSOR_DIST 460.5f //mm
+#define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
+#define HOMING_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
 
 #include "move.h"
 #include "parser.h"

@@ -237,27 +237,8 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
 	robi.init();
-	/*
-	 uint32_t data[2] = { X_STEP_Pin, X_STEP_Pin << 16 };
-	 robi.motorMaster.motorX.globalStepCmdBuffer.interval = 50;
-	 htim23.Instance->ARR = 10;
-	 __HAL_TIM_ENABLE_DMA(robi.motorMaster.motorX.TIM_Motor, TIM_DMA_CC1);
-	 __HAL_TIM_ENABLE_DMA(robi.motorMaster.motorX.TIM_Motor, TIM_DMA_CC2);
-	 //HAL_DMA_RegisterCallback(&hdma_tim23_ch2, HAL_DMA_XFER_CPLT_CB_ID, TransferComplete);
-
-	 HAL_DMA_Start(robi.motorMaster.motorX.TIM_DMA_ARR, (uint32_t) &robi.motorMaster.motorX.globalStepCmdBuffer.interval,
-	 (uint32_t) &robi.motorMaster.motorX.TIM_Motor->Instance->ARR, 1);
-	 HAL_DMA_Start_IT(robi.motorMaster.motorX.TIM_DMA_BSRR, (uint32_t) data,
-	 (uint32_t) &robi.motorMaster.motorX.dirPort->BSRR, 2);
-
-	 HAL_TIM_Base_Start(robi.motorMaster.motorX.TIM_Motor);
-	 */
 	robi.motorMaster.motorX.tmc.enable();
 	robi.motorMaster.motorY.tmc.enable();
-	/*
-	 TIM4->ARR = 99999;
-	 HAL_TIM_Base_Start_IT(&htim4);
-	 */
 	/* CLK Configuration */
 
 	/* GPIO Configuration */
@@ -266,11 +247,14 @@ int main(void) {
 
 	/* Code before infinite loop */
 	// ################# TESTLAUF ###############################
+	/*
 	const uint8_t posCnt = 4;
 	int16_t posStorage[10][2] = { { 1000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
 			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
 			{ 9000, 0 }, { 10000, 0 } };
 	uint8_t i = 0;
+	*/
+	robi.setPos(0, 1000, 1000);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

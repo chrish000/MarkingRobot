@@ -41,6 +41,7 @@ public:
 			float_t accel = DEFAULT_ACCEL, bool printing = false);
 	bool moveRot(float_t degrees, float_t speed = DEFAULT_SPEED, float_t accel =
 			DEFAULT_ACCEL);
+	bool moveToHome();
 	void resetPos();
 	void setPos(float_t newOrientation, float_t newX, float_t newY);
 

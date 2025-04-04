@@ -22,21 +22,21 @@
  *	###########################################################################
  */
 #define MICROSTEPS 128//256
-#define STEPS_PER_MM 91.911//183.822
-#define STEPS_PER_DEG 409.937//819.873
+#define STEPS_PER_MM 92.290 //TODO überprüfen
+#define STEPS_PER_DEG 409.937 //TODO überprüfen
 
 #define DEFAULT_SPEED 1000 //in mm/s
 #define MAX_SPEED 1200//680
-#define DEFAULT_ACCEL 1000
+#define DEFAULT_ACCEL 200
 #define MAX_ACCEL 3000
 
 #define RUN_CURRENT_DEFAULT 2000
-#define HOLD_CURRENT_DEFAULT 100
+#define HOLD_CURRENT_DEFAULT 500
 
 //#define REVERSE_BOTH_MOTOR_DIRECTION
 #define Inverse_Motor_X_Dir false
 #define Inverse_Motor_Y_Dir false
-#define MOTOR_XY_RATIO 100.06f	//%
+#define MOTOR_XY_RATIO 100.14f //% TODO überprüfen
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
 #define ACCEL_CURVE_TRAPEZOID

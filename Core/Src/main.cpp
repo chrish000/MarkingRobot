@@ -240,11 +240,16 @@ int main(void) {
 	/* Code before infinite loop */
 	// ################# TESTLAUF ###############################
 	const uint8_t posCnt = 1;
-	int16_t posStorage[10][2] = { { 9000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
-			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
-			{ 9000, 0 }, { 10000, 0 } };
+	int16_t posStorage[10][2] = { { 15000, 0 }, { 1000, 1000 }, { 0, 1000 }, {
+			0, 0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 }, { 9000,
+			0 }, { 10000, 0 } };
 	uint8_t i = 0;
-
+	//robi.motorMaster.motorX.tmc.disableAutomaticCurrentScaling();
+	//robi.motorMaster.motorX.tmc.disableAutomaticGradientAdaptation();
+	//robi.motorMaster.motorX.tmc.disableCoolStep();
+	//robi.motorMaster.motorX.tmc.disableStealthChop();
+	//robi.motorMaster.motorY.tmc.disableCoolStep();
+	//robi.motorMaster.motorY.tmc.disableStealthChop();
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

@@ -240,7 +240,7 @@ int main(void) {
 	/* Code before infinite loop */
 	// ################# TESTLAUF ###############################
 	const uint8_t posCnt = 1;
-	int16_t posStorage[10][2] = { { 15000, 0 }, { 1000, 1000 }, { 0, 1000 }, {
+	int16_t posStorage[10][2] = { { 30000, 0 }, { 1000, 1000 }, { 0, 1000 }, {
 			0, 0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 }, { 9000,
 			0 }, { 10000, 0 } };
 	uint8_t i = 0;
@@ -265,6 +265,8 @@ int main(void) {
 
 		if (robi.printhead.isActive() != printFlag) {
 			printFlag ? robi.printhead.start() : robi.printhead.stop();
+			//robi.motorMaster.motorX.tmc.disable();
+			//robi.motorMaster.motorY.tmc.disable();
 		}
 
 		/* USER CODE END WHILE */

@@ -22,7 +22,7 @@
  *	###########################################################################
  */
 #define MICROSTEPS 128//256
-#define STEPS_PER_MM 92.290 //TODO überprüfen
+#define STEPS_PER_MM 92.893 //TODO überprüfen
 #define STEPS_PER_DEG 409.937 //TODO überprüfen
 
 #define DEFAULT_SPEED 1000 //in mm/s
@@ -36,7 +36,7 @@
 //#define REVERSE_BOTH_MOTOR_DIRECTION
 #define Inverse_Motor_X_Dir false
 #define Inverse_Motor_Y_Dir false
-#define MOTOR_XY_RATIO 100.14f //% TODO überprüfen
+#define MOTOR_XY_RATIO 100.17f //% TODO überprüfen
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
 #define ACCEL_CURVE_TRAPEZOID

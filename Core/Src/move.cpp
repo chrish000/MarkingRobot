@@ -79,8 +79,13 @@ void Robot::init() {
  * @param newAccel Beschleunigung in mm/s^2
  * @retval None
  */
-bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
-		float_t newAccel, bool printing) {
+bool Robot::moveToPos(MoveParams param) {
+	float_t newX = param.x.value_or(posX);
+	float_t newY = param.y.value_or(posY);
+	float_t newSpeed = param.speed.value_or(speed);
+	float_t newAccel = param.accel.value_or(accel);
+	bool printing = (bool)param.printing.value_or(false);
+
 	if (!(newX == posX && newY == posY)) {
 		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
 		accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);

@@ -22,21 +22,33 @@
 #include "printhead.h"
 #include "pins.h"
 #include "config.h"
+#include "sd.h"
+#include "GCodeParser.h"
+#include <optional>
 
 class Robot {
 public:
 	Robot() :
 			motorMaster(pins), printhead(pins.TIM_Printhead,
-			TIM_PrintheadChannel) {
+			TIM_PrintheadChannel), parser(this) {
 	}
 
 	Pin pins;
 	MotorManager motorMaster;
 	Printhead printhead;
+	SD sd;
+	GCodeParser parser;
+
+	struct MoveParams {
+	    std::optional<float> x;
+	    std::optional<float> y;
+	    std::optional<float> speed;
+	    std::optional<float> accel;
+	    std::optional<float> printing;
+	};
 
 	void init();
-	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
-			float_t accel = DEFAULT_ACCEL, bool printing = false);
+	bool moveToPos(Robot::MoveParams);
 
 private:
 	float_t posX = 0;

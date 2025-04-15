@@ -22,7 +22,7 @@
 #include "pins.h"
 
 /* Defines -------------------------------------------------------------------*/
-#define F_TIM 275000000 //1MHz
+#define F_TIM 275000000 //275MHz
 #define V_MIN (STEPS_PER_MM * 0.5) //Mindestgeschwindigkeit in steps/s (= x.x mm/s), MUSS mindestens *0.2 sein!
 
 enum class Direction : bool {

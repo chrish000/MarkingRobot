@@ -235,45 +235,38 @@ int main(void) {
 	MX_TIM24_Init();
 	MX_TIM4_Init();
 	/* USER CODE BEGIN 2 */
-	/* Peripheral Configuration */
 	robi.init();
 	robi.motorMaster.motorX.tmc.enable();
 	robi.motorMaster.motorY.tmc.enable();
-	/* CLK Configuration */
 
-	/* GPIO Configuration */
-
-	/* UART Configuration */
-
-	/* Code before infinite loop */
-	// ################# TESTLAUF ###############################
-	/*
-	const uint8_t posCnt = 4;
-	int16_t posStorage[10][2] = { { 1000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
-			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
-			{ 9000, 0 }, { 10000, 0 } };
-	uint8_t i = 0;
-	*/
-	robi.setPos(0, 1000, 1000);
+	int i = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		/*
-		 while (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
-		 DEFAULT_SPEED, DEFAULT_ACCEL, true)) {
-		 i++;
-		 }
-
-		 if (robi.printhead.isActive() != printFlag) {
-		 printFlag ? robi.printhead.start() : robi.printhead.stop();
-		 }
-		 */
 
 		robi.motorMaster.calcInterval();
 
-		home(&robi);
+		switch (i) {
+		case 0:
+			if (home(&robi) == HOMING_FINISHED)
+				i++;
+			break;
+		case 1:
+			robi.moveLin(1000, DEFAULT_SPEED, DEFAULT_ACCEL);
+			i++;
+			break;
+		case 2:
+			if (movementFinished(&robi))
+				i++;
+			break;
+		case 3:
+			i++;
+			break;
+		default:
+			break;
+		}
 
 		/* USER CODE END WHILE */
 

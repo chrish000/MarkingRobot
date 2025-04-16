@@ -13,15 +13,17 @@
 #define INC_HOMING_H_
 
 #define MAX_HOMING_DIST 500 //mm
-#define MAX_HOMING_TRY 4
+#define MAX_HOMING_TRY 6
 #define MAX_HOMING_TIMEOUT 30000 //ms
-#define HOMING_SPEED 50 //mm/s
+#define HOMING_SPEED_PROBING 65 //mm/s
+#define HOMING_SPPED_MOVING 200 //mm/s
 #define HOMING_ACCEL DEFAULT_ACCEL //mm/s^2
-#define HOMING_MAX_FAULT 0.1 //deg
+#define HOMING_MAX_FAULT 0.06 //deg
 #define DIST_BETWEEN_PROBING 20 //mm
 #define	SENSOR_DIST 460.5f //mm
 #define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define HOMING_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
+//#define MOVE_TO_HOME_BEFORE_HOMING
 
 #include "move.h"
 #include "parser.h"
@@ -100,7 +102,9 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	switch (phase) {
 	case 0:	//Vorbereiten
 		disableSensors();
+#ifdef MOVE_TO_HOME_BEFORE_HOMING
 		rob->moveToHome();
+#endif
 		rob->moveRot(90, DEFAULT_SPEED, DEFAULT_ACCEL);
 		phase = 1;
 		break;
@@ -108,7 +112,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 		if (movementFinished(rob)) {
 			Dist = xDist = yDist = 0;
 			enableSensors();
-			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED, HOMING_ACCEL);
+			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED_PROBING, HOMING_ACCEL);
 			timeout = HAL_GetTick();
 			timeoutActive = true;
 			phase = 2;
@@ -130,11 +134,11 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			error = (error * 180) / M_PI;	//Rad zu Deg
 
 			//Fehler anpassen
-			rob->moveLin(errorDistance + DIST_BETWEEN_PROBING, HOMING_SPEED,
+			rob->moveLin(errorDistance + DIST_BETWEEN_PROBING, HOMING_SPEED_PROBING,
 			HOMING_ACCEL);
 			(xDist < yDist) ?
-					rob->moveRot(error, HOMING_SPEED, HOMING_ACCEL) :
-					rob->moveRot(-error, HOMING_SPEED, HOMING_ACCEL);
+					rob->moveRot(error, HOMING_SPEED_PROBING, HOMING_ACCEL) :
+					rob->moveRot(-error, HOMING_SPEED_PROBING, HOMING_ACCEL);
 
 			if (error > HOMING_MAX_FAULT) { //erneut Abtasten
 				counterTry++;
@@ -150,7 +154,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			timeoutActive = false;
 			Dist = xDist = yDist = 0;
 			enableSensors();
-			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED, HOMING_ACCEL);
+			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED_PROBING, HOMING_ACCEL);
 			timeout = HAL_GetTick();
 			timeoutActive = true;
 			phase = 4;
@@ -162,12 +166,12 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 30, HOMING_SPEED, HOMING_ACCEL);
+			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 70, HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 5;
 		}
 		break;
 	case 5: //X vorbereiten
-		rob->moveRot(-90, HOMING_SPEED);
+		rob->moveRot(-90, HOMING_SPPED_MOVING);
 		phase = 6;
 		break;
 	case 6:	//X nullen
@@ -175,7 +179,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			timeoutActive = false;
 			Dist = xDist = yDist = 0;
 			enableSensors();
-			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED, HOMING_ACCEL);
+			rob->moveLin(-MAX_HOMING_DIST, HOMING_SPEED_PROBING, HOMING_ACCEL);
 			timeout = HAL_GetTick();
 			timeoutActive = true;
 			phase = 7;
@@ -187,17 +191,16 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 30, HOMING_SPEED, HOMING_ACCEL);
+			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 70, HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 8;
 		}
 		break;
 	case 8:	//Position anpassen und beenden
 		rob->setPos(0, 0, 0);
 		phase = 9;
-		return HOMING_FINISHED;
 		break;
 	case 9:
-		//Do Nothing
+		phase = 0;
 		return HOMING_FINISHED;
 		break;
 	}

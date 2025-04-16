@@ -21,17 +21,17 @@
  *	BEWEGUNG
  *	###########################################################################
  */
-#define MICROSTEPS 128//256
-#define STEPS_PER_MM 92.893 //TODO überprüfen
-#define STEPS_PER_DEG 409.937 //TODO überprüfen
+#define MICROSTEPS 128
+#define STEPS_PER_MM 92.893
+#define STEPS_PER_DEG 412.071
 
 #define DEFAULT_SPEED 1000 //in mm/s
 #define MAX_SPEED 1200//680
 #define DEFAULT_ACCEL 200
 #define MAX_ACCEL 3000
 
-#define RUN_CURRENT_DEFAULT 500
-#define HOLD_CURRENT_DEFAULT 500
+#define RUN_CURRENT_DEFAULT 2000
+#define HOLD_CURRENT_DEFAULT 100
 
 //#define REVERSE_BOTH_MOTOR_DIRECTION
 #define Inverse_Motor_X_Dir false

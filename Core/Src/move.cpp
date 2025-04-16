@@ -92,7 +92,7 @@ bool Robot::moveToPos(MoveParams param) {
 		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
 		if (turn != 0) {
 			if (motorMaster.moveBuf.writeAvailable() >= 2) {
-				if (moveRot(turn, speed, accel) == false)
+				if (moveRot(turn, DEFAULT_SPEED, accel) == false)
 					return false;
 				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
 						printing) == false)

@@ -22,8 +22,8 @@
  *	###########################################################################
  */
 #define MICROSTEPS 128//256
-#define STEPS_PER_MM 92.893 //TODO überprüfen
-#define STEPS_PER_DEG 409.937 //TODO überprüfen
+#define STEPS_PER_MM 92.893
+#define STEPS_PER_DEG 412.071
 
 #define DEFAULT_SPEED 1000 //in mm/s
 #define MAX_SPEED 1200//680

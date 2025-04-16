@@ -178,17 +178,17 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 		cmd.stepDistance = steps;
 		if (Inverse_Motor_X_Dir)
 			cmd.directionX = (
-					!direction ? Direction::Reverse : Direction::Forward);
+					direction ? Direction::Reverse : Direction::Forward);
 		else
 			cmd.directionX = (
-					!direction ? Direction::Forward : Direction::Reverse);
+					direction ? Direction::Forward : Direction::Reverse);
 
 		if (Inverse_Motor_Y_Dir)
 			cmd.directionY = (
-					!direction ? Direction::Reverse : Direction::Forward);
+					direction ? Direction::Reverse : Direction::Forward);
 		else
 			cmd.directionY = (
-					!direction ? Direction::Forward : Direction::Reverse);
+					direction ? Direction::Forward : Direction::Reverse);
 		cmd.printigMove = false;
 
 		orientation += degrees;

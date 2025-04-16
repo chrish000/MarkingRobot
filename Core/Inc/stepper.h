@@ -52,7 +52,7 @@ public:
 	const static size_t buffer_size_step = 1024;	//size = n-1 elements
 	static constexpr uint16_t timARRDefault = 1000;
 
-	jnk0le::Ringbuffer<stepCmd, buffer_size_step, false, 32> stepBuf;
+	jnk0le::Ringbuffer<stepCmd, buffer_size_step, false, 64> stepBuf;
 
 	bool timerActiveFlag = 0;
 	bool stepFlag = 0;

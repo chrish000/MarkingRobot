@@ -248,13 +248,17 @@ int main(void) {
 
 		robi.motorMaster.calcInterval();
 
+		if (robi.printhead.isActive() != printFlag) {
+			printFlag ? robi.printhead.start() : robi.printhead.stop();
+		}
+
 		switch (i) {
 		case 0:
 			if (home(&robi) == HOMING_FINISHED)
 				i++;
 			break;
 		case 1:
-			robi.moveLin(1000, DEFAULT_SPEED, DEFAULT_ACCEL);
+			robi.moveLin(10000, DEFAULT_SPEED, DEFAULT_ACCEL, true);
 			i++;
 			break;
 		case 2:
@@ -262,6 +266,11 @@ int main(void) {
 				i++;
 			break;
 		case 3:
+			/*
+			robi.motorMaster.motorX.tmc.disable();
+			robi.motorMaster.motorY.tmc.disable();
+			robi.printhead.stop();
+			*/
 			i++;
 			break;
 		default:
@@ -818,7 +827,7 @@ static void MX_GPIO_Init(void) {
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ (PRESSURE_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);

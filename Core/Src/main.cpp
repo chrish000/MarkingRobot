@@ -241,6 +241,10 @@ int main(void) {
 
 		robi.motorMaster.calcInterval();
 
+		if (robi.printhead.isActive() != printFlag) {
+			printFlag ? robi.printhead.start() : robi.printhead.stop();
+		}
+
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

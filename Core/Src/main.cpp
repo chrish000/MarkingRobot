@@ -222,22 +222,20 @@ int main(void) {
 	robi.motorMaster.motorX.tmc.enable();
 	robi.motorMaster.motorY.tmc.enable();
 
-	HAL_Delay(1000);
+	HAL_Delay(750);
 	robi.sd.init();
 	robi.sd.openFile("test.gcode");
 
-	HAL_Delay(1000);
-
-	while (!robi.motorMaster.moveBuf.isFull()) {
-		if (!robi.sd.readNextLine())
-			break;
-		robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);
-	}
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		while (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
+			if (!robi.sd.readNextLine())
+				break;
+			robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);
+		}
 
 		robi.motorMaster.calcInterval();
 

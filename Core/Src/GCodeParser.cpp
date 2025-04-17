@@ -126,9 +126,11 @@ bool GCodeParser::transformAndPushParameter(Robot *rob) {
 			break;
 		}
 		case 5: {
+			/*
 			rob->motorMaster.motorX.tmc.disable();
 			rob->motorMaster.motorY.tmc.disable();
 			rob->printhead.stop();
+			*/
 			break;
 		}
 		}

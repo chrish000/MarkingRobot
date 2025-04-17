@@ -30,9 +30,10 @@ public:
 	size_t getBufferSize();
 	void clearBuffer();
 	FRESULT getResult();
-	bool getFilesInDir(DIR* dir,const TCHAR* dirPath, FILINFO* fNameStorage, uint8_t maxFiles);
-	void openFile(const TCHAR* path);
-	void openDIR(DIR* dir, const TCHAR* dirPath);
+	bool getFilesInDir(DIR *dir, const TCHAR *dirPath, FILINFO *fNameStorage,
+			uint8_t maxFiles);
+	void openFile(const TCHAR *path);
+	void openDIR(DIR *dir, const TCHAR *dirPath);
 	void closeCurrentDir();
 	void closeCurrentFile();
 	bool readNextLine();

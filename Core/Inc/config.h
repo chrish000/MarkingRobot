@@ -25,12 +25,12 @@
 #define STEPS_PER_MM 92.893
 #define STEPS_PER_DEG 412.071
 
-#define DEFAULT_SPEED 700 //in mm/s
+#define DEFAULT_SPEED 1000 //in mm/s
 #define MAX_SPEED 1200//680
-#define DEFAULT_ACCEL 200
+#define DEFAULT_ACCEL 2000
 #define MAX_ACCEL 3000
 
-#define RUN_CURRENT_DEFAULT 2000
+#define RUN_CURRENT_DEFAULT 500
 #define HOLD_CURRENT_DEFAULT 100
 
 //#define REVERSE_BOTH_MOTOR_DIRECTION
@@ -48,7 +48,7 @@
  *	MARKIEREINHEIT
  *	###########################################################################
  */
-#define PRINTHEAD_PERIOD 1000 //ms
-#define PRINTHEAD_DUTY_CYCLE 15 //%
+#define PRINTHEAD_PERIOD 300 //ms
+#define PRINTHEAD_DUTY_CYCLE 50 //%
 
 #endif /* CONFIG_H */

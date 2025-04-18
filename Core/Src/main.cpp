@@ -37,6 +37,8 @@
 #include "printhead.h"
 #include "move.h"
 #include "pins.h"
+#include "Buzzer/buzzer.h"
+#include "Buzzer/buzzer_examples.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +62,7 @@ CRC_HandleTypeDef hcrc;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim23;
 TIM_HandleTypeDef htim24;
 DMA_HandleTypeDef hdma_tim23_ch1;
@@ -79,6 +82,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* Peripherie */
 ERROR_HandleCode ErrorCode = NONE;
 Robot robi;
+Buzzer_HandleTypeDef hbuzzer;
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -97,6 +101,7 @@ static void MX_USART2_UART_Init(void);
 static void MX_CRC_Init(void);
 static void MX_TIM23_Init(void);
 static void MX_TIM24_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -170,6 +175,12 @@ void DMA_Callback(DMA_HandleTypeDef *hdma) {
 	}
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM4) {
+		HAL_GPIO_TogglePin(BUZZER_GPIO_Port, BUZZER_Pin);
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -211,26 +222,28 @@ int main(void) {
 	MX_CRC_Init();
 	MX_TIM23_Init();
 	MX_TIM24_Init();
+	MX_TIM4_Init();
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
 	robi.init();
-	/*
-	 uint32_t data[2] = { X_STEP_Pin, X_STEP_Pin << 16 };
-	 robi.motorMaster.motorX.globalStepCmdBuffer.interval = 50;
-	 htim23.Instance->ARR = 10;
-	 __HAL_TIM_ENABLE_DMA(robi.motorMaster.motorX.TIM_Motor, TIM_DMA_CC1);
-	 __HAL_TIM_ENABLE_DMA(robi.motorMaster.motorX.TIM_Motor, TIM_DMA_CC2);
-	 //HAL_DMA_RegisterCallback(&hdma_tim23_ch2, HAL_DMA_XFER_CPLT_CB_ID, TransferComplete);
 
-	 HAL_DMA_Start(robi.motorMaster.motorX.TIM_DMA_ARR, (uint32_t) &robi.motorMaster.motorX.globalStepCmdBuffer.interval,
-	 (uint32_t) &robi.motorMaster.motorX.TIM_Motor->Instance->ARR, 1);
-	 HAL_DMA_Start_IT(robi.motorMaster.motorX.TIM_DMA_BSRR, (uint32_t) data,
-	 (uint32_t) &robi.motorMaster.motorX.dirPort->BSRR, 2);
-
-	 HAL_TIM_Base_Start(robi.motorMaster.motorX.TIM_Motor);
-	 */
 	robi.motorMaster.motorX.tmc.enable();
 	robi.motorMaster.motorY.tmc.enable();
+
+	Buzzer_InitTypeDef buzzerConfig;
+	//buzzerConfig.channel = TIM_CHANNEL_3;
+	buzzerConfig.timer = &htim4;
+	buzzerConfig.timerClockFreqHz = HAL_RCC_GetPCLK2Freq(); // NOTE: this should be freq of timer, not frequency of peripheral clock
+	Buzzer_Init(&hbuzzer, &buzzerConfig);
+	Buzzer_Start(&hbuzzer);
+
+	const size_t songSize = sizeof(buzzer_mario_theme) / sizeof(buzzer_mario_theme[0]);
+	for (size_t i = 0; i < songSize; i++) {
+		Buzzer_Note(&hbuzzer, buzzer_mario_theme[i].pitch);
+		HAL_Delay(buzzer_mario_theme[i].duration);
+	}
+	Buzzer_Note(&hbuzzer, 0);
+
 	/* CLK Configuration */
 
 	/* GPIO Configuration */
@@ -451,6 +464,48 @@ static void MX_TIM3_Init(void) {
 
 	/* USER CODE END TIM3_Init 2 */
 	HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
+ * @brief TIM4 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM4_Init(void) {
+
+	/* USER CODE BEGIN TIM4_Init 0 */
+
+	/* USER CODE END TIM4_Init 0 */
+
+	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
+	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+
+	/* USER CODE BEGIN TIM4_Init 1 */
+
+	/* USER CODE END TIM4_Init 1 */
+	htim4.Instance = TIM4;
+	htim4.Init.Prescaler = 275 - 1;
+	htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim4.Init.Period = 0xffff;
+	htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+	if (HAL_TIM_Base_Init(&htim4) != HAL_OK) {
+		Error_Handler();
+	}
+	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK) {
+		Error_Handler();
+	}
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN TIM4_Init 2 */
+
+	/* USER CODE END TIM4_Init 2 */
 
 }
 
@@ -718,6 +773,9 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_WritePin(GPIOE, Z_STEP_Pin | Z_DIR_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+
+	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOD, X_DIR_Pin | X_STEP_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
@@ -747,6 +805,13 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : BUZZER_Pin */
+	GPIO_InitStruct.Pin = BUZZER_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : X_DIR_Pin X_STEP_Pin X_EN_Pin */
 	GPIO_InitStruct.Pin = X_DIR_Pin | X_STEP_Pin | X_EN_Pin;

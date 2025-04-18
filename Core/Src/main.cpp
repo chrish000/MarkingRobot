@@ -267,10 +267,10 @@ int main(void) {
 			break;
 		case 3:
 			/*
-			robi.motorMaster.motorX.tmc.disable();
-			robi.motorMaster.motorY.tmc.disable();
-			robi.printhead.stop();
-			*/
+			 robi.motorMaster.motorX.tmc.disable();
+			 robi.motorMaster.motorY.tmc.disable();
+			 robi.printhead.stop();
+			 */
 			i++;
 			break;
 		default:
@@ -530,7 +530,7 @@ static void MX_TIM23_Init(void) {
 
 	/* USER CODE END TIM23_Init 1 */
 	htim23.Instance = TIM23;
-	htim23.Init.Prescaler = 275 - 1;
+	htim23.Init.Prescaler = 0;
 	htim23.Init.CounterMode = TIM_COUNTERMODE_UP;
 	htim23.Init.Period = 1;
 	htim23.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -588,7 +588,7 @@ static void MX_TIM24_Init(void) {
 
 	/* USER CODE END TIM24_Init 1 */
 	htim24.Instance = TIM24;
-	htim24.Init.Prescaler = 275 - 1;
+	htim24.Init.Prescaler = 0;
 	htim24.Init.CounterMode = TIM_COUNTERMODE_UP;
 	htim24.Init.Period = 1;
 	htim24.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -786,17 +786,23 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(Z_EN_GPIO_Port, Z_EN_Pin, GPIO_PIN_SET);
 
-	/*Configure GPIO pins : Z_STEP_Pin Z_DIR_Pin Z_EN_Pin */
-	GPIO_InitStruct.Pin = Z_STEP_Pin | Z_DIR_Pin | Z_EN_Pin;
+	/*Configure GPIO pins : Z_STEP_Pin Z_DIR_Pin */
+	GPIO_InitStruct.Pin = Z_STEP_Pin | Z_DIR_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : PWRDET_Pin Z_STOP_Pin X_STOP_Pin */
-	GPIO_InitStruct.Pin = PWRDET_Pin | Z_STOP_Pin | X_STOP_Pin;
+	/*Configure GPIO pin : PWRDET_Pin */
+	GPIO_InitStruct.Pin = PWRDET_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(PWRDET_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pins : Z_STOP_Pin X_STOP_Pin */
+	GPIO_InitStruct.Pin = Z_STOP_Pin | X_STOP_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : PRESSURE_Pin */
@@ -805,12 +811,19 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(PRESSURE_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : X_DIR_Pin X_STEP_Pin X_EN_Pin */
-	GPIO_InitStruct.Pin = X_DIR_Pin | X_STEP_Pin | X_EN_Pin;
+	/*Configure GPIO pins : X_DIR_Pin X_STEP_Pin */
+	GPIO_InitStruct.Pin = X_DIR_Pin | X_STEP_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : X_EN_Pin */
+	GPIO_InitStruct.Pin = X_EN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : FAN2_Pin FAN1_Pin FAN0_Pin */
 	GPIO_InitStruct.Pin = FAN2_Pin | FAN1_Pin | FAN0_Pin;
@@ -818,6 +831,13 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : Z_EN_Pin */
+	GPIO_InitStruct.Pin = Z_EN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 1, 0);
@@ -827,7 +847,7 @@ static void MX_GPIO_Init(void) {
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ (PRESSURE_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);

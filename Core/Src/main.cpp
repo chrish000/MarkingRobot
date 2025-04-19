@@ -231,16 +231,40 @@ int main(void) {
 	robi.motorMaster.motorY.tmc.enable();
 
 	Buzzer_InitTypeDef buzzerConfig;
-	//buzzerConfig.channel = TIM_CHANNEL_3;
 	buzzerConfig.timer = &htim4;
 	buzzerConfig.timerClockFreqHz = HAL_RCC_GetPCLK2Freq(); // NOTE: this should be freq of timer, not frequency of peripheral clock
 	Buzzer_Init(&hbuzzer, &buzzerConfig);
 	Buzzer_Start(&hbuzzer);
 
-	const size_t songSize = sizeof(buzzer_mario_theme) / sizeof(buzzer_mario_theme[0]);
-	for (size_t i = 0; i < songSize; i++) {
-		Buzzer_Note(&hbuzzer, buzzer_mario_theme[i].pitch);
-		HAL_Delay(buzzer_mario_theme[i].duration);
+	const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
+	for (int j = 0; j < 5; j++) {
+		for (size_t i = 0; i < songSize; i++) {
+			Buzzer_Note(&hbuzzer, error_sound[i].pitch);
+			HAL_Delay(60000 / BPM * 4 / error_sound[i].duration);
+		}
+	}
+
+	const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
+	for (int j = 0; j < 5; j++) {
+		for (size_t i = 0; i < songSize2; i++) {
+			Buzzer_Note(&hbuzzer, battery_empty[i].pitch);
+			HAL_Delay(60000 / BPM * 4 / battery_empty[i].duration);
+		}
+	}
+
+	const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
+	for (int j = 0; j < 5; j++) {
+		for (size_t i = 0; i < songSize3; i++) {
+			Buzzer_Note(&hbuzzer, air_empty[i].pitch);
+			HAL_Delay(60000 / BPM * 4 / air_empty[i].duration);
+		}
+	}
+
+	const size_t songSize4 = sizeof(mario_level_complete)
+			/ sizeof(mario_level_complete[0]);
+	for (size_t i = 0; i < songSize4; i++) {
+		Buzzer_Note(&hbuzzer, mario_level_complete[i].pitch);
+		HAL_Delay(60000 / 145 * 4 / mario_level_complete[i].duration);
 	}
 	Buzzer_Note(&hbuzzer, 0);
 

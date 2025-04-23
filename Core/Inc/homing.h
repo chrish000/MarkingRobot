@@ -13,12 +13,12 @@
 #define INC_HOMING_H_
 
 #define MAX_HOMING_DIST 500 //mm
-#define MAX_HOMING_TRY 6
+#define MAX_HOMING_TRY 10
 #define MAX_HOMING_TIMEOUT 30000 //ms
-#define HOMING_SPEED_PROBING 65 //mm/s
+#define HOMING_SPEED_PROBING 40 //mm/s
 #define HOMING_SPPED_MOVING 200 //mm/s
-#define HOMING_ACCEL DEFAULT_ACCEL //mm/s^2
-#define HOMING_MAX_FAULT 0.06 //deg
+#define HOMING_ACCEL 50 //mm/s^2
+#define HOMING_MAX_FAULT 0.01 //deg
 #define DIST_BETWEEN_PROBING 20 //mm
 #define	SENSOR_DIST 460.5f //mm
 #define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)

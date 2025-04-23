@@ -258,7 +258,7 @@ int main(void) {
 				i++;
 			break;
 		case 1:
-			robi.moveLin(10000, DEFAULT_SPEED, DEFAULT_ACCEL, true);
+			robi.moveLin(15000, DEFAULT_SPEED, DEFAULT_ACCEL, true);
 			i++;
 			break;
 		case 2:

@@ -23,27 +23,39 @@
 #include "pins.h"
 #include "config.h"
 
-class Robot {
+#include <array>
+
+class Robot
+{
 public:
-	Robot() :
-			motorMaster(pins), printhead(pins.TIM_Printhead,
-			TIM_PrintheadChannel) {
+	Robot() : motorMaster(pins), printhead(pins.TIM_Printhead,
+										   TIM_PrintheadChannel),
+			  ADC_Handle(pins.ADC_Handle), ADC_TIM(pins.ADC_TIM)
+	{
 	}
 
 	Pin pins;
 	MotorManager motorMaster;
 	Printhead printhead;
 
+	uint16_t ADC_BatteryVoltage = 0;
+	float_t batteryVoltage = 0;
+	bool lowAirPressure = false;
+	bool batteryAlarm = false;
+
 	void init();
 	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
-			float_t accel = DEFAULT_ACCEL, bool printing = false);
+				   float_t accel = DEFAULT_ACCEL, bool printing = false);
 
 private:
+	ADC_HandleTypeDef *ADC_Handle;
+	TIM_HandleTypeDef *ADC_TIM;
+
 	float_t posX = 0;
 	float_t posY = 0;
 	float_t speed = DEFAULT_SPEED;
 	float_t accel = DEFAULT_ACCEL;
-	float_t orientation = 0; //0°-360°
+	float_t orientation = 0; // 0°-360°
 
 	bool moveLin(float_t distance, float_t speed, float_t accel, bool printing);
 	bool moveRot(float_t degrees, float_t speed, float_t accel);

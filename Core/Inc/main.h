@@ -20,58 +20,64 @@
 #define __MAIN_H
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32h7xx_hal.h"
 
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+	/* Private includes ----------------------------------------------------------*/
+	/* USER CODE BEGIN Includes */
 
-/* USER CODE END Includes */
+	/* USER CODE END Includes */
 
-/* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
-extern CRC_HandleTypeDef hcrc;
+	/* Exported types ------------------------------------------------------------*/
+	/* USER CODE BEGIN ET */
+	extern ADC_HandleTypeDef hadc1;
+	extern CRC_HandleTypeDef hcrc;
 
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim23;
-extern TIM_HandleTypeDef htim24;
-extern DMA_HandleTypeDef hdma_tim23_ch1;
-extern DMA_HandleTypeDef hdma_tim23_ch2;
-extern DMA_HandleTypeDef hdma_tim24_ch1;
-extern DMA_HandleTypeDef hdma_tim24_ch2;
+	extern TIM_HandleTypeDef htim2;
+	extern TIM_HandleTypeDef htim3;
+	extern TIM_HandleTypeDef htim23;
+	extern TIM_HandleTypeDef htim24;
+	extern DMA_HandleTypeDef hdma_tim23_ch1;
+	extern DMA_HandleTypeDef hdma_tim23_ch2;
+	extern DMA_HandleTypeDef hdma_tim24_ch1;
+	extern DMA_HandleTypeDef hdma_tim24_ch2;
 
-extern UART_HandleTypeDef huart8;
-extern UART_HandleTypeDef huart2;
+	extern UART_HandleTypeDef huart8;
+	extern UART_HandleTypeDef huart2;
+	extern TIM_HandleTypeDef htim8;
 
-typedef enum {
-	NONE = 0x00, MOVE_BUF = 0x10, STEP_BUF = 0x11
-} ERROR_HandleCode;
-extern ERROR_HandleCode ErrorCode;
-extern uint8_t printFlag;
+	typedef enum
+	{
+		NONE = 0x00,
+		LOW_VOLTAGE = 0x01,
+		MOVE_BUF = 0x10,
+		STEP_BUF = 0x11
+	} ERROR_HandleCode;
+	extern ERROR_HandleCode ErrorCode;
+	extern uint8_t printFlag;
 
-/* USER CODE END ET */
+	/* USER CODE END ET */
 
-/* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
+	/* Exported constants --------------------------------------------------------*/
+	/* USER CODE BEGIN EC */
+	/* USER CODE END EC */
 
-/* USER CODE END EC */
+	/* Exported macro ------------------------------------------------------------*/
+	/* USER CODE BEGIN EM */
 
-/* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
+	/* USER CODE END EM */
 
-/* USER CODE END EM */
+	void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+	/* Exported functions prototypes ---------------------------------------------*/
+	void Error_Handler(void);
 
-/* Exported functions prototypes ---------------------------------------------*/
-void Error_Handler(void);
-
-/* USER CODE BEGIN EFP */
-void DMA_Callback(DMA_HandleTypeDef *hdma);
+	/* USER CODE BEGIN EFP */
+	void DMA_Callback(DMA_HandleTypeDef *hdma);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -91,6 +97,11 @@ void DMA_Callback(DMA_HandleTypeDef *hdma);
 #define E0DET_Pin GPIO_PIN_2
 #define E0DET_GPIO_Port GPIOC
 #define E0DET_EXTI_IRQn EXTI2_IRQn
+#define PRESSURE_Pin GPIO_PIN_2
+#define PRESSURE_GPIO_Port GPIOC
+#define PRESSURE_EXTI_IRQn EXTI2_IRQn
+#define BAT_VOLTAGE_Pin GPIO_PIN_0
+#define BAT_VOLTAGE_GPIO_Port GPIOA
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4
@@ -114,9 +125,9 @@ void DMA_Callback(DMA_HandleTypeDef *hdma);
 #define Z_UART_Pin GPIO_PIN_1
 #define Z_UART_GPIO_Port GPIOE
 
-/* USER CODE BEGIN Private defines */
+	/* USER CODE BEGIN Private defines */
 
-/* USER CODE END Private defines */
+	/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }

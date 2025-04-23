@@ -19,8 +19,9 @@
 #include "main.h"
 #include "config.h"
 
-struct Pin {
-//X
+struct Pin
+{
+// X
 #define X_STEP_PORT X_STEP_GPIO_Port
 #define X_STEP_PIN X_STEP_Pin
 #define X_DIR_PORT X_DIR_GPIO_Port
@@ -28,11 +29,11 @@ struct Pin {
 #define X_EN_PORT X_EN_GPIO_Port
 #define X_EN_PIN X_EN_Pin
 	TIM_HandleTypeDef *TIM_Motor_X = &htim23;
-	DMA_HandleTypeDef *TIM_DMA_ARR_X= &hdma_tim23_ch1;
-	DMA_HandleTypeDef *TIM_DMA_BSRR_X= &hdma_tim23_ch2;
+	DMA_HandleTypeDef *TIM_DMA_ARR_X = &hdma_tim23_ch1;
+	DMA_HandleTypeDef *TIM_DMA_BSRR_X = &hdma_tim23_ch2;
 	UART_HandleTypeDef *TMC_UART_address_X = &huart2;
 	CRC_HandleTypeDef *CRC_Handle_X = &hcrc;
-//Y
+// Y
 #define Y_STEP_PORT Z_STEP_GPIO_Port
 #define Y_STEP_PIN Z_STEP_Pin
 #define Y_DIR_PORT Z_DIR_GPIO_Port
@@ -40,23 +41,31 @@ struct Pin {
 #define Y_EN_PORT Z_EN_GPIO_Port
 #define Y_EN_PIN Z_EN_Pin
 	TIM_HandleTypeDef *TIM_Motor_Y = &htim24;
-	DMA_HandleTypeDef *TIM_DMA_ARR_Y= &hdma_tim24_ch1;
-	DMA_HandleTypeDef *TIM_DMA_BSRR_Y= &hdma_tim24_ch2;
+	DMA_HandleTypeDef *TIM_DMA_ARR_Y = &hdma_tim24_ch1;
+	DMA_HandleTypeDef *TIM_DMA_BSRR_Y = &hdma_tim24_ch2;
 	UART_HandleTypeDef *TMC_UART_address_Y = &huart8;
 	CRC_HandleTypeDef *CRC_Handle_Y = &hcrc;
-//PRINTHEAD
+	// PRINTHEAD
 	TIM_HandleTypeDef *TIM_Printhead = &htim3;
 #define TIM_PrintheadChannel TIM_CHANNEL_1
-//FAN
+// FAN
 #define FAN0_PORT FAN0_GPIO_Port
 #define FAN0_PIN FAN0_Pin
 #define FAN1_PORT FAN1_GPIO_Port
 #define FAN1_PIN FAN1_Pin
 #define FAN2_PORT FAN2_GPIO_Port
 #define FAN2_PIN FAN1_Pin
-//HE0
+	// HE0
 	TIM_HandleTypeDef *TIM_HE0 = &htim2;
 #define TIM_HE0Channel TIM_CHANNEL_2
+	// BATTERY
+	ADC_HandleTypeDef *ADC_Handle = &hadc1;
+	TIM_HandleTypeDef *ADC_TIM = &htim8;
+#define BATTERY_ALARM_PORT PWRDET_GPIO_Port
+#define BATTERY_ALARM_PIN PWRDET_Pin
+// PRESSURE
+#define LOW_PRESSURE_PORT PRESSURE_GPIO_Port
+#define LOW_PRESSURE_PIN PRESSURE_Pin
 };
 
 #endif /* INC_PINS_H_ */

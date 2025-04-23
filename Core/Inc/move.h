@@ -25,13 +25,12 @@
 
 #include <array>
 
-class Robot
-{
+class Robot {
 public:
-	Robot() : motorMaster(pins), printhead(pins.TIM_Printhead,
-										   TIM_PrintheadChannel),
-			  ADC_Handle(pins.ADC_Handle), ADC_TIM(pins.ADC_TIM)
-	{
+	Robot() :
+			motorMaster(pins), printhead(pins.TIM_Printhead,
+			TIM_PrintheadChannel), ADC_Handle(pins.ADC_Handle), ADC_TIM(
+					pins.ADC_TIM) {
 	}
 
 	Pin pins;
@@ -45,7 +44,7 @@ public:
 
 	void init();
 	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
-				   float_t accel = DEFAULT_ACCEL, bool printing = false);
+			float_t accel = DEFAULT_ACCEL, bool printing = false);
 
 private:
 	ADC_HandleTypeDef *ADC_Handle;

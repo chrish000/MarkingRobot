@@ -50,7 +50,7 @@ public:
 	}StepCmdBuffer;
 
 	const static size_t buffer_size_step = 1024;	//size = n-1 elements
-	static constexpr uint8_t timARRDefault = 9;
+	static constexpr uint32_t timARRDefault = 275000;
 
     jnk0le::Ringbuffer<stepCmd, buffer_size_step, false, 32> stepBuf;
 

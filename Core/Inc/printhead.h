@@ -21,6 +21,10 @@
 #include <limits>
 #include <algorithm>
 
+#define CLEAN_PULSETIME 300 //ms
+#define CLEAN_PULSEWIDTH 80 //%
+#define CLEAN_TOTAL_TIME 10 //s
+
 class Printhead {
 public:
 	Printhead(TIM_HandleTypeDef *htim, uint32_t timChannel) :
@@ -58,6 +62,12 @@ public:
 	void init() {
 		stop();
 		setParam();
+	}
+	void clean() {
+		setParam(CLEAN_PULSETIME, CLEAN_PULSEWIDTH);
+		start();
+		HAL_Delay(CLEAN_TOTAL_TIME * 1000);
+		stop();
 	}
 
 private:

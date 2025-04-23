@@ -21,12 +21,13 @@
  *	BEWEGUNG
  *	###########################################################################
  */
-#define MICROSTEPS 128//256
-#define STEPS_PER_MM 91.911//183.822
-#define STEPS_PER_DEG 409.937//819.873
+#define MICROSTEPS 128
+#define STEPS_PER_MM 92.847
+#define MM_PER_STEP (1.0/STEPS_PER_MM)
+#define STEPS_PER_DEG 413.49
 
 #define DEFAULT_SPEED 1200 //in mm/s
-#define MAX_SPEED 1200//680
+#define MAX_SPEED 1200
 #define DEFAULT_ACCEL 500
 #define MAX_ACCEL 3000
 
@@ -37,7 +38,7 @@
 //#define REVERSE_BOTH_MOTOR_DIRECTION
 #define Inverse_Motor_X_Dir false
 #define Inverse_Motor_Y_Dir false
-#define MOTOR_XY_RATIO 100.0f	//%
+#define MOTOR_XY_RATIO 100.14f	//% (<100 -> mehr links; >100 -> mehr rechts)
 
 //Beschleunigungskurve: {Trapezoid; Bezier}
 #define ACCEL_CURVE_TRAPEZOID
@@ -49,7 +50,7 @@
  *	MARKIEREINHEIT
  *	###########################################################################
  */
-#define PRINTHEAD_PERIOD 2000 //ms
-#define PRINTHEAD_DUTY_CYCLE 5 //%
+#define PRINTHEAD_PERIOD 500 //ms
+#define PRINTHEAD_DUTY_CYCLE 10 //%
 
 #endif /* CONFIG_H */

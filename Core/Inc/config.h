@@ -22,9 +22,9 @@
  *	###########################################################################
  */
 #define MICROSTEPS 128
-#define STEPS_PER_MM 92.893
+#define STEPS_PER_MM 92.847
 #define MM_PER_STEP (1.0/STEPS_PER_MM)
-#define STEPS_PER_DEG 412.071
+#define STEPS_PER_DEG 413.49
 
 #define DEFAULT_SPEED 600 //in mm/s
 #define MAX_SPEED 1200//680

@@ -258,7 +258,7 @@ int main(void) {
 				i++;
 			break;
 		case 1:
-			robi.moveLin(15000, DEFAULT_SPEED, DEFAULT_ACCEL, true);
+			robi.moveRot(3600);
 			i++;
 			break;
 		case 2:
@@ -266,12 +266,13 @@ int main(void) {
 				i++;
 			break;
 		case 3:
+			home(&robi);
 			/*
 			 robi.motorMaster.motorX.tmc.disable();
 			 robi.motorMaster.motorY.tmc.disable();
 			 robi.printhead.stop();
 			 */
-			i++;
+			//i++;
 			break;
 		default:
 			break;

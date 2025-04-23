@@ -504,7 +504,7 @@ static void MX_TIM23_Init(void) {
 	htim23.Instance = TIM23;
 	htim23.Init.Prescaler = 0;
 	htim23.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim23.Init.Period = 1;
+	htim23.Init.Period = 0xffffffff;
 	htim23.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim23.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 	if (HAL_TIM_Base_Init(&htim23) != HAL_OK) {
@@ -562,7 +562,7 @@ static void MX_TIM24_Init(void) {
 	htim24.Instance = TIM24;
 	htim24.Init.Prescaler = 0;
 	htim24.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim24.Init.Period = 1;
+	htim24.Init.Period = 0xffffffff;
 	htim24.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim24.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 	if (HAL_TIM_Base_Init(&htim24) != HAL_OK) {

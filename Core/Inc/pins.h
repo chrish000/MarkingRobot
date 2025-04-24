@@ -73,7 +73,7 @@ struct Pin {
 //HE0
 	TIM_HandleTypeDef *TIM_HE0 = &htim2;
 #define TIM_HE0Channel TIM_CHANNEL_2
-	
+
 // BATTERY
 	ADC_HandleTypeDef *ADC_Handle = &hadc1;
 	TIM_HandleTypeDef *ADC_TIM = &htim8;

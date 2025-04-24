@@ -33,31 +33,27 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-	extern ADC_HandleTypeDef hadc1;
-	extern CRC_HandleTypeDef hcrc;
+extern ADC_HandleTypeDef hadc1;
+extern CRC_HandleTypeDef hcrc;
 
-	extern TIM_HandleTypeDef htim2;
-	extern TIM_HandleTypeDef htim3;
-	extern TIM_HandleTypeDef htim23;
-	extern TIM_HandleTypeDef htim24;
-	extern DMA_HandleTypeDef hdma_tim23_ch1;
-	extern DMA_HandleTypeDef hdma_tim23_ch2;
-	extern DMA_HandleTypeDef hdma_tim24_ch1;
-	extern DMA_HandleTypeDef hdma_tim24_ch2;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim23;
+extern TIM_HandleTypeDef htim24;
+extern DMA_HandleTypeDef hdma_tim23_ch1;
+extern DMA_HandleTypeDef hdma_tim23_ch2;
+extern DMA_HandleTypeDef hdma_tim24_ch1;
+extern DMA_HandleTypeDef hdma_tim24_ch2;
 
-	extern UART_HandleTypeDef huart8;
-	extern UART_HandleTypeDef huart2;
-	extern TIM_HandleTypeDef htim8;
+extern UART_HandleTypeDef huart8;
+extern UART_HandleTypeDef huart2;
+extern TIM_HandleTypeDef htim8;
 
-	typedef enum
-	{
-		NONE = 0x00,
-		LOW_VOLTAGE = 0x01,
-		MOVE_BUF = 0x10,
-		STEP_BUF = 0x11
-	} ERROR_HandleCode;
-	extern ERROR_HandleCode ErrorCode;
-	extern uint8_t printFlag;
+typedef enum {
+	NONE = 0x00, LOW_VOLTAGE = 0x01, MOVE_BUF = 0x10, STEP_BUF = 0x11
+} ERROR_HandleCode;
+extern ERROR_HandleCode ErrorCode;
+extern uint8_t printFlag;
 
 /* USER CODE END ET */
 

@@ -24,11 +24,10 @@
  * @param  None
  * @retval None
  */
-void TMC2209::setup()
-{
+void TMC2209::setup() {
 	HAL_HalfDuplex_EnableReceiver(UART_address);
 	HAL_UART_Receive_DMA(UART_address, rxBufferRaw,
-						 WRITE_READ_REPLY_DATAGRAM_SIZE);
+			WRITE_READ_REPLY_DATAGRAM_SIZE);
 	initialize();
 }
 
@@ -39,10 +38,9 @@ void TMC2209::setup()
  * @param  None
  * @retval None
  */
-void TMC2209::enable()
-{
+void TMC2209::enable() {
 	HAL_GPIO_WritePin(hardware_enable_port, hardware_enable_pin,
-					  GPIO_PIN_RESET); // Treiber aktivieren
+			GPIO_PIN_RESET); // Treiber aktivieren
 	chopper_config_.toff = toff_;
 	writeStoredChopperConfig();
 }
@@ -52,8 +50,7 @@ void TMC2209::enable()
  * @param  None
  * @retval None
  */
-void TMC2209::disable()
-{
+void TMC2209::disable() {
 
 	HAL_GPIO_WritePin(hardware_enable_port, hardware_enable_pin, GPIO_PIN_SET); // Treiber deaktivieren
 	chopper_config_.toff = TOFF_DISABLE;
@@ -65,10 +62,8 @@ void TMC2209::disable()
  * @param  microsteps_per_step: Desired microstep resolution. (1, 2, 4, 8...256)
  * @retval None
  */
-void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step)
-{
-	switch (microsteps_per_step)
-	{
+void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step) {
+	switch (microsteps_per_step) {
 	case 1:
 		chopper_config_.mres = MRES_001;
 		break;
@@ -106,13 +101,12 @@ void TMC2209::setMicrostepsPerStep(uint16_t microsteps_per_step)
  * @retval None
  */
 
-void TMC2209::setRunCurrent(uint16_t runCurrent)
-{
+void TMC2209::setRunCurrent(uint16_t runCurrent) {
 	runCurrent = std::clamp(runCurrent, CURRENT_SETTING_MIN,
-							CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX);
 	driver_current_.irun = normalize(runCurrent, CURRENT_SETTING_MIN,
-									 CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
-									 RUN_CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
+			RUN_CURRENT_SETTING_MAX);
 	writeStoredDriverCurrent();
 }
 
@@ -122,13 +116,12 @@ void TMC2209::setRunCurrent(uint16_t runCurrent)
  * @retval None
  */
 
-void TMC2209::setHoldCurrent(uint16_t holdCurrent)
-{
+void TMC2209::setHoldCurrent(uint16_t holdCurrent) {
 	holdCurrent = std::clamp(holdCurrent, CURRENT_SETTING_MIN,
-							 CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX);
 	driver_current_.ihold = normalize(holdCurrent, CURRENT_SETTING_MIN,
-									  CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
-									  RUN_CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
+			RUN_CURRENT_SETTING_MAX);
 	writeStoredDriverCurrent();
 }
 
@@ -138,11 +131,10 @@ void TMC2209::setHoldCurrent(uint16_t holdCurrent)
  * @retval None
  */
 
-void TMC2209::setHoldDelay(uint8_t holdDelayPercent)
-{
+void TMC2209::setHoldDelay(uint8_t holdDelayPercent) {
 	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
 	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN,
-										   PERCENT_MAX, HOLD_DELAY_MIN, HOLD_DELAY_MAX);
+			PERCENT_MAX, HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
 }
 
@@ -154,21 +146,20 @@ void TMC2209::setHoldDelay(uint8_t holdDelayPercent)
  * @retval None
  */
 void TMC2209::setAllCurrentValues(uint16_t runCurrent, uint16_t holdCurrent,
-								  uint8_t holdDelayPercent)
-{
+		uint8_t holdDelayPercent) {
 	runCurrent = std::clamp(runCurrent, CURRENT_SETTING_MIN,
-							CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX);
 	driver_current_.irun = normalize(runCurrent, CURRENT_SETTING_MIN,
-									 CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
-									 RUN_CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
+			RUN_CURRENT_SETTING_MAX);
 	holdCurrent = std::clamp(holdCurrent, CURRENT_SETTING_MIN,
-							 CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX);
 	driver_current_.ihold = normalize(holdCurrent, CURRENT_SETTING_MIN,
-									  CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
-									  RUN_CURRENT_SETTING_MAX);
+			CURRENT_SETTING_MAX, RUN_CURRENT_SETTING_MIN,
+			RUN_CURRENT_SETTING_MAX);
 	holdDelayPercent = std::clamp(holdDelayPercent, PERCENT_MIN, PERCENT_MAX);
 	driver_current_.iholddelay = normalize(holdDelayPercent, PERCENT_MIN,
-										   PERCENT_MAX, HOLD_DELAY_MIN, HOLD_DELAY_MAX);
+			PERCENT_MAX, HOLD_DELAY_MIN, HOLD_DELAY_MAX);
 	writeStoredDriverCurrent();
 }
 
@@ -177,8 +168,7 @@ void TMC2209::setAllCurrentValues(uint16_t runCurrent, uint16_t holdCurrent,
  * @param  None
  * @retval None
  */
-void TMC2209::enableDoubleEdge()
-{
+void TMC2209::enableDoubleEdge() {
 	chopper_config_.double_edge = DOUBLE_EDGE_ENABLE;
 	writeStoredChopperConfig();
 }
@@ -188,8 +178,7 @@ void TMC2209::enableDoubleEdge()
  * @param  None
  * @retval None
  */
-void TMC2209::disableDoubleEdge()
-{
+void TMC2209::disableDoubleEdge() {
 	chopper_config_.double_edge = DOUBLE_EDGE_DISABLE;
 	writeStoredChopperConfig();
 }
@@ -199,8 +188,7 @@ void TMC2209::disableDoubleEdge()
  * @param  None
  * @retval None
  */
-void TMC2209::enableInverseMotorDirection()
-{
+void TMC2209::enableInverseMotorDirection() {
 	global_config_.shaft = 1;
 	writeStoredGlobalConfig();
 }
@@ -210,8 +198,7 @@ void TMC2209::enableInverseMotorDirection()
  * @param  None
  * @retval None
  */
-void TMC2209::disableInverseMotorDirection()
-{
+void TMC2209::disableInverseMotorDirection() {
 	global_config_.shaft = 0;
 	writeStoredGlobalConfig();
 }
@@ -221,8 +208,7 @@ void TMC2209::disableInverseMotorDirection()
  * @param  mode: The desired standstill mode (e.g., freewheel or brake).
  * @retval None
  */
-void TMC2209::setStandstillMode(TMC2209::StandstillMode mode)
-{
+void TMC2209::setStandstillMode(TMC2209::StandstillMode mode) {
 	pwm_config_.freewheel = mode;
 	writeStoredPwmConfig();
 }
@@ -232,8 +218,7 @@ void TMC2209::setStandstillMode(TMC2209::StandstillMode mode)
  * @param  None
  * @retval None
  */
-void TMC2209::enableAutomaticCurrentScaling()
-{
+void TMC2209::enableAutomaticCurrentScaling() {
 	pwm_config_.pwm_autoscale = STEPPER_DRIVER_FEATURE_ON;
 	writeStoredPwmConfig();
 }
@@ -243,8 +228,7 @@ void TMC2209::enableAutomaticCurrentScaling()
  * @param  None
  * @retval None
  */
-void TMC2209::disableAutomaticCurrentScaling()
-{
+void TMC2209::disableAutomaticCurrentScaling() {
 	pwm_config_.pwm_autoscale = STEPPER_DRIVER_FEATURE_OFF;
 	writeStoredPwmConfig();
 }
@@ -254,8 +238,7 @@ void TMC2209::disableAutomaticCurrentScaling()
  * @param  None
  * @retval None
  */
-void TMC2209::enableAutomaticGradientAdaptation()
-{
+void TMC2209::enableAutomaticGradientAdaptation() {
 	pwm_config_.pwm_autograd = STEPPER_DRIVER_FEATURE_ON;
 	writeStoredPwmConfig();
 }
@@ -265,8 +248,7 @@ void TMC2209::enableAutomaticGradientAdaptation()
  * @param  None
  * @retval None
  */
-void TMC2209::disableAutomaticGradientAdaptation()
-{
+void TMC2209::disableAutomaticGradientAdaptation() {
 	pwm_config_.pwm_autograd = STEPPER_DRIVER_FEATURE_OFF;
 	writeStoredPwmConfig();
 }
@@ -276,8 +258,7 @@ void TMC2209::disableAutomaticGradientAdaptation()
  * @param  pwm_amplitude: The desired PWM amplitude value.
  * @retval None
  */
-void TMC2209::setPwmOffset(uint8_t pwm_amplitude)
-{
+void TMC2209::setPwmOffset(uint8_t pwm_amplitude) {
 	pwm_config_.pwm_offset = pwm_amplitude;
 	writeStoredPwmConfig();
 }
@@ -287,8 +268,7 @@ void TMC2209::setPwmOffset(uint8_t pwm_amplitude)
  * @param  pwm_amplitude: The desired PWM gradient value.
  * @retval None
  */
-void TMC2209::setPwmGradient(uint8_t pwm_amplitude)
-{
+void TMC2209::setPwmGradient(uint8_t pwm_amplitude) {
 	pwm_config_.pwm_grad = pwm_amplitude;
 	writeStoredPwmConfig();
 }
@@ -298,8 +278,7 @@ void TMC2209::setPwmGradient(uint8_t pwm_amplitude)
  * @param  power_down_delay: The desired power-down delay value.
  * @retval None
  */
-void TMC2209::setPowerDownDelay(uint8_t power_down_delay)
-{
+void TMC2209::setPowerDownDelay(uint8_t power_down_delay) {
 	write(ADDRESS_TPOWERDOWN, power_down_delay);
 }
 
@@ -308,10 +287,8 @@ void TMC2209::setPowerDownDelay(uint8_t power_down_delay)
  * @param  reply_delay: The desired reply delay value (0 to REPLY_DELAY_MAX).
  * @retval None
  */
-void TMC2209::setReplyDelay(uint8_t reply_delay)
-{
-	if (reply_delay > REPLY_DELAY_MAX)
-	{
+void TMC2209::setReplyDelay(uint8_t reply_delay) {
+	if (reply_delay > REPLY_DELAY_MAX) {
 		reply_delay = REPLY_DELAY_MAX;
 	}
 	ReplyDelay reply_delay_data;
@@ -325,8 +302,7 @@ void TMC2209::setReplyDelay(uint8_t reply_delay)
  * @param  microsteps_per_period: The number of microsteps per period (velocity).
  * @retval None
  */
-void TMC2209::moveAtVelocity(int32_t microsteps_per_period)
-{
+void TMC2209::moveAtVelocity(int32_t microsteps_per_period) {
 	write(ADDRESS_VACTUAL, microsteps_per_period);
 }
 
@@ -335,8 +311,7 @@ void TMC2209::moveAtVelocity(int32_t microsteps_per_period)
  * @param  None
  * @retval None
  */
-void TMC2209::moveUsingStepDirInterface()
-{
+void TMC2209::moveUsingStepDirInterface() {
 	write(ADDRESS_VACTUAL, VACTUAL_STEP_DIR_INTERFACE);
 }
 
@@ -345,8 +320,7 @@ void TMC2209::moveUsingStepDirInterface()
  * @param  None
  * @retval None
  */
-void TMC2209::enableStealthChop()
-{
+void TMC2209::enableStealthChop() {
 	global_config_.enable_spread_cycle = 0;
 	writeStoredGlobalConfig();
 }
@@ -356,8 +330,7 @@ void TMC2209::enableStealthChop()
  * @param  None
  * @retval None
  */
-void TMC2209::disableStealthChop()
-{
+void TMC2209::disableStealthChop() {
 	global_config_.enable_spread_cycle = 1;
 	writeStoredGlobalConfig();
 }
@@ -367,8 +340,7 @@ void TMC2209::disableStealthChop()
  * @param  duration_threshold: The threshold value to set for CoolStep duration.
  * @retval None
  */
-void TMC2209::setCoolStepDurationThreshold(uint32_t duration_threshold)
-{
+void TMC2209::setCoolStepDurationThreshold(uint32_t duration_threshold) {
 	write(ADDRESS_TCOOLTHRS, duration_threshold);
 }
 
@@ -377,8 +349,7 @@ void TMC2209::setCoolStepDurationThreshold(uint32_t duration_threshold)
  * @param  duration_threshold: The threshold value to set for StealthChop duration.
  * @retval None
  */
-void TMC2209::setStealthChopDurationThreshold(uint32_t duration_threshold)
-{
+void TMC2209::setStealthChopDurationThreshold(uint32_t duration_threshold) {
 	write(ADDRESS_TPWMTHRS, duration_threshold);
 }
 
@@ -387,8 +358,7 @@ void TMC2209::setStealthChopDurationThreshold(uint32_t duration_threshold)
  * @param  stall_guard_threshold: The threshold value to set for StallGuard.
  * @retval None
  */
-void TMC2209::setStallGuardThreshold(uint8_t stall_guard_threshold)
-{
+void TMC2209::setStallGuardThreshold(uint8_t stall_guard_threshold) {
 	write(ADDRESS_SGTHRS, stall_guard_threshold);
 }
 
@@ -398,8 +368,7 @@ void TMC2209::setStallGuardThreshold(uint8_t stall_guard_threshold)
  * @param  upper_threshold: The upper threshold for CoolStep.
  * @retval None
  */
-void TMC2209::enableCoolStep(uint8_t lower_threshold, uint8_t upper_threshold)
-{
+void TMC2209::enableCoolStep(uint8_t lower_threshold, uint8_t upper_threshold) {
 	cool_config_.semin = std::clamp(lower_threshold, SEMIN_MIN, SEMIN_MAX);
 	cool_config_.semax = std::clamp(upper_threshold, SEMAX_MIN, SEMAX_MAX);
 	write(ADDRESS_COOLCONF, cool_config_.bytes);
@@ -411,8 +380,7 @@ void TMC2209::enableCoolStep(uint8_t lower_threshold, uint8_t upper_threshold)
  * @param  None
  * @retval None
  */
-void TMC2209::disableCoolStep()
-{
+void TMC2209::disableCoolStep() {
 	cool_config_.semin = SEMIN_OFF;
 	write(ADDRESS_COOLCONF, cool_config_.bytes);
 	cool_step_enabled_ = false;
@@ -423,8 +391,7 @@ void TMC2209::disableCoolStep()
  * @param  current_increment: The desired current increment setting.
  * @retval None
  */
-void TMC2209::setCoolStepCurrentIncrement(CurrentIncrement current_increment)
-{
+void TMC2209::setCoolStepCurrentIncrement(CurrentIncrement current_increment) {
 	cool_config_.seup = current_increment;
 	write(ADDRESS_COOLCONF, cool_config_.bytes);
 }
@@ -434,8 +401,7 @@ void TMC2209::setCoolStepCurrentIncrement(CurrentIncrement current_increment)
  * @param  measurement_count: The desired measurement count setting.
  * @retval None
  */
-void TMC2209::setCoolStepMeasurementCount(MeasurementCount measurement_count)
-{
+void TMC2209::setCoolStepMeasurementCount(MeasurementCount measurement_count) {
 	cool_config_.sedn = measurement_count;
 	write(ADDRESS_COOLCONF, cool_config_.bytes);
 }
@@ -445,8 +411,7 @@ void TMC2209::setCoolStepMeasurementCount(MeasurementCount measurement_count)
  * @param  None
  * @retval None
  */
-void TMC2209::enableAnalogCurrentScaling()
-{
+void TMC2209::enableAnalogCurrentScaling() {
 	global_config_.i_scale_analog = 1;
 	writeStoredGlobalConfig();
 }
@@ -456,8 +421,7 @@ void TMC2209::enableAnalogCurrentScaling()
  * @param  None
  * @retval None
  */
-void TMC2209::disableAnalogCurrentScaling()
-{
+void TMC2209::disableAnalogCurrentScaling() {
 	global_config_.i_scale_analog = 0;
 	writeStoredGlobalConfig();
 }
@@ -467,8 +431,7 @@ void TMC2209::disableAnalogCurrentScaling()
  * @param  None
  * @retval None
  */
-void TMC2209::useExternalSenseResistors()
-{
+void TMC2209::useExternalSenseResistors() {
 	global_config_.internal_rsense = 0;
 	writeStoredGlobalConfig();
 }
@@ -478,8 +441,7 @@ void TMC2209::useExternalSenseResistors()
  * @param  None
  * @retval None
  */
-void TMC2209::useInternalSenseResistors()
-{
+void TMC2209::useInternalSenseResistors() {
 	global_config_.internal_rsense = 1;
 	writeStoredGlobalConfig();
 }
@@ -490,8 +452,7 @@ void TMC2209::useInternalSenseResistors()
  * @param  None
  * @retval uint8_t The version of the driver.
  */
-uint8_t TMC2209::getVersion()
-{
+uint8_t TMC2209::getVersion() {
 	Input input;
 	input.bytes = read(ADDRESS_IOIN);
 
@@ -503,8 +464,7 @@ uint8_t TMC2209::getVersion()
  * @param  None
  * @retval bool True if communication is successful, false otherwise.
  */
-bool TMC2209::isCommunicating()
-{
+bool TMC2209::isCommunicating() {
 	return (getVersion() == VERSION);
 }
 
@@ -513,8 +473,7 @@ bool TMC2209::isCommunicating()
  * @param  None
  * @retval bool True if the driver is set up and communication is successful, false otherwise.
  */
-bool TMC2209::isSetupAndCommunicating()
-{
+bool TMC2209::isSetupAndCommunicating() {
 	return serialOperationMode();
 }
 
@@ -523,8 +482,7 @@ bool TMC2209::isSetupAndCommunicating()
  * @param  None
  * @retval bool True if the driver is communicating but not set up, false otherwise.
  */
-bool TMC2209::isCommunicatingButNotSetup()
-{
+bool TMC2209::isCommunicatingButNotSetup() {
 	return (isCommunicating() && (not isSetupAndCommunicating()));
 }
 
@@ -533,8 +491,7 @@ bool TMC2209::isCommunicatingButNotSetup()
  * @param  None
  * @retval bool True if the hardware is disabled, false otherwise.
  */
-bool TMC2209::hardwareDisabled()
-{
+bool TMC2209::hardwareDisabled() {
 	Input input;
 	input.bytes = read(ADDRESS_IOIN);
 
@@ -546,55 +503,44 @@ bool TMC2209::hardwareDisabled()
  * @param  None
  * @retval uint16_t The number of microsteps per step.
  */
-uint16_t TMC2209::getMicrostepsPerStep()
-{
+uint16_t TMC2209::getMicrostepsPerStep() {
 	uint16_t microsteps_per_step_exponent;
 	chopper_config_.bytes = readChopperConfigBytes();
-	switch (chopper_config_.mres)
-	{
-	case MRES_001:
-	{
+	switch (chopper_config_.mres) {
+	case MRES_001: {
 		microsteps_per_step_exponent = 0;
 		break;
 	}
-	case MRES_002:
-	{
+	case MRES_002: {
 		microsteps_per_step_exponent = 1;
 		break;
 	}
-	case MRES_004:
-	{
+	case MRES_004: {
 		microsteps_per_step_exponent = 2;
 		break;
 	}
-	case MRES_008:
-	{
+	case MRES_008: {
 		microsteps_per_step_exponent = 3;
 		break;
 	}
-	case MRES_016:
-	{
+	case MRES_016: {
 		microsteps_per_step_exponent = 4;
 		break;
 	}
-	case MRES_032:
-	{
+	case MRES_032: {
 		microsteps_per_step_exponent = 5;
 		break;
 	}
-	case MRES_064:
-	{
+	case MRES_064: {
 		microsteps_per_step_exponent = 6;
 		break;
 	}
-	case MRES_128:
-	{
+	case MRES_128: {
 		microsteps_per_step_exponent = 7;
 		break;
 	}
 	case MRES_256:
-	default:
-	{
+	default: {
 		microsteps_per_step_exponent = 8;
 		break;
 	}
@@ -607,13 +553,11 @@ uint16_t TMC2209::getMicrostepsPerStep()
  * @param  None
  * @retval TMC2209::Settings The current settings of the TMC2209 driver.
  */
-TMC2209::Settings TMC2209::getSettings()
-{
+TMC2209::Settings TMC2209::getSettings() {
 	Settings settings;
 	settings.is_communicating = isCommunicating();
 
-	if (settings.is_communicating)
-	{
+	if (settings.is_communicating) {
 		readAndStoreRegisters();
 
 		settings.is_setup = global_config_.pdn_disable;
@@ -627,20 +571,18 @@ TMC2209::Settings TMC2209::getSettings()
 		settings.ihold = driver_current_.ihold;
 		settings.ihold_register_value = driver_current_.ihold;
 		settings.iholddelay_percent = holdDelaySettingToPercent(
-			driver_current_.iholddelay);
+				driver_current_.iholddelay);
 		settings.iholddelay_register_value = driver_current_.iholddelay;
 		settings.automatic_current_scaling_enabled = pwm_config_.pwm_autoscale;
 		settings.automatic_gradient_adaptation_enabled =
-			pwm_config_.pwm_autograd;
+				pwm_config_.pwm_autograd;
 		settings.pwm_offset = pwm_config_.pwm_offset;
 		settings.pwm_gradient = pwm_config_.pwm_grad;
 		settings.cool_step_enabled = cool_step_enabled_;
 		settings.analog_current_scaling_enabled = global_config_.i_scale_analog;
 		settings.internal_sense_resistors_enabled =
-			global_config_.internal_rsense;
-	}
-	else
-	{
+				global_config_.internal_rsense;
+	} else {
 		settings.is_setup = false;
 		settings.software_enabled = false;
 		settings.microsteps_per_step = 0;
@@ -670,8 +612,7 @@ TMC2209::Settings TMC2209::getSettings()
  * @param  None
  * @retval TMC2209::Status The current status of the TMC2209 driver.
  */
-TMC2209::Status TMC2209::getStatus()
-{
+TMC2209::Status TMC2209::getStatus() {
 	DriveStatus drive_status;
 	drive_status.bytes = 0;
 	drive_status.bytes = read(ADDRESS_DRV_STATUS);
@@ -684,8 +625,7 @@ TMC2209::Status TMC2209::getStatus()
  * @param  None
  * @retval TMC2209::GlobalStatus The global status of the TMC2209 driver.
  */
-TMC2209::GlobalStatus TMC2209::getGlobalStatus()
-{
+TMC2209::GlobalStatus TMC2209::getGlobalStatus() {
 	GlobalStatusUnion global_status_union;
 	global_status_union.bytes = 0;
 	global_status_union.bytes = read(ADDRESS_GSTAT);
@@ -698,8 +638,7 @@ TMC2209::GlobalStatus TMC2209::getGlobalStatus()
  * @param  None
  * @retval None
  */
-void TMC2209::clearReset()
-{
+void TMC2209::clearReset() {
 	GlobalStatusUnion global_status_union;
 	global_status_union.bytes = 0;
 	global_status_union.global_status.reset = 1;
@@ -711,8 +650,7 @@ void TMC2209::clearReset()
  * @param  None
  * @retval None
  */
-void TMC2209::clearDriveError()
-{
+void TMC2209::clearDriveError() {
 	GlobalStatusUnion global_status_union;
 	global_status_union.bytes = 0;
 	global_status_union.global_status.drv_err = 1;
@@ -724,8 +662,7 @@ void TMC2209::clearDriveError()
  * @param  None
  * @retval uint8_t  The current value of the interface transmission counter.
  */
-uint8_t TMC2209::getInterfaceTransmissionCounter()
-{
+uint8_t TMC2209::getInterfaceTransmissionCounter() {
 	return read(ADDRESS_IFCNT);
 }
 
@@ -734,8 +671,7 @@ uint8_t TMC2209::getInterfaceTransmissionCounter()
  * @param  None
  * @retval uint32_t  The current value of the interstep duration.
  */
-uint32_t TMC2209::getInterstepDuration()
-{
+uint32_t TMC2209::getInterstepDuration() {
 	return read(ADDRESS_TSTEP);
 }
 
@@ -744,8 +680,7 @@ uint32_t TMC2209::getInterstepDuration()
  * @param  None
  * @retval uint16_t  The current value of the StallGuard result.
  */
-uint16_t TMC2209::getStallGuardResult()
-{
+uint16_t TMC2209::getStallGuardResult() {
 	return read(ADDRESS_SG_RESULT);
 }
 
@@ -754,8 +689,7 @@ uint16_t TMC2209::getStallGuardResult()
  * @param  None
  * @retval uint8_t  The current PWM scale sum value.
  */
-uint8_t TMC2209::getPwmScaleSum()
-{
+uint8_t TMC2209::getPwmScaleSum() {
 	PwmScale pwm_scale;
 	pwm_scale.bytes = read(ADDRESS_PWM_SCALE);
 
@@ -767,8 +701,7 @@ uint8_t TMC2209::getPwmScaleSum()
  * @param  None
  * @retval int16_t  The current PWM scale auto value.
  */
-int16_t TMC2209::getPwmScaleAuto()
-{
+int16_t TMC2209::getPwmScaleAuto() {
 	PwmScale pwm_scale;
 	pwm_scale.bytes = read(ADDRESS_PWM_SCALE);
 
@@ -780,8 +713,7 @@ int16_t TMC2209::getPwmScaleAuto()
  * @param  None
  * @retval uint8_t  The current PWM offset auto value.
  */
-uint8_t TMC2209::getPwmOffsetAuto()
-{
+uint8_t TMC2209::getPwmOffsetAuto() {
 	PwmAuto pwm_auto;
 	pwm_auto.bytes = read(ADDRESS_PWM_AUTO);
 
@@ -793,8 +725,7 @@ uint8_t TMC2209::getPwmOffsetAuto()
  * @param  None
  * @retval uint8_t  The current PWM gradient auto value.
  */
-uint8_t TMC2209::getPwmGradientAuto()
-{
+uint8_t TMC2209::getPwmGradientAuto() {
 	PwmAuto pwm_auto;
 	pwm_auto.bytes = read(ADDRESS_PWM_AUTO);
 
@@ -806,8 +737,7 @@ uint8_t TMC2209::getPwmGradientAuto()
  * @param  None
  * @retval uint16_t  The current microstep counter value.
  */
-uint16_t TMC2209::getMicrostepCounter()
-{
+uint16_t TMC2209::getMicrostepCounter() {
 	return read(ADDRESS_MSCNT);
 }
 
@@ -834,8 +764,7 @@ void TMC2209::initialize() {
  * @param  None
  * @retval None
  */
-void TMC2209::setOperationModeToSerial()
-{
+void TMC2209::setOperationModeToSerial() {
 
 	global_config_.bytes = 0;
 	global_config_.i_scale_analog = 0;
@@ -851,8 +780,7 @@ void TMC2209::setOperationModeToSerial()
  * @param  None
  * @retval None
  */
-void TMC2209::setRegistersToDefaults()
-{
+void TMC2209::setRegistersToDefaults() {
 	driver_current_.bytes = 0;
 	driver_current_.ihold = IHOLD_DEFAULT;
 	driver_current_.irun = IRUN_DEFAULT;
@@ -885,8 +813,7 @@ void TMC2209::setRegistersToDefaults()
  * @param  None
  * @retval None
  */
-void TMC2209::readAndStoreRegisters()
-{
+void TMC2209::readAndStoreRegisters() {
 	global_config_.bytes = readGlobalConfigBytes();
 	chopper_config_.bytes = readChopperConfigBytes();
 	pwm_config_.bytes = readPwmConfigBytes();
@@ -897,8 +824,7 @@ void TMC2209::readAndStoreRegisters()
  * @param  None
  * @retval True if serial operation mode is enabled, false otherwise.
  */
-bool TMC2209::serialOperationMode()
-{
+bool TMC2209::serialOperationMode() {
 	GlobalConfig global_config;
 	global_config.bytes = readGlobalConfigBytes();
 
@@ -910,24 +836,22 @@ bool TMC2209::serialOperationMode()
  * @param  None
  * @retval None
  */
-void TMC2209::minimizeMotorCurrent()
-{
+void TMC2209::minimizeMotorCurrent() {
 	driver_current_.irun = CURRENT_SETTING_MIN;
 	driver_current_.ihold = CURRENT_SETTING_MIN;
 	writeStoredDriverCurrent();
 }
 
-template <typename Datagram>
+template<typename Datagram>
 /**
  * @brief  Sends a datagram via UART using DMA.
  * @param  datagram: The datagram structure containing the data to be transmitted.
  * @param  datagram_size: The size of the datagram to be send.
  * @retval None
  */
-void TMC2209::sendDatagram(Datagram &datagram, uint8_t datagram_size)
-{
+void TMC2209::sendDatagram(Datagram &datagram, uint8_t datagram_size) {
 	HAL_HalfDuplex_EnableTransmitter(UART_address);
-	HAL_UART_Transmit_DMA(UART_address, (uint8_t *)&datagram, datagram_size);
+	HAL_UART_Transmit_DMA(UART_address, (uint8_t*) &datagram, datagram_size);
 	// EnableReciver in TxCpltCallback
 }
 
@@ -937,8 +861,7 @@ void TMC2209::sendDatagram(Datagram &datagram, uint8_t datagram_size)
  * @param  data: The data to write to the register.
  * @retval None
  */
-void TMC2209::write(uint8_t register_address, uint32_t data)
-{
+void TMC2209::write(uint8_t register_address, uint32_t data) {
 	WriteReadReplyDatagram write_datagram;
 	write_datagram.bytes = 0;
 	write_datagram.sync = SYNC;
@@ -952,10 +875,8 @@ void TMC2209::write(uint8_t register_address, uint32_t data)
 	sendDatagram(write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE);
 
 	uint32_t sent_timeout = HAL_GetTick() + SEND_TIMEOUT;
-	while (!data_sent_flag)
-	{
-		if (HAL_GetTick() > sent_timeout)
-		{
+	while (!data_sent_flag) {
+		if (HAL_GetTick() > sent_timeout) {
 			TMC2209_status = TMC_TIMEOUT;
 			Error_Handler();
 			break;
@@ -969,8 +890,7 @@ void TMC2209::write(uint8_t register_address, uint32_t data)
  * @param  register_address: The address of the register to read from.
  * @retval uint32_t: The data read from the register.
  */
-uint32_t TMC2209::read(uint8_t register_address)
-{
+uint32_t TMC2209::read(uint8_t register_address) {
 	ReadRequestDatagram read_request_datagram;
 	read_request_datagram.bytes = 0;
 	read_request_datagram.sync = SYNC;
@@ -983,10 +903,8 @@ uint32_t TMC2209::read(uint8_t register_address)
 	sendDatagram(read_request_datagram, READ_REQUEST_DATAGRAM_SIZE);
 
 	uint32_t recive_timeout = HAL_GetTick() + READ_REPLY_TIMEOUT;
-	while (!data_received_flag)
-	{
-		if (HAL_GetTick() > recive_timeout)
-		{
+	while (!data_received_flag) {
+		if (HAL_GetTick() > recive_timeout) {
 			TMC2209_status = TMC_TIMEOUT;
 			Error_Handler();
 			break;
@@ -998,15 +916,14 @@ uint32_t TMC2209::read(uint8_t register_address)
 	if (crc_check == rxBufferRaw[7]) {
 		WriteReadReplyDatagram read_reply_datagram;
 		memcpy(&read_reply_datagram.bytes, rxBufferRaw,
-			   WRITE_READ_REPLY_DATAGRAM_SIZE);
+				WRITE_READ_REPLY_DATAGRAM_SIZE);
 		read_reply_datagram.data = reverseData(read_reply_datagram.data,
-											   DATA_SIZE);
+				DATA_SIZE);
 		data_received_flag = false;
 		TMC2209_status = TMC_OK;
 		if (read_reply_datagram.register_address == register_address)
 			return read_reply_datagram.data;
-		else
-		{
+		else {
 			TMC2209_status = TMC_UART_ERROR;
 			Error_Handler();
 		}
@@ -1034,8 +951,7 @@ uint8_t TMC2209::holdDelaySettingToPercent(uint8_t hold_delay_setting) {
  * @param  None
  * @retval None
  */
-void TMC2209::writeStoredGlobalConfig()
-{
+void TMC2209::writeStoredGlobalConfig() {
 	write(ADDRESS_GCONF, global_config_.bytes);
 }
 
@@ -1044,8 +960,7 @@ void TMC2209::writeStoredGlobalConfig()
  * @param  None
  * @retval uint32_t  The global configuration bytes.
  */
-uint32_t TMC2209::readGlobalConfigBytes()
-{
+uint32_t TMC2209::readGlobalConfigBytes() {
 	return read(ADDRESS_GCONF);
 }
 
@@ -1054,20 +969,15 @@ uint32_t TMC2209::readGlobalConfigBytes()
  * @param  None
  * @retval None
  */
-void TMC2209::writeStoredDriverCurrent()
-{
+void TMC2209::writeStoredDriverCurrent() {
 	write(ADDRESS_IHOLD_IRUN, driver_current_.bytes);
 
-	if (driver_current_.irun >= SEIMIN_UPPER_CURRENT_LIMIT)
-	{
+	if (driver_current_.irun >= SEIMIN_UPPER_CURRENT_LIMIT) {
 		cool_config_.seimin = SEIMIN_UPPER_SETTING;
-	}
-	else
-	{
+	} else {
 		cool_config_.seimin = SEIMIN_LOWER_SETTING;
 	}
-	if (cool_step_enabled_)
-	{
+	if (cool_step_enabled_) {
 		write(ADDRESS_COOLCONF, cool_config_.bytes);
 	}
 }
@@ -1077,8 +987,7 @@ void TMC2209::writeStoredDriverCurrent()
  * @param  None
  * @retval None
  */
-void TMC2209::writeStoredChopperConfig()
-{
+void TMC2209::writeStoredChopperConfig() {
 	write(ADDRESS_CHOPCONF, chopper_config_.bytes);
 }
 
@@ -1087,8 +996,7 @@ void TMC2209::writeStoredChopperConfig()
  * @param  None
  * @retval Chopper configuration data as a 32-bit value.
  */
-uint32_t TMC2209::readChopperConfigBytes()
-{
+uint32_t TMC2209::readChopperConfigBytes() {
 	return read(ADDRESS_CHOPCONF);
 }
 
@@ -1097,8 +1005,7 @@ uint32_t TMC2209::readChopperConfigBytes()
  * @param  None
  * @retval None
  */
-void TMC2209::writeStoredPwmConfig()
-{
+void TMC2209::writeStoredPwmConfig() {
 	write(ADDRESS_PWMCONF, pwm_config_.bytes);
 }
 
@@ -1107,7 +1014,6 @@ void TMC2209::writeStoredPwmConfig()
  * @param  None
  * @retval uint32_t: The PWM configuration bytes.
  */
-uint32_t TMC2209::readPwmConfigBytes()
-{
+uint32_t TMC2209::readPwmConfigBytes() {
 	return read(ADDRESS_PWMCONF);
 }

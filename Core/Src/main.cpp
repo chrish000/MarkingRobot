@@ -305,7 +305,7 @@ int main(void) {
 	 0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
 	 { 9000, 0 }, { 10000, 0 } };
 	 */
-	 uint8_t i = 0;
+	uint8_t i = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

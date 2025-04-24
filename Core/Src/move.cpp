@@ -37,14 +37,13 @@ void Robot::setPos(float_t newOrientation, float_t newX, float_t newY) {
  * @retval Berechneter Drehwinkel in Grad
  */
 float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
-				 float_t oldOrientation)
-{
+		float_t oldOrientation) {
 	float_t target = atan2(newY - oldY, newX - oldX) * 180 / M_PI; // Zielwinkel berechnen
-	target = fmod(target + 360, 360.0);							   // Zielwinkel normalisieren auf [0, 360]
-	float_t turn = target - oldOrientation;						   // Drehwinkel berechnen
-	turn = fmod(turn + 360, 360.0);								   // Drehwinkel normalisieren auf [0, 360]
-	if (turn > 180)
-	{
+	target = fmod(target + 360, 360.0);	// Zielwinkel normalisieren auf [0, 360]
+	oldOrientation = fmod(oldOrientation + 360, 360.0); // aktuelle Orientierung normalisieren auf [0, 360]
+	float_t turn = target - oldOrientation;				// Drehwinkel berechnen
+	turn = fmod(turn + 360, 360.0);		// Drehwinkel normalisieren auf [0, 360]
+	if (turn > 180) {
 		turn -= 360; // Wenn der Winkel größer als 180 ist, den negativen kleineren Winkel verwenden
 	}
 	return turn;
@@ -58,8 +57,7 @@ float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
  * @param oldY Aktuelle Y-Koordinate
  * @retval Berechnete Distanz in mm
  */
-float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY)
-{
+float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 	return sqrt(pow(newX - oldX, 2) + pow(newY - oldY, 2));
 }
 
@@ -84,8 +82,8 @@ void Robot::init() {
 	motorMaster.motorY.tmc.setup();
 	motorMaster.motorY.tmc.setMicrostepsPerStep(MICROSTEPS);
 	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED); // ADC Kalibrieren
-	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t *)&ADC_BatteryVoltage, 1);			 // ADC starten
-	HAL_TIM_Base_Start(ADC_TIM);												 // Timer für ADC ausloesung starten
+	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*) &ADC_BatteryVoltage, 1); // ADC starten
+	HAL_TIM_Base_Start(ADC_TIM);			// Timer für ADC ausloesung starten
 }
 
 /**

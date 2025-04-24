@@ -35,6 +35,8 @@
 #include "move.h"
 #include "pins.h"
 #include "utils.h"
+#include "Buzzer/buzzer.h"
+#include "Buzzer/buzzer_examples.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +63,7 @@ CRC_HandleTypeDef hcrc;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim8;
+TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim23;
 TIM_HandleTypeDef htim24;
 DMA_HandleTypeDef hdma_tim23_ch1;
@@ -80,6 +83,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* Peripherie */
 ERROR_HandleCode ErrorCode = NONE;
 Robot robi;
+Buzzer_HandleTypeDef hbuzzer;
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -100,6 +104,7 @@ static void MX_ADC1_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM23_Init(void);
 static void MX_TIM24_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -179,6 +184,12 @@ void DMA_Callback(DMA_HandleTypeDef *hdma) {
 	}
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM4) {
+		HAL_GPIO_TogglePin(BUZZER_GPIO_Port, BUZZER_Pin);
+	}
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -222,6 +233,7 @@ int main(void) {
 	MX_TIM8_Init();
 	MX_TIM23_Init();
 	MX_TIM24_Init();
+	MX_TIM4_Init();
 	/* USER CODE BEGIN 2 */
 	/* Peripheral Configuration */
 	robi.init();
@@ -230,6 +242,44 @@ int main(void) {
 	robi.motorMaster.motorY.tmc.enable();
 
 	robi.printhead.clean();
+	Buzzer_InitTypeDef buzzerConfig;
+	buzzerConfig.timer = &htim4;
+	buzzerConfig.timerClockFreqHz = HAL_RCC_GetPCLK2Freq(); // NOTE: this should be freq of timer, not frequency of peripheral clock
+	Buzzer_Init(&hbuzzer, &buzzerConfig);
+	Buzzer_Start(&hbuzzer);
+
+	const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
+	for (int j = 0; j < 5; j++) {
+		for (size_t i = 0; i < songSize; i++) {
+			Buzzer_Note(&hbuzzer, error_sound[i].pitch);
+			HAL_Delay(60000 / BPM * 4 / error_sound[i].duration);
+		}
+	}
+
+	const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
+	for (int j = 0; j < 5; j++) {
+		for (size_t i = 0; i < songSize2; i++) {
+			Buzzer_Note(&hbuzzer, battery_empty[i].pitch);
+			HAL_Delay(60000 / BPM * 4 / battery_empty[i].duration);
+		}
+	}
+
+	const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
+	for (int j = 0; j < 5; j++) {
+		for (size_t i = 0; i < songSize3; i++) {
+			Buzzer_Note(&hbuzzer, air_empty[i].pitch);
+			HAL_Delay(60000 / BPM * 4 / air_empty[i].duration);
+		}
+	}
+
+	const size_t songSize4 = sizeof(mario_level_complete)
+			/ sizeof(mario_level_complete[0]);
+	for (size_t i = 0; i < songSize4; i++) {
+		Buzzer_Note(&hbuzzer, mario_level_complete[i].pitch);
+		HAL_Delay(60000 / 145 * 4 / mario_level_complete[i].duration);
+	}
+	Buzzer_Note(&hbuzzer, 0);
+
 	/* CLK Configuration */
 
 	/* GPIO Configuration */
@@ -852,6 +902,9 @@ static void MX_GPIO_Init(void) {
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOE, Z_STEP_Pin | Z_DIR_Pin, GPIO_PIN_RESET);
+
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOD, X_DIR_Pin | X_STEP_Pin, GPIO_PIN_RESET);

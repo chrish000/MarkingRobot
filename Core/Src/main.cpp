@@ -27,6 +27,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "fatfs.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -58,6 +59,8 @@ ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
 CRC_HandleTypeDef hcrc;
+
+SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
@@ -104,6 +107,7 @@ static void MX_TIM8_Init(void);
 static void MX_TIM23_Init(void);
 static void MX_TIM24_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -251,6 +255,8 @@ int main(void) {
 	MX_TIM23_Init();
 	MX_TIM24_Init();
 	MX_TIM4_Init();
+	MX_SPI1_Init();
+	MX_FATFS_Init();
 	/* USER CODE BEGIN 2 */
 	robi.init();
 
@@ -298,6 +304,12 @@ int main(void) {
 
 	Buzzer_NoNote(&hbuzzer);
 
+	//SD
+	HAL_Delay(750);
+	robi.sd.init();
+	robi.sd.openFile("test.gcode");
+
+
 	// ################# TESTLAUF ###############################
 	/*
 	 const uint8_t posCnt = 4;
@@ -306,11 +318,17 @@ int main(void) {
 	 { 9000, 0 }, { 10000, 0 } };
 	 */
 	uint8_t i = 0;
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		while (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
+			if (!robi.sd.readNextLine())
+				break;
+			robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);
+		}
 
 		robi.motorMaster.calcInterval();
 
@@ -518,6 +536,54 @@ static void MX_CRC_Init(void) {
 	/* USER CODE BEGIN CRC_Init 2 */
 
 	/* USER CODE END CRC_Init 2 */
+
+}
+
+/**
+ * @brief SPI1 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_SPI1_Init(void) {
+
+	/* USER CODE BEGIN SPI1_Init 0 */
+
+	/* USER CODE END SPI1_Init 0 */
+
+	/* USER CODE BEGIN SPI1_Init 1 */
+
+	/* USER CODE END SPI1_Init 1 */
+	/* SPI1 parameter configuration*/
+	hspi1.Instance = SPI1;
+	hspi1.Init.Mode = SPI_MODE_MASTER;
+	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+	hspi1.Init.NSS = SPI_NSS_SOFT;
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	hspi1.Init.CRCPolynomial = 0x0;
+	hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+	hspi1.Init.TxCRCInitializationPattern =
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	hspi1.Init.RxCRCInitializationPattern =
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+	hspi1.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+	hspi1.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN SPI1_Init 2 */
+
+	/* USER CODE END SPI1_Init 2 */
 
 }
 
@@ -977,6 +1043,12 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
+
+	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(SD_DET_GPIO_Port, SD_DET_Pin, GPIO_PIN_RESET);
+
+	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOD, X_DIR_Pin | X_STEP_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
@@ -1016,6 +1088,20 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : SD_CS_Pin */
+	GPIO_InitStruct.Pin = SD_CS_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(SD_CS_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : SD_DET_Pin */
+	GPIO_InitStruct.Pin = SD_DET_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(SD_DET_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : PRESSURE_Pin */
 	GPIO_InitStruct.Pin = PRESSURE_Pin;

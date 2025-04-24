@@ -22,18 +22,31 @@
 #include "printhead.h"
 #include "pins.h"
 #include "config.h"
+#include "sd.h"
+#include "GCodeParser.h"
+#include <optional>
 
 class Robot {
 public:
 	Robot() :
 			motorMaster(pins), printhead(pins.TIM_Printhead,
 			TIM_PrintheadChannel), ADC_Handle(pins.ADC_Handle), ADC_TIM(
-					pins.ADC_TIM) {
+					pins.ADC_TIM), parser(this) {
 	}
 
 	Pin pins;
 	MotorManager motorMaster;
 	Printhead printhead;
+	SD sd;
+	GCodeParser parser;
+
+	struct MoveParams {
+	    std::optional<float> x;
+	    std::optional<float> y;
+	    std::optional<float> speed;
+	    std::optional<float> accel;
+	    std::optional<float> printing;
+	};
 
 	uint16_t ADC_BatteryVoltage = 0;
 	float_t batteryVoltage = 0;
@@ -41,8 +54,7 @@ public:
 	bool batteryAlarm = false;
 
 	void init();
-	bool moveToPos(float_t newX, float_t newY, float_t speed = DEFAULT_SPEED,
-			float_t accel = DEFAULT_ACCEL, bool printing = false);
+	bool moveToPos(Robot::MoveParams);
 	bool moveLin(float_t distance, float_t speed = DEFAULT_SPEED,
 			float_t accel = DEFAULT_ACCEL, bool printing = false);
 	bool moveRot(float_t degrees, float_t speed = DEFAULT_SPEED, float_t accel =

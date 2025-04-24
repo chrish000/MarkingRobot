@@ -94,25 +94,29 @@ void Robot::init() {
  * @param newAccel Beschleunigung in mm/s^2
  * @retval None
  */
-bool Robot::moveToPos(float_t newX, float_t newY, float_t newSpeed,
-		float_t newAccel, bool printing) {
-	if (newX == posX && newY == posY)
-		return false;
-	speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
-	accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);
-	float_t turn = calcTurn(newX, newY, posX, posY, orientation);
-	if (turn != 0) {
-		if (motorMaster.moveBuf.writeAvailable() >= 2) {
-			if (moveRot(turn, speed, accel) == false)
+bool Robot::moveToPos(MoveParams param) {
+	float_t newX = param.x.value_or(posX);
+	float_t newY = param.y.value_or(posY);
+	float_t newSpeed = param.speed.value_or(speed);
+	float_t newAccel = param.accel.value_or(accel);
+	bool printing = (bool)param.printing.value_or(false);
+
+	if (!(newX == posX && newY == posY)) {
+		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
+		accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);
+		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
+		if (turn != 0) {
+			if (motorMaster.moveBuf.writeAvailable() >= 2) {
+				if (moveRot(turn, DEFAULT_SPEED, accel) == false)
+					return false;
+				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
+						printing) == false)
+					return false;
+				posX = newX;
+				posY = newY;
+				return true;
+			} else
 				return false;
-			if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
-					printing) == false)
-				return false;
-			posX = newX;
-			posY = newY;
-			return true;
-		} else
-			return false;
 	} else {
 		if (motorMaster.moveBuf.writeAvailable() != 0) {
 			if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,

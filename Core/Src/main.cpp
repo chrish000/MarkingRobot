@@ -268,19 +268,19 @@ int main(void) {
 	const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
 	for (size_t i = 0; i < songSize; i++) {
 		Buzzer_Play(&hbuzzer, error_sound[i].pitch, error_sound[i].duration,
-				BPM_SYSTEM_SOUND);
+		BPM_SYSTEM_SOUND);
 	}
 
 	const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
 	for (size_t i = 0; i < songSize2; i++) {
 		Buzzer_Play(&hbuzzer, battery_empty[i].pitch, battery_empty[i].duration,
-				BPM_SYSTEM_SOUND);
+		BPM_SYSTEM_SOUND);
 	}
 
 	const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
 	for (size_t i = 0; i < songSize3; i++) {
 		Buzzer_Play(&hbuzzer, air_empty[i].pitch, air_empty[i].duration,
-				BPM_SYSTEM_SOUND);
+		BPM_SYSTEM_SOUND);
 	}
 
 	const size_t songSize4 = sizeof(mario_level_complete)
@@ -293,26 +293,19 @@ int main(void) {
 	const size_t songSize5 = sizeof(mario_theme) / sizeof(mario_theme[0]);
 	for (size_t i = 0; i < songSize5; i++) {
 		Buzzer_Play(&hbuzzer, mario_theme[i].pitch, mario_theme[i].duration,
-				BPM_MARIO);
+		BPM_MARIO);
 	}
 
 	Buzzer_NoNote(&hbuzzer);
 
-	/* CLK Configuration */
-
-	/* GPIO Configuration */
-
-	/* UART Configuration */
-
-	/* Code before infinite loop */
 	// ################# TESTLAUF ###############################
-	const uint8_t posCnt = 4;
-	int16_t posStorage[10][2] = { { 1000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
-			0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
-			{ 9000, 0 }, { 10000, 0 } };
-	uint8_t i = 0;
-
-	int i = 0;
+	/*
+	 const uint8_t posCnt = 4;
+	 int16_t posStorage[10][2] = { { 1000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
+	 0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
+	 { 9000, 0 }, { 10000, 0 } };
+	 */
+	 uint8_t i = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -1063,13 +1056,6 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pin : X_EN_Pin */
-	GPIO_InitStruct.Pin = X_EN_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
-
 	/*Configure GPIO pins : FAN2_Pin FAN1_Pin FAN0_Pin */
 	GPIO_InitStruct.Pin = FAN2_Pin | FAN1_Pin | FAN0_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1080,12 +1066,12 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : Z_EN_Pin */
 	GPIO_InitStruct.Pin = Z_EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
-	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(Z_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 1, 0);
@@ -1094,7 +1080,7 @@ static void MX_GPIO_Init(void) {
 	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
 
-	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);
 
 	/* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -1115,14 +1101,16 @@ void Error_Handler(void) {
 	__disable_irq();
 
 	while (1) {
-	switch (ErrorCode) {
-	case NONE:
-		break;
-	case MOVE_BUF:
-		break;
-	case STEP_BUF:
-		break;
-	}
+		switch (ErrorCode) {
+		case NONE:
+			break;
+		case MOVE_BUF:
+			break;
+		case STEP_BUF:
+			break;
+		case LOW_VOLTAGE:
+			break;
+		}
 	}
 	/* USER CODE END Error_Handler_Debug */
 }

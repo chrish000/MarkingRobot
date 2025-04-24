@@ -816,8 +816,7 @@ uint16_t TMC2209::getMicrostepCounter()
 /**
  * @brief  Initializes the TMC2209 driver by setting operation mode, clearing errors, and configuring settings.
  */
-void TMC2209::initialize()
-{
+void TMC2209::initialize() {
 	setRegistersToDefaults();
 	clearDriveError();
 	clearReset();
@@ -825,8 +824,8 @@ void TMC2209::initialize()
 	setOperationModeToSerial();
 
 	setAllCurrentValues(RUN_CURRENT_DEFAULT, HOLD_CURRENT_DEFAULT, 10);
-	// disableAutomaticCurrentScaling();
-	// disableAutomaticGradientAdaptation();
+	//disableAutomaticCurrentScaling();
+	//disableAutomaticGradientAdaptation();
 	enableDoubleEdge();
 }
 
@@ -948,7 +947,7 @@ void TMC2209::write(uint8_t register_address, uint32_t data)
 	write_datagram.rw = RW_WRITE;
 	write_datagram.data = reverseData(data, DATA_SIZE);
 	write_datagram.crc = HAL_CRC_Calculate(CRC_Handle,
-										   (uint32_t *)&write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
+			(uint32_t*) &write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
 
 	sendDatagram(write_datagram, WRITE_READ_REPLY_DATAGRAM_SIZE);
 
@@ -979,7 +978,7 @@ uint32_t TMC2209::read(uint8_t register_address)
 	read_request_datagram.register_address = register_address;
 	read_request_datagram.rw = RW_READ;
 	read_request_datagram.crc = HAL_CRC_Calculate(CRC_Handle,
-												  (uint32_t *)&read_request_datagram, READ_REQUEST_DATAGRAM_SIZE - 1);
+			(uint32_t*) &read_request_datagram, READ_REQUEST_DATAGRAM_SIZE - 1);
 
 	sendDatagram(read_request_datagram, READ_REQUEST_DATAGRAM_SIZE);
 
@@ -994,10 +993,9 @@ uint32_t TMC2209::read(uint8_t register_address)
 		}
 	}
 
-	uint8_t crc_check = HAL_CRC_Calculate(CRC_Handle, (uint32_t *)&rxBufferRaw,
-										  WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
-	if (crc_check == rxBufferRaw[7])
-	{
+	uint8_t crc_check = HAL_CRC_Calculate(CRC_Handle, (uint32_t*) &rxBufferRaw,
+			WRITE_READ_REPLY_DATAGRAM_SIZE - 1);
+	if (crc_check == rxBufferRaw[7]) {
 		WriteReadReplyDatagram read_reply_datagram;
 		memcpy(&read_reply_datagram.bytes, rxBufferRaw,
 			   WRITE_READ_REPLY_DATAGRAM_SIZE);
@@ -1025,10 +1023,9 @@ uint32_t TMC2209::read(uint8_t register_address)
  * @param  hold_delay_setting: The hold delay setting to convert.
  * @retval uint8_t: The corresponding percentage value.
  */
-uint8_t TMC2209::holdDelaySettingToPercent(uint8_t hold_delay_setting)
-{
+uint8_t TMC2209::holdDelaySettingToPercent(uint8_t hold_delay_setting) {
 	uint8_t percent = normalize(hold_delay_setting, HOLD_DELAY_MIN,
-								HOLD_DELAY_MAX, PERCENT_MIN, PERCENT_MAX);
+			HOLD_DELAY_MAX, PERCENT_MIN, PERCENT_MAX);
 	return percent;
 }
 

@@ -23,8 +23,6 @@
 #include "pins.h"
 #include "config.h"
 
-#include <array>
-
 class Robot {
 public:
 	Robot() :

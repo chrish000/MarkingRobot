@@ -63,6 +63,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -76,7 +77,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-	void DMA_Callback(DMA_HandleTypeDef *hdma);
+void DMA_Callback(DMA_HandleTypeDef *hdma);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

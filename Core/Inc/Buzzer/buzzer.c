@@ -1,21 +1,17 @@
-/*
- * status_led.h
- *
- *  Created on: 19.07.2022
- *      Author: bartek
- */
+#include "buzzer.h"
 
-#include "./buzzer.h"
+void Buzzer_Play(Buzzer_HandleTypeDef *handle, uint32_t noteFreq,
+		uint8_t duration, uint8_t BPM) {
+	Buzzer_Note(handle, noteFreq);
+	HAL_Delay(60000 / BPM * 4 / duration);
+}
 
 void Buzzer_Note(Buzzer_HandleTypeDef *handle, uint32_t noteFreq) {
-//	printf("note %d\r\n", noteFreq);
 	if (noteFreq > 0) {
 		handle->Init.timer->Instance->ARR = handle->Init.timerClockFreqHz
 				/ (handle->Init.timer->Init.Prescaler + 1) / noteFreq / 2;
-		//__HAL_TIM_SET_COMPARE(handle->Init.timer, handle->Init.channel, handle->Init.timer->Instance->ARR/2);
 	} else
 		handle->Init.timer->Instance->ARR = 0;
-//__HAL_TIM_SET_COMPARE(handle->Init.timer, handle->Init.channel, 0);
 }
 
 void Buzzer_NoNote(Buzzer_HandleTypeDef *handle) {

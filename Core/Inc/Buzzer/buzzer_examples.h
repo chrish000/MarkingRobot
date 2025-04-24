@@ -1,11 +1,7 @@
 #include "buzzer_tones.h"
+#include "buzzer.h"
 
-typedef struct {
-	uint16_t pitch;
-	uint16_t duration;
-} note_t;
-
-//#define BPM 128
+#define BPM_MARIO 128
 note_t mario_theme[] = {
   {NOTE_E5, 12}, {NOTE_E5, 12}, {0, 12}, {NOTE_E5, 12},
   {0, 12}, {NOTE_C5, 12}, {NOTE_E5, 12}, {0, 12},
@@ -33,7 +29,7 @@ note_t mario_theme[] = {
   {NOTE_D5, 12}, {NOTE_B4, 12}, {0, 12}, {0, 12}
 };
 
-//#define BPM 105
+#define BPM_PACMAN 105
 note_t pacman[] = {
   { NOTE_B4, 16 }, { NOTE_B5, 16 }, { NOTE_FS5, 16 }, { NOTE_DS5, 16 },
   { NOTE_B5, 32 }, { NOTE_FS5, 12 }, { NOTE_DS5, 8 }, { NOTE_C5, 16 },
@@ -44,7 +40,7 @@ note_t pacman[] = {
   { NOTE_F5, 32 }, { NOTE_FS5, 32 }, { NOTE_G5, 32 }, { NOTE_G5, 32 }, { NOTE_GS5, 32 }, { NOTE_A5, 16 }, { NOTE_B5, 8 }
 };
 
-//#define BPM 145
+#define BPM_MARIO_LEVEL 145
 note_t mario_level_complete[] = {
 		{ NOTE_G3, 12 }, { NOTE_C4, 12 }, { NOTE_E4, 12 },
 		{ NOTE_G4, 12 }, { NOTE_C5, 12 }, { NOTE_E5, 12 },
@@ -64,7 +60,7 @@ note_t mario_level_complete[] = {
 		{ NOTE_C6, 4 }
 };
 
-#define BPM 120
+#define BPM_SYSTEM_SOUND 120
 note_t error_sound[]= {
 		{ NOTE_A4, 8, }, { NOTE_DS4, 4 }, { 0, 1 }
 };

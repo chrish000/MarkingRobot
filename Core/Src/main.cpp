@@ -30,8 +30,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-// #include "TMC2209.h"
-#include "printhead.h"
 #include "move.h"
 #include "pins.h"
 #include "utils.h"
@@ -62,8 +60,8 @@ CRC_HandleTypeDef hcrc;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
-TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim23;
 TIM_HandleTypeDef htim24;
 DMA_HandleTypeDef hdma_tim23_ch1;
@@ -124,7 +122,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		robi.batteryAlarm = true;
 	} else if (GPIO_Pin == LOW_PRESSURE_PIN) {
 		robi.lowAirPressure = HAL_GPIO_ReadPin(LOW_PRESSURE_PORT,
-				LOW_PRESSURE_PIN);
+		LOW_PRESSURE_PIN);
 	}
 }
 
@@ -242,6 +240,7 @@ int main(void) {
 	robi.motorMaster.motorY.tmc.enable();
 
 	robi.printhead.clean();
+
 	Buzzer_InitTypeDef buzzerConfig;
 	buzzerConfig.timer = &htim4;
 	buzzerConfig.timerClockFreqHz = HAL_RCC_GetPCLK2Freq(); // NOTE: this should be freq of timer, not frequency of peripheral clock
@@ -249,36 +248,37 @@ int main(void) {
 	Buzzer_Start(&hbuzzer);
 
 	const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
-	for (int j = 0; j < 5; j++) {
-		for (size_t i = 0; i < songSize; i++) {
-			Buzzer_Note(&hbuzzer, error_sound[i].pitch);
-			HAL_Delay(60000 / BPM * 4 / error_sound[i].duration);
-		}
+	for (size_t i = 0; i < songSize; i++) {
+		Buzzer_Play(&hbuzzer, error_sound[i].pitch, error_sound[i].duration,
+				BPM_SYSTEM_SOUND);
 	}
 
 	const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
-	for (int j = 0; j < 5; j++) {
-		for (size_t i = 0; i < songSize2; i++) {
-			Buzzer_Note(&hbuzzer, battery_empty[i].pitch);
-			HAL_Delay(60000 / BPM * 4 / battery_empty[i].duration);
-		}
+	for (size_t i = 0; i < songSize2; i++) {
+		Buzzer_Play(&hbuzzer, battery_empty[i].pitch, battery_empty[i].duration,
+				BPM_SYSTEM_SOUND);
 	}
 
 	const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
-	for (int j = 0; j < 5; j++) {
-		for (size_t i = 0; i < songSize3; i++) {
-			Buzzer_Note(&hbuzzer, air_empty[i].pitch);
-			HAL_Delay(60000 / BPM * 4 / air_empty[i].duration);
-		}
+	for (size_t i = 0; i < songSize3; i++) {
+		Buzzer_Play(&hbuzzer, air_empty[i].pitch, air_empty[i].duration,
+				BPM_SYSTEM_SOUND);
 	}
 
 	const size_t songSize4 = sizeof(mario_level_complete)
 			/ sizeof(mario_level_complete[0]);
 	for (size_t i = 0; i < songSize4; i++) {
-		Buzzer_Note(&hbuzzer, mario_level_complete[i].pitch);
-		HAL_Delay(60000 / 145 * 4 / mario_level_complete[i].duration);
+		Buzzer_Play(&hbuzzer, mario_level_complete[i].pitch,
+				mario_level_complete[i].duration, BPM_MARIO_LEVEL);
 	}
-	Buzzer_Note(&hbuzzer, 0);
+
+	const size_t songSize5 = sizeof(mario_theme) / sizeof(mario_theme[0]);
+	for (size_t i = 0; i < songSize5; i++) {
+		Buzzer_Play(&hbuzzer, mario_theme[i].pitch, mario_theme[i].duration,
+				BPM_MARIO);
+	}
+
+	Buzzer_NoNote(&hbuzzer);
 
 	/* CLK Configuration */
 
@@ -589,6 +589,48 @@ static void MX_TIM3_Init(void) {
 
 	/* USER CODE END TIM3_Init 2 */
 	HAL_TIM_MspPostInit(&htim3);
+
+}
+
+/**
+ * @brief TIM4 Initialization Function
+ * @param None
+ * @retval None
+ */
+static void MX_TIM4_Init(void) {
+
+	/* USER CODE BEGIN TIM4_Init 0 */
+
+	/* USER CODE END TIM4_Init 0 */
+
+	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
+	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
+
+	/* USER CODE BEGIN TIM4_Init 1 */
+
+	/* USER CODE END TIM4_Init 1 */
+	htim4.Instance = TIM4;
+	htim4.Init.Prescaler = 275 - 1;
+	htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim4.Init.Period = 0xffff;
+	htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+	if (HAL_TIM_Base_Init(&htim4) != HAL_OK) {
+		Error_Handler();
+	}
+	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK) {
+		Error_Handler();
+	}
+	sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+	if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+	/* USER CODE BEGIN TIM4_Init 2 */
+
+	/* USER CODE END TIM4_Init 2 */
 
 }
 
@@ -941,10 +983,10 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(PWRDET_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : X_STOP_Pin Y_MIN_Pin */
-	GPIO_InitStruct.Pin = X_STOP_Pin | Y_MIN_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	/*Configure GPIO pins : Z_STOP_Pin X_STOP_Pin */
+	GPIO_InitStruct.Pin = Z_STOP_Pin | X_STOP_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : PRESSURE_Pin */
@@ -952,6 +994,13 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(PRESSURE_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : BUZZER_Pin */
+	GPIO_InitStruct.Pin = BUZZER_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : X_DIR_Pin */
 	GPIO_InitStruct.Pin = X_DIR_Pin;
@@ -989,6 +1038,9 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
+	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(Z_STOP_EXTI_IRQn);
+
 	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 

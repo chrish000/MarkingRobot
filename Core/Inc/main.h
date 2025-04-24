@@ -95,8 +95,6 @@ void DMA_Callback(DMA_HandleTypeDef *hdma);
 #define PRESSURE_EXTI_IRQn EXTI2_IRQn
 #define BAT_VOLTAGE_Pin GPIO_PIN_0
 #define BAT_VOLTAGE_GPIO_Port GPIOA
-#define BUZZER_Pin GPIO_PIN_5
-#define BUZZER_GPIO_Port GPIOC
 #define SD_CS_Pin GPIO_PIN_4
 #define SD_CS_GPIO_Port GPIOA
 #define SD_SCK_Pin GPIO_PIN_5
@@ -107,6 +105,8 @@ void DMA_Callback(DMA_HandleTypeDef *hdma);
 #define SD_MOSI_GPIO_Port GPIOA
 #define SD_DET_Pin GPIO_PIN_4
 #define SD_DET_GPIO_Port GPIOC
+#define BUZZER_Pin GPIO_PIN_5
+#define BUZZER_GPIO_Port GPIOC
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

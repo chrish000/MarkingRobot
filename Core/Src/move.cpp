@@ -99,7 +99,7 @@ bool Robot::moveToPos(MoveParams param) {
 	float_t newY = param.y.value_or(posY);
 	float_t newSpeed = param.speed.value_or(speed);
 	float_t newAccel = param.accel.value_or(accel);
-	bool printing = (bool)param.printing.value_or(false);
+	bool printing = (bool) param.printing.value_or(false);
 
 	if (!(newX == posX && newY == posY)) {
 		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
@@ -117,17 +117,19 @@ bool Robot::moveToPos(MoveParams param) {
 				return true;
 			} else
 				return false;
-	} else {
-		if (motorMaster.moveBuf.writeAvailable() != 0) {
-			if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
-					printing) == false)
+		} else {
+			if (motorMaster.moveBuf.writeAvailable() != 0) {
+				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
+						printing) == false)
+					return false;
+				posX = newX;
+				posY = newY;
+				return true;
+			} else
 				return false;
-			posX = newX;
-			posY = newY;
-			return true;
-		} else
-			return false;
+		}
 	}
+	return false;
 }
 
 /**
@@ -144,7 +146,7 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 	uint32_t steps = fabs(distance * STEPS_PER_MM); //Schritte berechnen
 	bool direction = (distance > 0) ? 1 : 0; //Richtung bestimmen
 #ifdef REVERSE_BOTH_MOTOR_DIRECTION
-		direction = !direction;
+	direction = !direction;
 #endif
 	MotorManager::moveCommands cmd;
 	cmd.speed = speed * STEPS_PER_MM;
@@ -177,7 +179,7 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	uint32_t steps = fabs(degrees * STEPS_PER_DEG); //Schritte berechnen
 	bool direction = (degrees > 0) ? 1 : 0; //Richtung bestimmen
 #ifdef REVERSE_BOTH_MOTOR_DIRECTION
-		direction = !direction;
+	direction = !direction;
 #endif
 	MotorManager::moveCommands cmd;
 	cmd.speed = speed * STEPS_PER_MM;
@@ -202,8 +204,15 @@ bool Robot::moveToHome() {
 	if (!posX && !posY && !orientation) //steht bereits auf Position
 		return true;
 
+	MoveParams param;
+	param.x = 500;
+	param.y = 500;
+	param.speed = DEFAULT_SPEED;
+	param.accel = DEFAULT_ACCEL;
+	param.printing = false;
+
 	bool status = true;
-	status &= moveToPos(500, 500, DEFAULT_SPEED, DEFAULT_ACCEL, false);
+	status &= moveToPos(param);
 	status &= moveRot(-(orientation - 45));
 	status &= moveLin(-707.107);
 	status &= moveRot(-45);

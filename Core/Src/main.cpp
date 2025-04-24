@@ -263,7 +263,7 @@ int main(void) {
 	robi.motorMaster.motorX.tmc.enable();
 	robi.motorMaster.motorY.tmc.enable();
 
-	robi.printhead.clean();
+	//robi.printhead.clean();
 
 	Buzzer_InitTypeDef buzzerConfig;
 	buzzerConfig.timer = &htim4;
@@ -271,6 +271,7 @@ int main(void) {
 	Buzzer_Init(&hbuzzer, &buzzerConfig);
 	Buzzer_Start(&hbuzzer);
 
+	/*
 	const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
 	for (size_t i = 0; i < songSize; i++) {
 		Buzzer_Play(&hbuzzer, error_sound[i].pitch, error_sound[i].duration,
@@ -288,7 +289,7 @@ int main(void) {
 		Buzzer_Play(&hbuzzer, air_empty[i].pitch, air_empty[i].duration,
 		BPM_SYSTEM_SOUND);
 	}
-
+	*/
 	const size_t songSize4 = sizeof(mario_level_complete)
 			/ sizeof(mario_level_complete[0]);
 	for (size_t i = 0; i < songSize4; i++) {
@@ -305,18 +306,10 @@ int main(void) {
 	Buzzer_NoNote(&hbuzzer);
 
 	//SD
-	HAL_Delay(750);
+	HAL_Delay(1000);
 	robi.sd.init();
 	robi.sd.openFile("test.gcode");
 
-
-	// ################# TESTLAUF ###############################
-	/*
-	 const uint8_t posCnt = 4;
-	 int16_t posStorage[10][2] = { { 1000, 0 }, { 1000, 1000 }, { 0, 1000 }, { 0,
-	 0 }, { 5000, 0 }, { 6000, 0 }, { 7000, 0 }, { 8000, 0 },
-	 { 9000, 0 }, { 10000, 0 } };
-	 */
 	uint8_t i = 0;
 
 	/* USER CODE END 2 */
@@ -561,7 +554,7 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
 	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
 	hspi1.Init.NSS = SPI_NSS_SOFT;
-	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
 	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
 	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
 	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -570,9 +563,9 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
 	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
 	hspi1.Init.TxCRCInitializationPattern =
-	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.RxCRCInitializationPattern =
-	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
 	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
@@ -598,6 +591,7 @@ static void MX_TIM2_Init(void) {
 
 	/* USER CODE END TIM2_Init 0 */
 
+	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
 	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
 	TIM_OC_InitTypeDef sConfigOC = { 0 };
 
@@ -610,7 +604,11 @@ static void MX_TIM2_Init(void) {
 	htim2.Init.Period = 1;
 	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_PWM_Init(&htim2) != HAL_OK) {
+	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
+		Error_Handler();
+	}
+	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
 		Error_Handler();
 	}
 	if (HAL_TIM_PWM_Init(&htim2) != HAL_OK) {
@@ -1040,13 +1038,10 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_WritePin(GPIOE, Z_STEP_Pin | Z_DIR_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
-
-	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(SD_DET_GPIO_Port, SD_DET_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOD, X_DIR_Pin | X_STEP_Pin, GPIO_PIN_RESET);
@@ -1089,6 +1084,12 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+	/*Configure GPIO pin : PRESSURE_Pin */
+	GPIO_InitStruct.Pin = PRESSURE_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(PRESSURE_GPIO_Port, &GPIO_InitStruct);
+
 	/*Configure GPIO pin : SD_CS_Pin */
 	GPIO_InitStruct.Pin = SD_CS_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -1098,16 +1099,9 @@ static void MX_GPIO_Init(void) {
 
 	/*Configure GPIO pin : SD_DET_Pin */
 	GPIO_InitStruct.Pin = SD_DET_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLUP;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(SD_DET_GPIO_Port, &GPIO_InitStruct);
-
-	/*Configure GPIO pin : PRESSURE_Pin */
-	GPIO_InitStruct.Pin = PRESSURE_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(PRESSURE_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(SD_DET_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : BUZZER_Pin */
 	GPIO_InitStruct.Pin = BUZZER_Pin;

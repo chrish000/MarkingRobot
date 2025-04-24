@@ -30,8 +30,8 @@ class Robot {
 public:
 	Robot() :
 			motorMaster(pins), printhead(pins.TIM_Printhead,
-			TIM_PrintheadChannel), ADC_Handle(pins.ADC_Handle), ADC_TIM(
-					pins.ADC_TIM), parser(this) {
+			TIM_PrintheadChannel), parser(this), ADC_Handle(pins.ADC_Handle), ADC_TIM(
+					pins.ADC_TIM) {
 	}
 
 	Pin pins;
@@ -41,11 +41,11 @@ public:
 	GCodeParser parser;
 
 	struct MoveParams {
-	    std::optional<float> x;
-	    std::optional<float> y;
-	    std::optional<float> speed;
-	    std::optional<float> accel;
-	    std::optional<float> printing;
+		std::optional<float> x;
+		std::optional<float> y;
+		std::optional<float> speed;
+		std::optional<float> accel;
+		std::optional<float> printing;
 	};
 
 	uint16_t ADC_BatteryVoltage = 0;

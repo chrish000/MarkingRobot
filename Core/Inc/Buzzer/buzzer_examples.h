@@ -57,7 +57,7 @@ note_t mario_level_complete[] = {
 		{ NOTE_AS5, 4 },
 		{ NOTE_B5, 16 }, { 0, 48 }, { NOTE_B5, 16 }, { 0, 48 }, { NOTE_B5, 16 }, { 0, 48 },
 
-		{ NOTE_C6, 4 }
+		{ NOTE_C6, 4 }, { 0, 4 }, { 0, 2 }
 };
 
 #define BPM_SYSTEM_SOUND 120

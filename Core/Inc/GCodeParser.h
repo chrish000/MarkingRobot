@@ -13,8 +13,8 @@
  ******************************************************************************
  */
 
-#ifndef GCODEPARSER_H_
-#define GCODEPARSER_H_
+#ifndef GCODEPARSER_H
+#define GCODEPARSER_H
 
 #include <string>
 #include <map>
@@ -45,4 +45,4 @@ private:
 
 };
 
-#endif /* GCODEPARSER_H_ */
+#endif /* GCODEPARSER_H */

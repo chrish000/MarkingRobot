@@ -272,24 +272,24 @@ int main(void) {
 	Buzzer_Start(&hbuzzer);
 
 	/*
-	const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
-	for (size_t i = 0; i < songSize; i++) {
-		Buzzer_Play(&hbuzzer, error_sound[i].pitch, error_sound[i].duration,
-		BPM_SYSTEM_SOUND);
-	}
+	 const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
+	 for (size_t i = 0; i < songSize; i++) {
+	 Buzzer_Play(&hbuzzer, error_sound[i].pitch, error_sound[i].duration,
+	 BPM_SYSTEM_SOUND);
+	 }
 
-	const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
-	for (size_t i = 0; i < songSize2; i++) {
-		Buzzer_Play(&hbuzzer, battery_empty[i].pitch, battery_empty[i].duration,
-		BPM_SYSTEM_SOUND);
-	}
+	 const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
+	 for (size_t i = 0; i < songSize2; i++) {
+	 Buzzer_Play(&hbuzzer, battery_empty[i].pitch, battery_empty[i].duration,
+	 BPM_SYSTEM_SOUND);
+	 }
 
-	const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
-	for (size_t i = 0; i < songSize3; i++) {
-		Buzzer_Play(&hbuzzer, air_empty[i].pitch, air_empty[i].duration,
-		BPM_SYSTEM_SOUND);
-	}
-	*/
+	 const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
+	 for (size_t i = 0; i < songSize3; i++) {
+	 Buzzer_Play(&hbuzzer, air_empty[i].pitch, air_empty[i].duration,
+	 BPM_SYSTEM_SOUND);
+	 }
+	 */
 	const size_t songSize4 = sizeof(mario_level_complete)
 			/ sizeof(mario_level_complete[0]);
 	for (size_t i = 0; i < songSize4; i++) {
@@ -563,9 +563,9 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
 	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
 	hspi1.Init.TxCRCInitializationPattern =
-			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.RxCRCInitializationPattern =
-			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
 	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;

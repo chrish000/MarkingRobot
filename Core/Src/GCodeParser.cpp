@@ -87,7 +87,7 @@ bool GCodeParser::transformAndPushParameter(Robot *rob) {
 	bool status = false;
 	;
 	switch (result.commandType) {
-	case 'G': { // TODO G0 G1 G28 etc.
+	case 'G': {
 		switch (result.commandValue) {
 		case 0: {
 			Robot::MoveParams param;
@@ -119,18 +119,17 @@ bool GCodeParser::transformAndPushParameter(Robot *rob) {
 	}
 	case 'M': {
 		switch (result.commandValue) {
-		case 0: {
-			break;
-		}
-		case 1: {
-			break;
-		}
 		case 5: {
 			/*
 			rob->motorMaster.motorX.tmc.disable();
 			rob->motorMaster.motorY.tmc.disable();
 			rob->printhead.stop();
 			*/
+			break;
+		}
+		default: {
+			assert("unbekannter Befehl");
+			status = false;
 			break;
 		}
 		}

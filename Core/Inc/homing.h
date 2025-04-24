@@ -1,33 +1,11 @@
-/*
 
- * homing.h
-
- *
-
- *  Created on: Feb 10, 2025
-
- *      Author: Chris Hauser
-
- */
-#ifndef INC_HOMING_H_
-#define INC_HOMING_H_
-
-#define MAX_HOMING_DIST 500 //mm
-#define MAX_HOMING_TRY 10
-#define MAX_HOMING_TIMEOUT 30000 //ms
-#define HOMING_SPEED_PROBING 40 //mm/s
-#define HOMING_SPPED_MOVING 200 //mm/s
-#define HOMING_ACCEL 50 //mm/s^2
-#define HOMING_MAX_FAULT 0.01 //deg
-#define DIST_BETWEEN_PROBING 20 //mm
-#define	SENSOR_DIST 460.5f //mm
-#define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
-#define HOMING_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
-//#define MOVE_TO_HOME_BEFORE_HOMING
+#ifndef HOMING_H
+#define HOMING_H
 
 #include "move.h"
 #include "parser.h"
 #include "pins.h"
+#include "config.h"
 
 typedef enum {
 	HOMING_FINISHED = 0x00,
@@ -81,7 +59,7 @@ bool movementFinished(Robot *rob) {
 	return status;
 }
 
-void adjustDistWithMotorRatio() {	//TODO überprüfen
+void adjustDistWithMotorRatio() {
 	float_t motorRatio = MOTOR_XY_RATIO * 0.01f;
 	if (motorRatio > 1.0f) {
 		motorRatio = 2.0f - motorRatio;
@@ -207,4 +185,4 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	return HOMING_BUSY;
 
 }
-#endif /* INC_HOMING_H_ */
+#endif /* HOMING_H */

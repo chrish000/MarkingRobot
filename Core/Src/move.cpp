@@ -20,6 +20,7 @@
 
 void Robot::resetPos() {
 	orientation = posX = posY = 0;
+	totalDistSinceHoming = 0;
 }
 void Robot::setPos(float_t newOrientation, float_t newX, float_t newY) {
 	orientation = newOrientation;
@@ -163,6 +164,7 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 		cmd.directionY = (!direction ? Direction::Forward : Direction::Reverse);
 	cmd.printigMove = printing;
 
+	totalDistSinceHoming += distance;
 	return motorMaster.moveBuf.insert(cmd);
 }
 

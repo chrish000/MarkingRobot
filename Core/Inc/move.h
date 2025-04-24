@@ -53,6 +53,8 @@ public:
 	bool lowAirPressure = false;
 	bool batteryAlarm = false;
 
+	float_t totalDistSinceHoming = 0;
+
 	void init();
 	bool moveToPos(Robot::MoveParams);
 	bool moveLin(float_t distance, float_t speed = DEFAULT_SPEED,

@@ -85,7 +85,6 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* Peripherie */
 ERROR_HandleCode ErrorCode = NONE;
 Robot robi;
-Buzzer_HandleTypeDef hbuzzer;
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
@@ -206,8 +205,8 @@ void DMA_Callback(DMA_HandleTypeDef *hdma) {
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM4) {
-		HAL_GPIO_TogglePin(BUZZER_GPIO_Port, BUZZER_Pin);
+	if (htim->Instance == robi.pins.TIM_BUZZER->Instance) {
+		HAL_GPIO_TogglePin(BUZZER_PORT, BUZZER_PIN);
 	}
 }
 
@@ -260,99 +259,77 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	robi.init();
 
-	robi.motorMaster.motorX.tmc.enable();
-	robi.motorMaster.motorY.tmc.enable();
-
 	//robi.printhead.clean();
 
-	Buzzer_InitTypeDef buzzerConfig;
-	buzzerConfig.timer = &htim4;
-	buzzerConfig.timerClockFreqHz = HAL_RCC_GetPCLK2Freq(); // NOTE: this should be freq of timer, not frequency of peripheral clock
-	Buzzer_Init(&hbuzzer, &buzzerConfig);
-	Buzzer_Start(&hbuzzer);
-
-	/*
-	 const size_t songSize = sizeof(error_sound) / sizeof(error_sound[0]);
-	 for (size_t i = 0; i < songSize; i++) {
-	 Buzzer_Play(&hbuzzer, error_sound[i].pitch, error_sound[i].duration,
-	 BPM_SYSTEM_SOUND);
-	 }
-
-	 const size_t songSize2 = sizeof(battery_empty) / sizeof(battery_empty[0]);
-	 for (size_t i = 0; i < songSize2; i++) {
-	 Buzzer_Play(&hbuzzer, battery_empty[i].pitch, battery_empty[i].duration,
-	 BPM_SYSTEM_SOUND);
-	 }
-
-	 const size_t songSize3 = sizeof(air_empty) / sizeof(air_empty[0]);
-	 for (size_t i = 0; i < songSize3; i++) {
-	 Buzzer_Play(&hbuzzer, air_empty[i].pitch, air_empty[i].duration,
-	 BPM_SYSTEM_SOUND);
-	 }
-	 */
-	const size_t songSize4 = sizeof(mario_level_complete)
-			/ sizeof(mario_level_complete[0]);
-	for (size_t i = 0; i < songSize4; i++) {
-		Buzzer_Play(&hbuzzer, mario_level_complete[i].pitch,
-				mario_level_complete[i].duration, BPM_MARIO_LEVEL);
-	}
-
-	const size_t songSize5 = sizeof(mario_theme) / sizeof(mario_theme[0]);
-	for (size_t i = 0; i < songSize5; i++) {
-		Buzzer_Play(&hbuzzer, mario_theme[i].pitch, mario_theme[i].duration,
-		BPM_MARIO);
-	}
-
-	Buzzer_NoNote(&hbuzzer);
+	Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
+			(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 
 	//SD
 	HAL_Delay(1000);
 	robi.sd.init();
 	robi.sd.openFile("test.gcode");
 
-	uint8_t i = 0;
-
+	robi.printingFlag = true;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		while (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
-			if (!robi.sd.readNextLine())
-				break;
-			robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);
-		}
 
-		robi.motorMaster.calcInterval();
+		/* Druckvorgang */
+		if (robi.printingFlag) {
+			/* Referenzierung auslösen wenn Strecke erreicht */
+			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING) {
+				while (robi.motorMaster.calcInterval())
+					; //Bewegungspuffer abarbeiten
+				robi.isHomedFlag = false;
+			}
 
-		if (robi.printhead.isActive() != printFlag) {
-			printFlag ? robi.printhead.start() : robi.printhead.stop();
-		}
+			/* Roboter neu referenzieren wenn nötig */
+			if (!robi.isHomedFlag) {
+				/*
+				while (1) {
+					if (home(&robi) == HOMING_FINISHED)
+						break;
+					robi.motorMaster.calcInterval();
+				}
+				*/
+			}
 
-		switch (i) {
-		case 0:
-			if (home(&robi) == HOMING_FINISHED)
-				i++;
-			break;
-		case 1:
-			robi.moveRot(3600);
-			i++;
-			break;
-		case 2:
-			if (movementFinished(&robi))
-				i++;
-			break;
-		case 3:
-			home(&robi);
-			/*
-			 robi.motorMaster.motorX.tmc.disable();
-			 robi.motorMaster.motorY.tmc.disable();
-			 robi.printhead.stop();
-			 */
-			//i++;
-			break;
-		default:
-			break;
+			/* Düse ansteuern*/
+			if (robi.printhead.isActive() != printFlag) {
+				printFlag ? robi.printhead.start() : robi.printhead.stop();
+			}
+
+			/* Befehl aus SD lesen */
+			while (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
+				if (!robi.sd.readNextLine())
+					break;
+				robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);
+			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
+
+			/* Ende von Druckvorgang */
+			if (robi.finishedFlag) {
+				if (movementFinished(&robi)) {
+					robi.moveToHome();
+					while (!movementFinished(&robi))
+						robi.motorMaster.calcInterval();
+					robi.printhead.stop();
+					robi.motorMaster.motorX.disableMotor();
+					robi.motorMaster.motorY.disableMotor();
+					robi.finishedFlag = false;
+					robi.printingFlag = false;
+					robi.sd.closeCurrentFile();
+
+					Buzzer_Play_Song(&robi.hbuzzer, mario_level_complete,
+							(sizeof(mario_level_complete)
+									/ sizeof(mario_level_complete[0])),
+							BPM_MARIO_LEVEL);
+				}
+			}
 		}
 
 		/* USER CODE END WHILE */

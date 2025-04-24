@@ -175,6 +175,8 @@ HOMING_StatusTypeDef home(Robot *rob) {
 		break;
 	case 8:	//Position anpassen und beenden
 		rob->setPos(0, 0, 0);
+		rob->totalDistSinceHoming = 0;
+		rob->isHomedFlag = true;
 		phase = 9;
 		break;
 	case 9:

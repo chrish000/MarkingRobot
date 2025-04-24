@@ -120,11 +120,7 @@ bool GCodeParser::transformAndPushParameter(Robot *rob) {
 	case 'M': {
 		switch (result.commandValue) {
 		case 5: {
-			/*
-			rob->motorMaster.motorX.tmc.disable();
-			rob->motorMaster.motorY.tmc.disable();
-			rob->printhead.stop();
-			*/
+			rob->finishedFlag = true;
 			break;
 		}
 		default: {

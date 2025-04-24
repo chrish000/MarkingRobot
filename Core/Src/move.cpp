@@ -71,20 +71,32 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 void Robot::init() {
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
+
 	motorMaster.moveBuf.consumerClear();
 	motorMaster.motorX.init();
 	motorMaster.motorY.init();
-	printhead.init();
-	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
 	motorMaster.motorX.tmc.setup();
 	motorMaster.motorX.tmc.setMicrostepsPerStep(MICROSTEPS);
 	motorMaster.motorY.tmc.setup();
 	motorMaster.motorY.tmc.setMicrostepsPerStep(MICROSTEPS);
+
+	printhead.init();
+
+	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
+
+
+
 	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED); // ADC Kalibrieren
 	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*) &ADC_BatteryVoltage, 1); // ADC starten
 	HAL_TIM_Base_Start(ADC_TIM);			// Timer für ADC ausloesung starten
+
+	Buzzer_InitTypeDef buzzerConfig;
+	buzzerConfig.timer = pins.TIM_BUZZER;
+	buzzerConfig.timerClockFreqHz = HAL_RCC_GetPCLK2Freq(); // NOTE: this should be freq of timer, not frequency of peripheral clock
+	Buzzer_Init(&hbuzzer, &buzzerConfig);
+	Buzzer_Start(&hbuzzer);
 }
 
 /**
@@ -218,5 +230,7 @@ bool Robot::moveToHome() {
 	status &= moveRot(-(orientation - 45));
 	status &= moveLin(-707.107);
 	status &= moveRot(-45);
+
+	setPos(0, 0, 0);
 	return status;
 }

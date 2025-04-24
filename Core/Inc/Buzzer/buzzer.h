@@ -26,6 +26,7 @@ typedef struct {
 	uint16_t clockPeriod;
 } Buzzer_HandleTypeDef;
 
+void Buzzer_Play_Song(Buzzer_HandleTypeDef *handle, note_t* song, size_t songSize, uint8_t BPM);
 void Buzzer_Play(Buzzer_HandleTypeDef *handle, uint32_t noteFreq,
 		uint8_t duration, uint8_t BPM);
 void Buzzer_Note(Buzzer_HandleTypeDef *handle, uint32_t noteFreq);

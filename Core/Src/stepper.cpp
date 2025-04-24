@@ -58,6 +58,7 @@ void StepperMotor::init() {
  */
 void StepperMotor::startTimer() {
 	assert(TIM_Motor != nullptr && "Timer Handle darf nicht NULL sein!");
+	enableMotor();
 	stepBuf.remove(&StepCmdBuffer);
 	TIM_Motor->Instance->ARR = timARRDefault;
 	timerActiveFlag = true;
@@ -76,6 +77,20 @@ void StepperMotor::stopTimer() {
 	timerActiveFlag = false;
 	printFlag = false;
 
+}
+
+void StepperMotor::enableMotor() {
+	if(!motorEnabled) {
+			tmc.enable();
+			motorEnabled = true;
+	}
+}
+
+void StepperMotor::disableMotor() {
+	if(motorEnabled) {
+			tmc.enable();
+			motorEnabled = false;
+	}
 }
 
 /**

@@ -1,5 +1,11 @@
 #include "buzzer.h"
 
+void Buzzer_Play_Song(Buzzer_HandleTypeDef *handle, note_t* song, size_t songSize, uint8_t BPM) {
+	for (size_t i = 0; i < songSize; i++) {
+		Buzzer_Play(handle, song[i].pitch, song[i].duration, BPM);
+	}
+}
+
 void Buzzer_Play(Buzzer_HandleTypeDef *handle, uint32_t noteFreq,
 		uint8_t duration, uint8_t BPM) {
 	Buzzer_Note(handle, noteFreq);

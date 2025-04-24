@@ -83,6 +83,11 @@ struct Pin {
 // PRESSURE
 #define LOW_PRESSURE_PORT PRESSURE_GPIO_Port
 #define LOW_PRESSURE_PIN PRESSURE_Pin
+
+//BUZZER
+	TIM_HandleTypeDef *TIM_BUZZER = &htim4;
+#define BUZZER_PORT BUZZER_GPIO_Port
+#define BUZZER_PIN BUZZER_Pin
 };
 
 #endif /* INC_PINS_H_ */

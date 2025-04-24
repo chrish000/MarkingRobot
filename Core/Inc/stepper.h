@@ -60,9 +60,12 @@ public:
 	void init();
 	void startTimer();
 	void stopTimer();
+	void enableMotor();
+	void disableMotor();
 	HAL_TIM_StateTypeDef getTimerState();
 
 private:
+	bool motorEnabled = false;
 
 };
 

@@ -25,6 +25,7 @@
 #include "sd.h"
 #include "GCodeParser.h"
 #include <optional>
+#include "Buzzer/buzzer.h"
 
 class Robot {
 public:
@@ -39,6 +40,7 @@ public:
 	Printhead printhead;
 	SD sd;
 	GCodeParser parser;
+	Buzzer_HandleTypeDef hbuzzer;
 
 	struct MoveParams {
 		std::optional<float> x;
@@ -53,7 +55,10 @@ public:
 	bool lowAirPressure = false;
 	bool batteryAlarm = false;
 
+	bool printingFlag = false;
+	bool isHomedFlag = false;
 	float_t totalDistSinceHoming = 0;
+	bool finishedFlag = false;
 
 	void init();
 	bool moveToPos(Robot::MoveParams);

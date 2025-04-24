@@ -39,6 +39,11 @@ MotorManager::~MotorManager() {
 	motorY.~StepperMotor();
 }
 
+void MotorManager::resetCalc() {
+	calcX = intervalCalcStruct { };
+	calcY = intervalCalcStruct { };
+}
+
 /**
  * @brief Schreibt die berechneten Schrittintervalle in den zugehörigen Puffer
  * @param None
@@ -100,8 +105,7 @@ bool MotorManager::calcInterval() {
 	if (calcX.stepCnt == moveCmdCalcBufX.stepDistance
 			&& calcY.stepCnt == moveCmdCalcBufY.stepDistance) {
 
-		calcX = intervalCalcStruct { };
-		calcY = intervalCalcStruct { };
+		resetCalc();
 
 		if (moveBuf.remove()) {
 			if (!motorX.timerActiveFlag)

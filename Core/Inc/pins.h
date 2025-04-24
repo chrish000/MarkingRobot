@@ -45,7 +45,19 @@ struct Pin
 	DMA_HandleTypeDef *TIM_DMA_BSRR_Y = &hdma_tim24_ch2;
 	UART_HandleTypeDef *TMC_UART_address_Y = &huart8;
 	CRC_HandleTypeDef *CRC_Handle_Y = &hcrc;
-	// PRINTHEAD
+//ENDSTOP
+#define X_STOP_PIN X_STOP_Pin
+#define Y_STOP_PIN Z_STOP_Pin
+#define X_STOP_PORT X_STOP_GPIO_Port
+#define Y_STOP_PORT Z_STOP_GPIO_Port
+#define PWRDET_PIN PWRDET_Pin
+#define PRESSURE_PIN PRESSURE_Pin
+#define X_STOP_EXTI X_STOP_EXTI_IRQn
+#define Y_STOP_EXTI Z_STOP_EXTI_IRQn
+#define PWRDET_EXTI PWRDET_EXTI_IRQn
+#define	PRESSURE_EXTI PRESSURE_EXTI_IRQn
+
+//PRINTHEAD
 	TIM_HandleTypeDef *TIM_Printhead = &htim3;
 #define TIM_PrintheadChannel TIM_CHANNEL_1
 // FAN
@@ -54,8 +66,8 @@ struct Pin
 #define FAN1_PORT FAN1_GPIO_Port
 #define FAN1_PIN FAN1_Pin
 #define FAN2_PORT FAN2_GPIO_Port
-#define FAN2_PIN FAN1_Pin
-	// HE0
+#define FAN2_PIN FAN2_Pin
+//HE0
 	TIM_HandleTypeDef *TIM_HE0 = &htim2;
 #define TIM_HE0Channel TIM_CHANNEL_2
 	// BATTERY

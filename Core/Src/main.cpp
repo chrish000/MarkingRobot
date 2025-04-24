@@ -35,6 +35,7 @@
 #include "utils.h"
 #include "Buzzer/buzzer.h"
 #include "Buzzer/buzzer_examples.h"
+#include "homing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -118,11 +119,25 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
  * @retval None
  */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == PWRDET_Pin) {
-		robi.batteryAlarm = true;
-	} else if (GPIO_Pin == LOW_PRESSURE_PIN) {
-		robi.lowAirPressure = HAL_GPIO_ReadPin(LOW_PRESSURE_PORT,
-		LOW_PRESSURE_PIN);
+	switch (GPIO_Pin) {
+	case PWRDET_PIN:
+		BatteryAlarm = true;
+		break;
+
+	case PRESSURE_PIN:
+		break;
+
+	case X_STOP_PIN:
+		xFlag = true;
+		xDist = Dist;
+		homingActive = !yFlag;
+		break;
+
+	case Y_STOP_PIN:
+		yFlag = true;
+		yDist = Dist;
+		homingActive = !xFlag;
+		break;
 	}
 }
 
@@ -170,15 +185,19 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void DMA_Callback(DMA_HandleTypeDef *hdma) {
+	StepperMotor *motor = nullptr;
+
 	if (hdma->Instance == robi.motorMaster.motorX.TIM_DMA_BSRR->Instance) {
-		if (!robi.motorMaster.motorX.stepBuf.remove(
-				&robi.motorMaster.motorX.StepCmdBuffer))
-			robi.motorMaster.motorX.stopTimer();
+		motor = &robi.motorMaster.motorX;
+		if (homingActive)
+			++Dist;
+	} else if (hdma->Instance
+			== robi.motorMaster.motorY.TIM_DMA_BSRR->Instance) {
+		motor = &robi.motorMaster.motorY;
 	}
-	if (hdma->Instance == robi.motorMaster.motorY.TIM_DMA_BSRR->Instance) {
-		if (!robi.motorMaster.motorY.stepBuf.remove(
-				&robi.motorMaster.motorY.StepCmdBuffer))
-			robi.motorMaster.motorY.stopTimer();
+
+	if (motor->stepBuf.remove(&motor->StepCmdBuffer) == false) {
+		motor->stopTimer();
 	}
 }
 
@@ -233,7 +252,6 @@ int main(void) {
 	MX_TIM24_Init();
 	MX_TIM4_Init();
 	/* USER CODE BEGIN 2 */
-	/* Peripheral Configuration */
 	robi.init();
 
 	robi.motorMaster.motorX.tmc.enable();
@@ -294,21 +312,43 @@ int main(void) {
 			{ 9000, 0 }, { 10000, 0 } };
 	uint8_t i = 0;
 
+	int i = 0;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		while (i < posCnt && robi.moveToPos(posStorage[i][0], posStorage[i][1],
-		DEFAULT_SPEED, DEFAULT_ACCEL, true)) {
-			i++;
-		}
 
-		while (robi.motorMaster.calcInterval())
-			;
+		robi.motorMaster.calcInterval();
 
 		if (robi.printhead.isActive() != printFlag) {
 			printFlag ? robi.printhead.start() : robi.printhead.stop();
+		}
+
+		switch (i) {
+		case 0:
+			if (home(&robi) == HOMING_FINISHED)
+				i++;
+			break;
+		case 1:
+			robi.moveRot(3600);
+			i++;
+			break;
+		case 2:
+			if (movementFinished(&robi))
+				i++;
+			break;
+		case 3:
+			home(&robi);
+			/*
+			 robi.motorMaster.motorX.tmc.disable();
+			 robi.motorMaster.motorY.tmc.disable();
+			 robi.printhead.stop();
+			 */
+			//i++;
+			break;
+		default:
+			break;
 		}
 
 		/* USER CODE END WHILE */
@@ -1023,6 +1063,13 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
 
+	/*Configure GPIO pin : X_EN_Pin */
+	GPIO_InitStruct.Pin = X_EN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
+
 	/*Configure GPIO pins : FAN2_Pin FAN1_Pin FAN0_Pin */
 	GPIO_InitStruct.Pin = FAN2_Pin | FAN1_Pin | FAN0_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1033,7 +1080,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : Z_EN_Pin */
 	GPIO_InitStruct.Pin = Z_EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 
@@ -1044,7 +1091,7 @@ static void MX_GPIO_Init(void) {
 	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 
-	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 0, 0);
@@ -1068,16 +1115,14 @@ void Error_Handler(void) {
 	__disable_irq();
 
 	while (1) {
-		switch (ErrorCode) {
-		case NONE:
-			break;
-		case MOVE_BUF:
-			break;
-		case STEP_BUF:
-			break;
-		case LOW_VOLTAGE:
-			break;
-		}
+	switch (ErrorCode) {
+	case NONE:
+		break;
+	case MOVE_BUF:
+		break;
+	case STEP_BUF:
+		break;
+	}
 	}
 	/* USER CODE END Error_Handler_Debug */
 }

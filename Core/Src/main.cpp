@@ -222,16 +222,29 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void LowVoltageHandler() {
-	//TODO
-	/**
-	 * stop Printing
-	 * disable Motors
-	 * disable all Sensors
-	 * disable Fan
-	 *
-	 * set Buzzer Alarm
-	 * show Alarm on Display
-	 */
+
+	robi.motorMaster.moveBuf.remove(robi.motorMaster.buffer_size_move - 1);
+	while (robi.motorMaster.calcInterval())
+		;
+	robi.printhead.stop();
+	robi.motorMaster.motorX.disableMotor();
+	robi.motorMaster.motorX.stopTimer();
+	robi.motorMaster.motorY.disableMotor();
+	robi.motorMaster.motorY.stopTimer();
+	robi.isHomedFlag = false;
+	robi.printingFlag = false;
+	HAL_TIM_Base_Stop(&htim8);//ADC
+	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
+	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
+	HAL_NVIC_DisableIRQ(LCD_BTN_EXTI);
+	HAL_NVIC_DisableIRQ(LCD_ENCA_EXTI);
+	HAL_NVIC_DisableIRQ(LCD_ENCB_EXTI);
+	HAL_GPIO_WritePin(X_STOP_PORT, X_STOP_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(Y_STOP_PORT, Y_STOP_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_RESET);
+
+	ErrorCode = LOW_VOLTAGE;
+	Error_Handler();
 }
 /* USER CODE END 0 */
 
@@ -1204,7 +1217,7 @@ void Error_Handler(void) {
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-
+	//TODO Fehler auf Display
 	while (1) {
 		switch (ErrorCode) {
 		case NONE:
@@ -1213,7 +1226,10 @@ void Error_Handler(void) {
 			break;
 		case STEP_BUF:
 			break;
-		case LOW_VOLTAGE:
+		case LOW_VOLTAGE:	//TODO Funktioniert Buzzer hier noch?
+			Buzzer_Play_Song(&robi.hbuzzer, battery_empty,
+					sizeof(battery_empty) / sizeof(battery_empty[0]),
+					BPM_SYSTEM_SOUND);
 			break;
 		}
 	}

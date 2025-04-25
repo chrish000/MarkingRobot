@@ -61,7 +61,7 @@
  */
 #define MAX_HOMING_DIST 500 //mm
 #define DIST_BETWEEN_PROBING 20 //mm
-#define HOMING_MAX_FAULT 0.01 //deg
+#define HOMING_MAX_FAULT 0.02 //deg
 #define MAX_HOMING_TRY 10
 #define MAX_HOMING_TIMEOUT 30000 //ms
 

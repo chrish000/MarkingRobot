@@ -19,10 +19,7 @@
  * Wichtige Informationen für das Verständnis
  * 	>	Aufgrund der UART-Ansteuerung werden die Treiber X und Z benutzt.
  * 		Es werden trotzdem X-Y-Koordinaten verwendet.
- * 	>
- */
-/**
- * TODO Funktionen Kommentieren und Dokumentation anfügen
+ * 	>	TODO Pressure
  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -33,10 +30,10 @@
 /* USER CODE BEGIN Includes */
 #include "move.h"
 #include "pins.h"
-#include "utils.h"
 #include "Buzzer/buzzer.h"
 #include "Buzzer/buzzer_examples.h"
 #include "homing.h"
+#include "button.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -87,7 +84,6 @@ ERROR_HandleCode ErrorCode = NONE;
 Robot robi;
 
 /* Sensorvariablen */
-volatile uint8_t BatteryAlarm = false;
 uint8_t printFlag = false;
 /* USER CODE END PV */
 
@@ -124,10 +120,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	switch (GPIO_Pin) {
 	case PWRDET_PIN:
-		BatteryAlarm = true;
-		break;
-
-	case PRESSURE_PIN:
+		LowVoltageHandler();
 		break;
 
 	case X_STOP_PIN:
@@ -140,6 +133,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		yFlag = true;
 		yDist = Dist;
 		homingActive = !xFlag;
+		break;
+
+	case LCD_BTN_PIN:
+		btnPressed = true;
+		break;
+
+	case LCD_ENCA_PIN:
+		encAFlag = true;
+		if (encBFlag) {
+			encDir = 1; //cw
+		}
+		break;
+
+	case LCD_ENCB_PIN:
+		encBFlag = true;
+		if (encAFlag) {
+			encDir = -1; //ccw
+		}
 		break;
 	}
 }
@@ -210,6 +221,18 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 }
 
+void LowVoltageHandler() {
+	//TODO
+	/**
+	 * stop Printing
+	 * disable Motors
+	 * disable all Sensors
+	 * disable Fan
+	 *
+	 * set Buzzer Alarm
+	 * show Alarm on Display
+	 */
+}
 /* USER CODE END 0 */
 
 /**
@@ -261,23 +284,38 @@ int main(void) {
 
 	//robi.printhead.clean();
 
-	Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
-			(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
+	//Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
+	//		(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 
-	//SD
+	//Debugging
 	HAL_Delay(1000);
 	robi.sd.init();
 	robi.sd.openFile("test.gcode");
+	//robi.printingFlag = true;
 
-	robi.printingFlag = true;
+	int8_t menuIndex = 0;
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		/* Menue */
+		if (encDir != 0) {
+			menuIndex += encDir;
+			encDir = 0;
+			encAFlag = false;
+			encBFlag = false;
+			//updateMenuDisplay(menuIndex);
+		}
+
+		if (btnPressed) {
+			btnPressed = false;
+			//selectMenuItem(menuIndex);
+		}
 
 		/* Druckvorgang */
-		if (robi.printingFlag) {
+		while (robi.printingFlag) {
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING) {
 				while (robi.motorMaster.calcInterval())
@@ -288,12 +326,9 @@ int main(void) {
 			/* Roboter neu referenzieren wenn nötig */
 			if (!robi.isHomedFlag) {
 				/*
-				while (1) {
-					if (home(&robi) == HOMING_FINISHED)
-						break;
-					robi.motorMaster.calcInterval();
-				}
-				*/
+				 while (home(&robi) != HOMING_FINISHED)
+				 robi.motorMaster.calcInterval();
+				 */
 			}
 
 			/* Düse ansteuern*/
@@ -976,19 +1011,19 @@ static void MX_DMA_Init(void) {
 	HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 	/* DMA1_Stream4_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 5, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 	/* DMA1_Stream5_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
 	/* DMA1_Stream6_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 5, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
 	/* DMA1_Stream7_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 5, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
 	/* DMA2_Stream0_IRQn interrupt configuration */
-	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }
@@ -1008,8 +1043,8 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOH_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOD_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOE, Z_STEP_Pin | Z_DIR_Pin, GPIO_PIN_RESET);
@@ -1055,16 +1090,16 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(PWRDET_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : Z_STOP_Pin X_STOP_Pin */
-	GPIO_InitStruct.Pin = Z_STOP_Pin | X_STOP_Pin;
+	/*Configure GPIO pins : X_STOP_Pin Y_STOP_Pin */
+	GPIO_InitStruct.Pin = X_STOP_Pin | Y_STOP_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : PRESSURE_Pin */
 	GPIO_InitStruct.Pin = PRESSURE_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	HAL_GPIO_Init(PRESSURE_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : SD_CS_Pin */
@@ -1086,6 +1121,18 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pins : LCD_BTN_Pin LCD_ENCB_Pin */
+	GPIO_InitStruct.Pin = LCD_BTN_Pin | LCD_ENCB_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : LCD_ENCA_Pin */
+	GPIO_InitStruct.Pin = LCD_ENCA_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	HAL_GPIO_Init(LCD_ENCA_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : X_DIR_Pin */
 	GPIO_InitStruct.Pin = X_DIR_Pin;
@@ -1123,14 +1170,20 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
-	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ(Z_STOP_EXTI_IRQn);
+	HAL_NVIC_SetPriority(LCD_BTN_EXTI_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(LCD_BTN_EXTI_IRQn);
 
-	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 1, 0);
+	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 
-	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
+	HAL_NVIC_SetPriority(LCD_ENCB_EXTI_IRQn, 1, 0);
+	HAL_NVIC_EnableIRQ(LCD_ENCB_EXTI_IRQn);
+
+	HAL_NVIC_SetPriority(Y_STOP_EXTI_IRQn, 2, 0);
+	HAL_NVIC_EnableIRQ(Y_STOP_EXTI_IRQn);
+
+	HAL_NVIC_SetPriority(LCD_ENCA_EXTI_IRQn, 1, 0);
+	HAL_NVIC_EnableIRQ(LCD_ENCA_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);

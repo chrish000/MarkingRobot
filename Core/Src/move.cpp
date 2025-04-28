@@ -28,6 +28,13 @@ void Robot::setPos(float_t newOrientation, float_t newX, float_t newY) {
 	posY = newY;
 }
 
+float_t getPosX() {
+	return posX;
+}
+float_t getPosY() {
+	return posY;
+}
+
 /**
  * @brief Berechnung des Drehwinkels für eine Zielposition
  * @param newX Zielposition X-Koordinate
@@ -70,7 +77,7 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
  */
 void Robot::init() {
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
-	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
+	HAL_NVIC_DisableIRQ (Y_STOP_EXTI);
 
 	motorMaster.moveBuf.consumerClear();
 	motorMaster.motorX.init();
@@ -85,8 +92,6 @@ void Robot::init() {
 	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
-
-
 
 	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED); // ADC Kalibrieren
 	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*) &ADC_BatteryVoltage, 1); // ADC starten

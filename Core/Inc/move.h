@@ -69,6 +69,8 @@ public:
 	bool moveToHome();
 	void resetPos();
 	void setPos(float_t newOrientation, float_t newX, float_t newY);
+	float_t getPosX();
+	float_t getPosY();
 
 private:
 	ADC_HandleTypeDef *ADC_Handle;

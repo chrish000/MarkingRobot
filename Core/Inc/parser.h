@@ -48,7 +48,7 @@ public:
 		bool printigMove;
 	};
 
-	const static size_t buffer_size_move = 8;	//size = n-1 elements
+	const static size_t buffer_size_move = 4;	//size = n-1 elements
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, false, 32> moveBuf;
 
 	bool calcInterval();

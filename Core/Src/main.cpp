@@ -270,6 +270,8 @@ int main(void) {
 	robi.sd.openFile("test.gcode");
 
 	robi.printingFlag = true;
+	uint8_t distHomingSequence = 0;
+	Robot::MoveParams distHomingPosBuffer;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -280,20 +282,31 @@ int main(void) {
 		if (robi.printingFlag) {
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING) {
-				while (robi.motorMaster.calcInterval())
-					; //Bewegungspuffer abarbeiten
-				robi.isHomedFlag = false;
+				switch (distHomingSequence) {
+				case 0: //Bewegungspuffer abarbeiten
+					while (robi.motorMaster.calcInterval())
+						;
+					distHomingPosBuffer.x = robi.getPosX();
+					distHomingPosBuffer.y = robi.getPosY();
+					robi.isHomedFlag = false;
+					distHomingSequence++;
+					break;
+				case 1:
+					if (robi.isHomedFlag)
+						distHomingSequence++;
+					break;
+				case 2:
+					robi.moveToPos(distHomingPosBuffer);
+					robi.totalDistSinceHoming = 0;
+					distHomingSequence = 0;
+					break;
+				}
 			}
 
 			/* Roboter neu referenzieren wenn nötig */
 			if (!robi.isHomedFlag) {
-				/*
-				while (1) {
-					if (home(&robi) == HOMING_FINISHED)
-						break;
+				while (home(&robi) != HOMING_FINISHED)
 					robi.motorMaster.calcInterval();
-				}
-				*/
 			}
 
 			/* Düse ansteuern*/
@@ -1124,13 +1137,13 @@ static void MX_GPIO_Init(void) {
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ(Z_STOP_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ (Z_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ (PRESSURE_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);

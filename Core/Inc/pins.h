@@ -52,7 +52,9 @@ struct Pin {
 #define X_STOP_PORT X_STOP_GPIO_Port
 #define Y_STOP_PORT Y_STOP_GPIO_Port
 #define PWRDET_PIN PWRDET_Pin
+#define PWRDET_PORT PWRDET_GPIO_Port
 #define PRESSURE_PIN PRESSURE_Pin
+#define PRESSURE_PORT PRESSURE_GPIO_Port
 #define X_STOP_EXTI X_STOP_EXTI_IRQn
 #define Y_STOP_EXTI Y_STOP_EXTI_IRQn
 #define PWRDET_EXTI PWRDET_EXTI_IRQn
@@ -98,6 +100,27 @@ struct Pin {
 #define LCD_BTN_EXTI LCD_BTN_EXTI_IRQn
 #define LCD_ENCA_EXTI LCD_ENCA_EXTI_IRQn
 #define LCD_ENCB_EXTI LCD_ENCB_EXTI_IRQn
+
+//LCD
+#define LCD_RS_PIN LCD_CS_Pin
+#define LCD_RS_PORT LCD_CS_GPIO_Port
+#define LCD_DATA_PIN LCD_EN_Pin
+#define LCD_DATA_PORT LCD_EN_GPIO_Port
+#define LCD_SCK_PIN LCD_D4_Pin
+#define LCD_SCK_PORT LCD_D4_GPIO_Port
+
+#define LCD_CS_PIN LCD_CS_Pin
+#define LCD_CS_PORT LCD_CS_GPIO_Port
+#define LCD_EN_PIN LCD_EN_Pin
+#define LCD_EN_PORT LCD_EN_GPIO_Port
+#define LCD_D4_PIN LCD_D4_Pin
+#define LCD_D4_PORT LCD_D4_GPIO_Port
+#define LCD_D5_PIN LCD_D5_Pin
+#define LCD_D5_PORT LCD_D5_GPIO_Port
+#define LCD_D6_PIN LCD_D6_Pin
+#define LCD_D6_PORT LCD_D6_GPIO_Port
+#define LCD_D7_PIN LCD_D7_Pin
+#define LCD_D7_PORT LCD_D7_GPIO_Port
 };
 
 #endif /* INC_PINS_H_ */

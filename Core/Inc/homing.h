@@ -144,7 +144,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 70, HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120, HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 5;
 		}
 		break;
@@ -169,7 +169,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 70, HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120, HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 8;
 		}
 		break;

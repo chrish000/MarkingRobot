@@ -22,13 +22,13 @@
  *	###########################################################################
  */
 #define MICROSTEPS 128
-#define STEPS_PER_MM 92.847
+#define STEPS_PER_MM 92.847f
 #define MM_PER_STEP (1.0/STEPS_PER_MM)
 #define STEPS_PER_DEG 413.49
 
-#define DEFAULT_SPEED 1200 //in mm/s
+#define DEFAULT_SPEED 800 //in mm/s
 #define MAX_SPEED 1200
-#define DEFAULT_ACCEL 500
+#define DEFAULT_ACCEL 400
 #define MAX_ACCEL 3000
 
 #define DIST_TILL_NEW_HOMING 0xffffffff //mm
@@ -61,7 +61,7 @@
  */
 #define MAX_HOMING_DIST 500 //mm
 #define DIST_BETWEEN_PROBING 20 //mm
-#define HOMING_MAX_FAULT 0.01 //deg
+#define HOMING_MAX_FAULT 0.015 //deg
 #define MAX_HOMING_TRY 10
 #define MAX_HOMING_TIMEOUT 30000 //ms
 
@@ -69,7 +69,7 @@
 #define HOMING_SPPED_MOVING 200 //mm/s
 #define HOMING_ACCEL 50 //mm/s^2
 
-#define	SENSOR_DIST 460.5f //mm
+#define	SENSOR_DIST 356 //mm
 #define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define HOMING_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
 //#define MOVE_TO_HOME_BEFORE_HOMING

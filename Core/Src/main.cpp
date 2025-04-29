@@ -261,8 +261,8 @@ int main(void) {
 
 	//robi.printhead.clean();
 
-	Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
-			(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
+	//Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
+	//		(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 
 	//SD
 	HAL_Delay(1000);
@@ -272,6 +272,7 @@ int main(void) {
 	robi.printingFlag = true;
 	uint8_t distHomingSequence = 0;
 	Robot::MoveParams distHomingPosBuffer;
+
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -327,10 +328,10 @@ int main(void) {
 			/* Ende von Druckvorgang */
 			if (robi.finishedFlag) {
 				if (movementFinished(&robi)) {
+					robi.printhead.stop();
 					robi.moveToHome();
 					while (!movementFinished(&robi))
 						robi.motorMaster.calcInterval();
-					robi.printhead.stop();
 					robi.motorMaster.motorX.disableMotor();
 					robi.motorMaster.motorY.disableMotor();
 					robi.finishedFlag = false;
@@ -1137,13 +1138,13 @@ static void MX_GPIO_Init(void) {
 
 	/* EXTI interrupt init*/
 	HAL_NVIC_SetPriority(Z_STOP_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ (Z_STOP_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ(Z_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(X_STOP_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PRESSURE_EXTI_IRQn, 1, 0);
-	HAL_NVIC_EnableIRQ (PRESSURE_EXTI_IRQn);
+	HAL_NVIC_EnableIRQ(PRESSURE_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(PWRDET_EXTI_IRQn, 2, 0);
 	HAL_NVIC_EnableIRQ(PWRDET_EXTI_IRQn);

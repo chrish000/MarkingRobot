@@ -24,11 +24,11 @@
 #define MICROSTEPS 128
 #define STEPS_PER_MM 92.847f
 #define MM_PER_STEP (1.0/STEPS_PER_MM)
-#define STEPS_PER_DEG 413.49
+#define STEPS_PER_DEG 412.49f
 
-#define DEFAULT_SPEED 800 //in mm/s
+#define DEFAULT_SPEED 1000 //in mm/s
 #define MAX_SPEED 1200
-#define DEFAULT_ACCEL 400
+#define DEFAULT_ACCEL 500
 #define MAX_ACCEL 3000
 
 #define DIST_TILL_NEW_HOMING 0xffffffff //mm

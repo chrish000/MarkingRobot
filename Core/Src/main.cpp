@@ -259,6 +259,34 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	robi.init();
 
+	/* STEPS PER DEG TEST BEGIN */
+	/*
+	int i = 0;
+	while (1) {
+		robi.motorMaster.calcInterval();
+		switch (i) {
+		case 0:
+			if (home(&robi) == HOMING_FINISHED)
+				i++;
+			break;
+		case 1:
+			robi.moveRot(3600);
+			i++;
+			break;
+		case 2:
+			if (movementFinished(&robi))
+				i++;
+			break;
+		case 3:
+			home(&robi);
+			break;
+		}
+	}
+	*/
+	/* STEPS PER DEG TEST END */
+
+	robi.isHomedFlag = true;
+
 	//robi.printhead.clean();
 
 	//Buzzer_Play_Song(&robi.hbuzzer, mario_theme,

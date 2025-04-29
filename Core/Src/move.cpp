@@ -28,10 +28,10 @@ void Robot::setPos(float_t newOrientation, float_t newX, float_t newY) {
 	posY = newY;
 }
 
-float_t getPosX() {
+float_t Robot::getPosX() {
 	return posX;
 }
-float_t getPosY() {
+float_t Robot::getPosY() {
 	return posY;
 }
 

@@ -220,7 +220,7 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 }
 
 bool Robot::moveToHome() {
-	if (!posX && !posY && !orientation) //steht bereits auf Position
+	if (posX == 0 && posY == 0 && orientation == 0) //steht bereits auf Position
 		return true;
 
 	MoveParams param;
@@ -231,6 +231,8 @@ bool Robot::moveToHome() {
 	param.printing = false;
 
 	bool status = true;
+//	while(motorMaster.moveBuf.writeAvailable() < 5)	//warten bis genug Puffer frei
+//		motorMaster.calcInterval();
 	status &= moveToPos(param);
 	status &= moveRot(-(orientation - 45));
 	status &= moveLin(-707.107);

@@ -1,4 +1,3 @@
-
 #ifndef HOMING_H
 #define HOMING_H
 
@@ -80,11 +79,13 @@ HOMING_StatusTypeDef home(Robot *rob) {
 	switch (phase) {
 	case 0:	//Vorbereiten
 		disableSensors();
+		if (movementFinished(rob)) {
 #ifdef MOVE_TO_HOME_BEFORE_HOMING
 		rob->moveToHome();
 #endif
-		rob->moveRot(90, DEFAULT_SPEED, DEFAULT_ACCEL);
-		phase = 1;
+			rob->moveRot(90, DEFAULT_SPEED, DEFAULT_ACCEL);
+			phase = 1;
+		}
 		break;
 	case 1:	//Y abtasten (Rotation)
 		if (movementFinished(rob)) {
@@ -112,8 +113,9 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			error = (error * 180) / M_PI;	//Rad zu Deg
 
 			//Fehler anpassen
-			rob->moveLin(errorDistance + DIST_BETWEEN_PROBING, HOMING_SPEED_PROBING,
-			HOMING_ACCEL);
+			rob->moveLin(errorDistance + DIST_BETWEEN_PROBING,
+					HOMING_SPEED_PROBING,
+					HOMING_ACCEL);
 			(xDist < yDist) ?
 					rob->moveRot(error, HOMING_SPEED_PROBING, HOMING_ACCEL) :
 					rob->moveRot(-error, HOMING_SPEED_PROBING, HOMING_ACCEL);
@@ -144,7 +146,8 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120, HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120,
+					HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 5;
 		}
 		break;
@@ -169,13 +172,14 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120, HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120,
+					HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->totalDistSinceHoming = 0;
 			phase = 8;
 		}
 		break;
 	case 8:	//Position anpassen und beenden
 		rob->setPos(0, 0, 0);
-		rob->totalDistSinceHoming = 0;
 		rob->isHomedFlag = true;
 		phase = 9;
 		break;

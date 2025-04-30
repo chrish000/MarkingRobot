@@ -27,9 +27,9 @@
 #define STEPS_PER_DEG 412.49f
 
 #define DEFAULT_SPEED 1000 //in mm/s
-#define MAX_SPEED 1200
+#define MAX_SPEED 1200 //TODO
 #define DEFAULT_ACCEL 500
-#define MAX_ACCEL 3000
+#define MAX_ACCEL 3000 //TODO
 
 #define DIST_TILL_NEW_HOMING 0xffffffff //mm
 

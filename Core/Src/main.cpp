@@ -285,13 +285,10 @@ int main(void) {
 	*/
 	/* STEPS PER DEG TEST END */
 
-	robi.isHomedFlag = true;
-
+	//robi.isHomedFlag = true;
 	//robi.printhead.clean();
-
 	//Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
 	//		(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
-
 	//SD
 	HAL_Delay(1000);
 	robi.sd.init();
@@ -310,13 +307,25 @@ int main(void) {
 		/* Druckvorgang */
 		if (robi.printingFlag) {
 			/* Referenzierung auslösen wenn Strecke erreicht */
-			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING) {
+			//TODO Startet nicht wieder von Punkt an dem gestoppt wurde
+			//TODO Beendet Programm nicht richtig
+			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
+					&& robi.isHomedFlag) {
 				switch (distHomingSequence) {
 				case 0: //Bewegungspuffer abarbeiten
-					while (robi.motorMaster.calcInterval())
-						;
+					while (robi.motorMaster.calcInterval()) {
+						if (robi.printhead.isActive() != printFlag) {
+							printFlag ?
+									robi.printhead.start() :
+									robi.printhead.stop();
+						}
+					}
+					robi.printhead.stop();
 					distHomingPosBuffer.x = robi.getPosX();
 					distHomingPosBuffer.y = robi.getPosY();
+					robi.moveToHome();
+					while (robi.motorMaster.calcInterval())
+						;
 					robi.isHomedFlag = false;
 					distHomingSequence++;
 					break;
@@ -344,7 +353,7 @@ int main(void) {
 			}
 
 			/* Befehl aus SD lesen */
-			while (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
+			if (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
 				if (!robi.sd.readNextLine())
 					break;
 				robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);

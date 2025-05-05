@@ -261,28 +261,28 @@ int main(void) {
 
 	/* STEPS PER DEG TEST BEGIN */
 	/*
-	int i = 0;
-	while (1) {
-		robi.motorMaster.calcInterval();
-		switch (i) {
-		case 0:
-			if (home(&robi) == HOMING_FINISHED)
-				i++;
-			break;
-		case 1:
-			robi.moveRot(3600);
-			i++;
-			break;
-		case 2:
-			if (movementFinished(&robi))
-				i++;
-			break;
-		case 3:
-			home(&robi);
-			break;
-		}
-	}
-	*/
+	 int i = 0;
+	 while (1) {
+	 robi.motorMaster.calcInterval();
+	 switch (i) {
+	 case 0:
+	 if (home(&robi) == HOMING_FINISHED)
+	 i++;
+	 break;
+	 case 1:
+	 robi.moveRot(3600);
+	 i++;
+	 break;
+	 case 2:
+	 if (movementFinished(&robi))
+	 i++;
+	 break;
+	 case 3:
+	 home(&robi);
+	 break;
+	 }
+	 }
+	 */
 	/* STEPS PER DEG TEST END */
 
 	//robi.isHomedFlag = true;
@@ -353,10 +353,10 @@ int main(void) {
 			}
 
 			/* Befehl aus SD lesen */
-			if (robi.motorMaster.moveBuf.writeAvailable() >= 2) {
-				if (!robi.sd.readNextLine())
-					break;
-				robi.parser.parseGCodeLineAndPushInBuffer(robi.sd.lineBuffer);
+			if (robi.motorMaster.moveBuf.writeAvailable() >= 2) { //TODO ausserhalb totalDistSinceHoming
+				if (robi.sd.readNextLine())
+					robi.parser.parseGCodeLineAndPushInBuffer(
+							robi.sd.lineBuffer);
 			}
 
 			/* Motoren ansteuern */
@@ -379,6 +379,7 @@ int main(void) {
 							(sizeof(mario_level_complete)
 									/ sizeof(mario_level_complete[0])),
 							BPM_MARIO_LEVEL);
+					Buzzer_NoNote(&robi.hbuzzer);
 				}
 			}
 		}

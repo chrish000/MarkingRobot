@@ -78,10 +78,10 @@ HOMING_StatusTypeDef home(Robot *rob) {
 
 	switch (phase) {
 	case 0:	//Vorbereiten
-		disableSensors();
 		if (movementFinished(rob)) {
+			disableSensors();
 #ifdef MOVE_TO_HOME_BEFORE_HOMING
-		rob->moveToHome();
+			rob->moveToHome();
 #endif
 			rob->moveRot(90, DEFAULT_SPEED, DEFAULT_ACCEL);
 			phase = 1;
@@ -173,14 +173,14 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			disableSensors();
 
 			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120,
-					HOMING_SPPED_MOVING, HOMING_ACCEL);
-			rob->totalDistSinceHoming = 0;
+			HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 8;
 		}
 		break;
 	case 8:	//Position anpassen und beenden
 		rob->setPos(0, 0, 0);
 		rob->isHomedFlag = true;
+		rob->totalDistSinceHoming = 0;
 		phase = 9;
 		break;
 	case 9:

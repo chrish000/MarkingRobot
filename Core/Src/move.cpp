@@ -77,7 +77,7 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
  */
 void Robot::init() {
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
-	HAL_NVIC_DisableIRQ (Y_STOP_EXTI);
+	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
 
 	motorMaster.moveBuf.consumerClear();
 	motorMaster.motorX.init();
@@ -216,12 +216,17 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	cmd.printigMove = false;
 
 	orientation += degrees;
+	orientation = fmod(orientation + 360, 360.0); //Drehwinkel normalisieren auf [0, 360]
+
 	return motorMaster.moveBuf.insert(cmd);
 }
 
 bool Robot::moveToHome() {
 	if (posX == 0 && posY == 0 && orientation == 0) //steht bereits auf Position
 		return true;
+
+	if (motorMaster.moveBuf.writeAvailable() < 5) //Nicht genug Platz im Bewegungspuffer
+		return false;
 
 	MoveParams param;
 	param.x = 500;
@@ -238,6 +243,8 @@ bool Robot::moveToHome() {
 	status &= moveLin(-707.107);
 	status &= moveRot(-45);
 
-	setPos(0, 0, 0);
+	if (status == true)
+		setPos(0, 0, 0);
+
 	return status;
 }

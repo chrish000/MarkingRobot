@@ -72,6 +72,6 @@
 #define	SENSOR_DIST 356 //mm
 #define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define HOMING_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
-//#define MOVE_TO_HOME_BEFORE_HOMING
+#define MOVE_TO_HOME_BEFORE_HOMING
 
 #endif /* CONFIG_H */

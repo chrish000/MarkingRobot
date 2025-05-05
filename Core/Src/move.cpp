@@ -236,8 +236,6 @@ bool Robot::moveToHome() {
 	param.printing = false;
 
 	bool status = true;
-//	while(motorMaster.moveBuf.writeAvailable() < 5)	//warten bis genug Puffer frei
-//		motorMaster.calcInterval();
 	status &= moveToPos(param);
 	status &= moveRot(-(orientation - 45));
 	status &= moveLin(-707.107);

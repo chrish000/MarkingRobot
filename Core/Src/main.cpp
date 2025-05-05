@@ -308,7 +308,6 @@ int main(void) {
 		if (robi.printingFlag) {
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			//TODO Startet nicht wieder von Punkt an dem gestoppt wurde
-			//TODO Beendet Programm nicht richtig
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
 					&& robi.isHomedFlag) {
 				switch (distHomingSequence) {

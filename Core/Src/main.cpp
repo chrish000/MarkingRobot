@@ -224,8 +224,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 void LowVoltageHandler() {
 
 	robi.motorMaster.moveBuf.remove(robi.motorMaster.buffer_size_move - 1);
-	while (robi.motorMaster.calcInterval())
-		;
+	while (robi.motorMaster.calcInterval()) {
+		if (robi.printhead.isActive() != printFlag) {
+			printFlag ? robi.printhead.start() : robi.printhead.stop();
+		}
+	}
 	robi.printhead.stop();
 	robi.motorMaster.motorX.disableMotor();
 	robi.motorMaster.motorX.stopTimer();
@@ -233,7 +236,7 @@ void LowVoltageHandler() {
 	robi.motorMaster.motorY.stopTimer();
 	robi.isHomedFlag = false;
 	robi.printingFlag = false;
-	HAL_TIM_Base_Stop(&htim8);//ADC
+	HAL_TIM_Base_Stop(&htim8); //ADC
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(LCD_BTN_EXTI);
@@ -295,6 +298,7 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	robi.init();
 
+	robi.isHomedFlag = true;
 	//robi.printhead.clean();
 
 	//Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
@@ -329,19 +333,45 @@ int main(void) {
 
 		/* Druckvorgang */
 		while (robi.printingFlag) {
+
+			/* Zu niedriger Druck */
+			/*
+			if (lowPressure) {
+				while (robi.motorMaster.calcInterval()) { //Bewegungspuffer abarbeiten
+					if (robi.printhead.isActive() != printFlag) {
+						printFlag ?
+								robi.printhead.start() : robi.printhead.stop();
+					}
+				}
+				if (movementFinished(&robi)) {
+					robi.moveToHome();
+					while (!movementFinished(&robi))
+						robi.motorMaster.calcInterval();
+					//TODO Fehler ausgeben und auf Eingabe warten
+					while (warteAufFertigmeldung)
+						Buzzer_Play_Song(&robi.hbuzzer, air_empty,
+								(sizeof(air_empty) / sizeof(air_empty[0])),
+								BPM_SYSTEM_SOUND);
+					robi.isHomedFlag = false;
+				}
+			}
+			*/
+
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING) {
-				while (robi.motorMaster.calcInterval())
-					; //Bewegungspuffer abarbeiten
+				while (robi.motorMaster.calcInterval()) { //Bewegungspuffer abarbeiten
+					if (robi.printhead.isActive() != printFlag) {
+						printFlag ?
+								robi.printhead.start() : robi.printhead.stop();
+					}
+				}
 				robi.isHomedFlag = false;
 			}
 
 			/* Roboter neu referenzieren wenn nötig */
 			if (!robi.isHomedFlag) {
-				/*
-				 while (home(&robi) != HOMING_FINISHED)
-				 robi.motorMaster.calcInterval();
-				 */
+				while (home(&robi) != HOMING_FINISHED)
+					robi.motorMaster.calcInterval();
 			}
 
 			/* Düse ansteuern*/

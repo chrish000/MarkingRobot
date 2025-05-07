@@ -27,9 +27,9 @@
 #define STEPS_PER_DEG 412.49f
 
 #define DEFAULT_SPEED 1000 //in mm/s
-#define MAX_SPEED 1200 //TODO
-#define DEFAULT_ACCEL 500
-#define MAX_ACCEL 3000 //TODO
+#define MAX_SPEED 1100
+#define DEFAULT_ACCEL 1000
+#define MAX_ACCEL 2000
 
 #define DIST_TILL_NEW_HOMING 0xffffffff //mm
 
@@ -66,8 +66,8 @@
 #define MAX_HOMING_TIMEOUT 30000 //ms
 
 #define HOMING_SPEED_PROBING 40 //mm/s
-#define HOMING_SPPED_MOVING 200 //mm/s
-#define HOMING_ACCEL 50 //mm/s^2
+#define HOMING_SPPED_MOVING 150 //mm/s
+#define HOMING_ACCEL 75 //mm/s^2
 
 #define	SENSOR_DIST 356 //mm
 #define HOMING_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)

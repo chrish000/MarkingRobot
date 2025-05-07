@@ -88,6 +88,7 @@ Robot robi;
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
+volatile uint8_t PressureAlarm = false;
 uint8_t printFlag = false;
 /* USER CODE END PV */
 
@@ -298,6 +299,8 @@ int main(void) {
 	uint8_t distHomingSequence = 0;
 	Robot::MoveParams distHomingPosBuffer;
 
+	uint8_t readFromSD = true;
+	uint8_t homingRoutine = false;
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -310,6 +313,11 @@ int main(void) {
 			//TODO Startet nicht wieder von Punkt an dem gestoppt wurde
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
 					&& robi.isHomedFlag) {
+				homingRoutine = true;
+			}
+			if (PressureAlarm)
+				homingRoutine = true;
+			if (homingRoutine) {
 				switch (distHomingSequence) {
 				case 0: //Bewegungspuffer abarbeiten
 					while (robi.motorMaster.calcInterval()) {
@@ -319,23 +327,36 @@ int main(void) {
 									robi.printhead.stop();
 						}
 					}
+					readFromSD = false;
 					robi.printhead.stop();
 					distHomingPosBuffer.x = robi.getPosX();
 					distHomingPosBuffer.y = robi.getPosY();
 					robi.moveToHome();
 					while (robi.motorMaster.calcInterval())
 						;
+					if(PressureAlarm) {
+						distHomingSequence = 2;
+					}
+					else
+						distHomingSequence = 1;
 					robi.isHomedFlag = false;
 					distHomingSequence++;
 					break;
-				case 1:
+				case 1: //Nur Homing
 					if (robi.isHomedFlag)
-						distHomingSequence++;
+						distHomingSequence = 3;
 					break;
-				case 2:
+				case 2: //Luft und dann Homing
+					if (!PressureAlarm)
+						robi.isHomedFlag = false;
+						distHomingSequence = 1;
+					break;
+				case 3: //Fortsetzen
 					robi.moveToPos(distHomingPosBuffer);
+					readFromSD = true;
 					robi.totalDistSinceHoming = 0;
 					distHomingSequence = 0;
+					homingRoutine = false;
 					break;
 				}
 			}
@@ -352,7 +373,7 @@ int main(void) {
 			}
 
 			/* Befehl aus SD lesen */
-			if (robi.motorMaster.moveBuf.writeAvailable() >= 2) { //TODO ausserhalb totalDistSinceHoming
+			if (robi.motorMaster.moveBuf.writeAvailable() >= 2 && readFromSD) { //TODO ausserhalb totalDistSinceHoming
 				if (robi.sd.readNextLine())
 					robi.parser.parseGCodeLineAndPushInBuffer(
 							robi.sd.lineBuffer);

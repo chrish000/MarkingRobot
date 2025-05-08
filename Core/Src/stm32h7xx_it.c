@@ -69,8 +69,6 @@ extern DMA_HandleTypeDef hdma_tim23_ch2;
 extern DMA_HandleTypeDef hdma_tim24_ch1;
 extern DMA_HandleTypeDef hdma_tim24_ch2;
 extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim23;
-extern TIM_HandleTypeDef htim24;
 extern DMA_HandleTypeDef hdma_uart8_tx;
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
@@ -230,7 +228,7 @@ void EXTI0_IRQHandler(void)
   /* USER CODE BEGIN EXTI0_IRQn 0 */
 
   /* USER CODE END EXTI0_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(Z_STOP_Pin);
+  HAL_GPIO_EXTI_IRQHandler(LCD_BTN_Pin);
   /* USER CODE BEGIN EXTI0_IRQn 1 */
 
   /* USER CODE END EXTI0_IRQn 1 */
@@ -258,10 +256,24 @@ void EXTI2_IRQHandler(void)
   /* USER CODE BEGIN EXTI2_IRQn 0 */
 
   /* USER CODE END EXTI2_IRQn 0 */
-  HAL_GPIO_EXTI_IRQHandler(PRESSURE_Pin);
+  HAL_GPIO_EXTI_IRQHandler(LCD_ENCB_Pin);
   /* USER CODE BEGIN EXTI2_IRQn 1 */
 
   /* USER CODE END EXTI2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line3 interrupt.
+  */
+void EXTI3_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI3_IRQn 0 */
+
+  /* USER CODE END EXTI3_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(Y_STOP_Pin);
+  /* USER CODE BEGIN EXTI3_IRQn 1 */
+
+  /* USER CODE END EXTI3_IRQn 1 */
 }
 
 /**
@@ -377,6 +389,20 @@ void ADC_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line[9:5] interrupts.
+  */
+void EXTI9_5_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+
+  /* USER CODE END EXTI9_5_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(LCD_ENCA_Pin);
+  /* USER CODE BEGIN EXTI9_5_IRQn 1 */
+
+  /* USER CODE END EXTI9_5_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM4 global interrupt.
   */
 void TIM4_IRQHandler(void)
@@ -458,34 +484,6 @@ void UART8_IRQHandler(void)
   /* USER CODE BEGIN UART8_IRQn 1 */
 
   /* USER CODE END UART8_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM23 global interrupt.
-  */
-void TIM23_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM23_IRQn 0 */
-
-  /* USER CODE END TIM23_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim23);
-  /* USER CODE BEGIN TIM23_IRQn 1 */
-
-  /* USER CODE END TIM23_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM24 global interrupt.
-  */
-void TIM24_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM24_IRQn 0 */
-
-  /* USER CODE END TIM24_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim24);
-  /* USER CODE BEGIN TIM24_IRQn 1 */
-
-  /* USER CODE END TIM24_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

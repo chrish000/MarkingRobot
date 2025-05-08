@@ -48,15 +48,14 @@ struct Pin {
 
 //ENDSTOP
 #define X_STOP_PIN X_STOP_Pin
-#define Y_STOP_PIN Z_STOP_Pin
+#define Y_STOP_PIN Y_STOP_Pin
 #define X_STOP_PORT X_STOP_GPIO_Port
-#define Y_STOP_PORT Z_STOP_GPIO_Port
+#define Y_STOP_PORT Y_STOP_GPIO_Port
 #define PWRDET_PIN PWRDET_Pin
 #define PRESSURE_PIN PRESSURE_Pin
 #define X_STOP_EXTI X_STOP_EXTI_IRQn
-#define Y_STOP_EXTI Z_STOP_EXTI_IRQn
+#define Y_STOP_EXTI Y_STOP_EXTI_IRQn
 #define PWRDET_EXTI PWRDET_EXTI_IRQn
-#define	PRESSURE_EXTI PRESSURE_EXTI_IRQn
 
 //PRINTHEAD
 	TIM_HandleTypeDef *TIM_Printhead = &htim3;
@@ -88,6 +87,17 @@ struct Pin {
 	TIM_HandleTypeDef *TIM_BUZZER = &htim4;
 #define BUZZER_PORT BUZZER_GPIO_Port
 #define BUZZER_PIN BUZZER_Pin
+
+//BUTTON
+#define LCD_BTN_PORT LCD_BTN_GPIO_Port
+#define LCD_BTN_PIN LCD_BTN_Pin
+#define LCD_ENCA_PORT LCD_ENCA_GPIO_Port
+#define LCD_ENCA_PIN LCD_ENCA_Pin
+#define LCD_ENCB_PORT LCD_ENCB_GPIO_Port
+#define LCD_ENCB_PIN LCD_ENCB_Pin
+#define LCD_BTN_EXTI LCD_BTN_EXTI_IRQn
+#define LCD_ENCA_EXTI LCD_ENCA_EXTI_IRQn
+#define LCD_ENCB_EXTI LCD_ENCB_EXTI_IRQn
 };
 
 #endif /* INC_PINS_H_ */

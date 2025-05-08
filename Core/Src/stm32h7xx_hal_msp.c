@@ -415,9 +415,6 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
     __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC2],hdma_tim23_ch2);
 
-    /* TIM23 interrupt Init */
-    HAL_NVIC_SetPriority(TIM23_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM23_IRQn);
     /* USER CODE BEGIN TIM23_MspInit 1 */
 
     /* USER CODE END TIM23_MspInit 1 */
@@ -467,9 +464,6 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
     __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC2],hdma_tim24_ch2);
 
-    /* TIM24 interrupt Init */
-    HAL_NVIC_SetPriority(TIM24_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM24_IRQn);
     /* USER CODE BEGIN TIM24_MspInit 1 */
 
     /* USER CODE END TIM24_MspInit 1 */
@@ -601,9 +595,6 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
     /* TIM23 DMA DeInit */
     HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC1]);
     HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC2]);
-
-    /* TIM23 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(TIM23_IRQn);
     /* USER CODE BEGIN TIM23_MspDeInit 1 */
 
     /* USER CODE END TIM23_MspDeInit 1 */
@@ -619,9 +610,6 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
     /* TIM24 DMA DeInit */
     HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC1]);
     HAL_DMA_DeInit(htim_base->hdma[TIM_DMA_ID_CC2]);
-
-    /* TIM24 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(TIM24_IRQn);
     /* USER CODE BEGIN TIM24_MspDeInit 1 */
 
     /* USER CODE END TIM24_MspDeInit 1 */

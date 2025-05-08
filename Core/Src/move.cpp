@@ -38,6 +38,10 @@ float_t Robot::getPosY() {
 	return posY;
 }
 
+float_t Robot::getRot() {
+	return orientation;
+}
+
 /**
  * @brief Berechnung des Drehwinkels für eine Zielposition
  * @param newX Zielposition X-Koordinate

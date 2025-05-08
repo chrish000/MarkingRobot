@@ -33,6 +33,7 @@
 #include "Buzzer/buzzer_examples.h"
 #include "homing.h"
 #include "button.h"
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -84,7 +85,7 @@ Robot robi;
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
-volatile uint8_t PressureAlarm = false;
+uint8_t PressureAlarm = false;
 uint8_t printFlag = false;
 /* USER CODE END PV */
 
@@ -311,6 +312,19 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	robi.init();
 
+	/* Debugging TMC */
+	TMC2209::Status status = robi.motorMaster.motorX.tmc.getStatus();
+	TMC2209::Settings settings = robi.motorMaster.motorX.tmc.getSettings();
+	TMC2209::GlobalStatus gstatus =
+			robi.motorMaster.motorX.tmc.getGlobalStatus();
+
+	robi.motorMaster.motorX.tmc.enable();
+	robi.motorMaster.motorX.tmc.moveAtVelocity(1000);
+
+	status = robi.motorMaster.motorX.tmc.getStatus();
+	settings = robi.motorMaster.motorX.tmc.getSettings();
+	gstatus = robi.motorMaster.motorX.tmc.getGlobalStatus();
+
 	/* STEPS PER DEG TEST BEGIN */
 	/*
 	 int i = 0;
@@ -349,8 +363,16 @@ int main(void) {
 	int8_t menuIndex = 0;
 
 	uint8_t homingRoutine = false;
-	uint8_t distHomingSequence = 0;
+	uint8_t distSequence = 0;
+	uint8_t homingSequence = 0;
 	Robot::MoveParams distHomingPosBuffer;
+
+	uint8_t airSequence = 0;
+	uint8_t lowPressure;
+	MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] =
+			{ };
+	MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
+	uint8_t cmdCnt = 0, posCnt = 0;
 
 	robi.printingFlag = true;
 	uint8_t readFromSD = true;
@@ -378,38 +400,131 @@ int main(void) {
 		while (robi.printingFlag) {
 
 			/* Zu niedriger Druck */
-			if (!HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN)) {
-				readFromSD = false;
-				while (robi.motorMaster.calcInterval()) { //Bewegungspuffer abarbeiten
-					if (robi.printhead.isActive() != printFlag) {
-						printFlag ?
-								robi.printhead.start() : robi.printhead.stop();
-					}
-				}
-				if (movementFinished(&robi)) {
-					robi.moveToHome();
-					while (!movementFinished(&robi))
+			lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
+			if (lowPressure)
+				PressureAlarm = true;
+
+			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
+				switch (airSequence) {
+				case 0:
+					readFromSD = false;
+
+					//Aktuelle Bewegung beenden
+					while (!robi.motorMaster.moveCmdFinishedFlag
+							&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
 						robi.motorMaster.calcInterval();
+						if (robi.printhead.isActive() != printFlag) {
+							printFlag ?
+									robi.printhead.start() :
+									robi.printhead.stop();
+						}
+					}
+
+					//Puffer zwischenspeichern
+					while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
+						cmdCnt++;
+					while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
+						posCnt++;
+
+					//Aktuelle Position setzen
+					if (posCnt != 0) {
+						robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x,
+								tempPosBuf[0].y);
+					}
+					airSequence++;
+					break;
+
+				case 1:
+					//Zu home fahren
+					if (movementFinished(&robi)) {
+						robi.moveToHome();
+						while (!movementFinished(&robi))
+							robi.motorMaster.calcInterval();
+						airSequence++;
+					}
+					break;
+
+				case 2:
+					//Auf Auftanken warten und danach referenzieren
 					//TODO Fehler ausgeben und auf Eingabe warten
-					while (!btnPressed)
-						Buzzer_Play_Song(&robi.hbuzzer, air_empty,
-								(sizeof(air_empty) / sizeof(air_empty[0])),
-								BPM_SYSTEM_SOUND);
-					btnPressed = false;
-					homingRoutine = true;
+					if (!lowPressure)
+						if (btnPressed) {
+							btnPressed = false;
+							robi.isHomedFlag = false;
+							airSequence++;
+						}
+					Buzzer_Play_Song(&robi.hbuzzer, air_empty,
+							(sizeof(air_empty) / sizeof(air_empty[0])),
+							BPM_SYSTEM_SOUND);
+					break;
+
+				case 3:
+					if (robi.isHomedFlag)
+						airSequence++;
+					break;
+
+				case 4:
+					if (posCnt != 0) {
+						//Zurück auf Position fahren
+						Robot::MoveParams originalPosition;
+						originalPosition.x = tempPosBuf[0].x;
+						originalPosition.y = tempPosBuf[0].y;
+						robi.moveToPos(originalPosition);
+						while (!movementFinished(&robi))
+							robi.motorMaster.calcInterval();
+
+						//Originale Orientierung einnehmen
+						float_t delta = fmod(
+								(tempPosBuf[0].orient - robi.getRot() + 540.0),
+								360.0) - 180.0;
+						robi.moveRot(delta, DEFAULT_SPEED, DEFAULT_ACCEL);
+						while (!movementFinished(&robi))
+							robi.motorMaster.calcInterval();
+
+						//Puffer wiederherstellen
+						robi.motorMaster.posBuf.consumerClear();
+						robi.motorMaster.moveBuf.consumerClear();
+						for (int i = 0; i < cmdCnt; ++i) {
+							robi.motorMaster.moveBuf.insert(tempCmdBuf[i]);
+						}
+						for (int i = 0; i < posCnt; ++i) {
+							robi.motorMaster.posBuf.insert(tempPosBuf[i]);
+						}
+						robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x,
+								tempPosBuf[0].y);
+					}
+					cmdCnt = posCnt = 0;
+					readFromSD = true;
+					PressureAlarm = false;
+					airSequence = 0;
+					break;
+
 				}
 			}
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
 					&& robi.isHomedFlag) {
-				homingRoutine = true;
+				switch (distSequence) {
+				case 0:
+					readFromSD = false;
+					homingRoutine = true;
+					distSequence++;
+					break;
+				case 1:
+					if (!homingRoutine) {
+						readFromSD = true;
+						distSequence = 0;
+					}
+					break;
+				}
 			}
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
 			if (homingRoutine) {
-				switch (distHomingSequence) {
-				case 0: // Bewegungspuffer abarbeiten
+				switch (homingSequence) {
+				case 0:
+					// Bewegungspuffer abarbeiten
 					while (robi.motorMaster.calcInterval()) {
 						if (robi.printhead.isActive() != printFlag) {
 							printFlag ?
@@ -424,33 +539,38 @@ int main(void) {
 					robi.moveToHome();
 					while (robi.motorMaster.calcInterval())
 						;
-					if (PressureAlarm) {
-						distHomingSequence = 2;
+					if (lowPressure) {
+						homingSequence = 2;
 					} else
-						distHomingSequence = 1;
+						homingSequence = 1;
 					robi.isHomedFlag = false;
-					distHomingSequence++;
+					homingSequence++;
 					break;
 				case 1: // Nur Homing
 					if (robi.isHomedFlag)
-						distHomingSequence = 3;
+						homingSequence = 3;
 					break;
 				case 2: // Luft und dann Homing
-					if (!PressureAlarm)
-						robi.isHomedFlag = false;
-					distHomingSequence = 1;
+					if (!lowPressure)
+						if (btnPressed) {
+							btnPressed = false;
+							robi.isHomedFlag = false;
+							homingSequence = 1;
+						}
+					Buzzer_Play_Song(&robi.hbuzzer, air_empty,
+							(sizeof(air_empty) / sizeof(air_empty[0])),
+							BPM_SYSTEM_SOUND);
 					break;
 				case 3: // Fortsetzen
 					robi.moveToPos(distHomingPosBuffer);
-					readFromSD = true;
 					robi.totalDistSinceHoming = 0;
-					distHomingSequence = 0;
+					homingSequence = 0;
 					homingRoutine = false;
 					break;
 				}
 			}
 
-			/* Roboter neu referenzieren wenn nötig */
+			/* Roboter neu referenzieren wenn gefordert */
 			if (!robi.isHomedFlag) {
 				while (home(&robi) != HOMING_FINISHED)
 					robi.motorMaster.calcInterval();
@@ -542,7 +662,8 @@ void SystemClock_Config(void) {
 	/** Initializes the CPU, AHB and APB buses clocks
 	 */
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1
+
+	| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1
 			| RCC_CLOCKTYPE_D1PCLK1;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
@@ -604,7 +725,8 @@ static void MX_ADC1_Init(void) {
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
 	hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T8_TRGO;
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-	hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;
+	hadc1.Init.ConversionDataManagement =
+	ADC_CONVERSIONDATA_DMA_CIRCULAR;
 	hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
 	hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
 	hadc1.Init.OversamplingMode = DISABLE;
@@ -658,7 +780,8 @@ static void MX_CRC_Init(void) {
 	hcrc.Init.CRCLength = CRC_POLYLENGTH_8B;
 	hcrc.Init.InitValue = 0;
 	hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_BYTE;
-	hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+	hcrc.Init.OutputDataInversionMode =
+	CRC_OUTPUTDATA_INVERSION_DISABLE;
 	hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
 	if (HAL_CRC_Init(&hcrc) != HAL_OK) {
 		Error_Handler();
@@ -703,7 +826,8 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.RxCRCInitializationPattern =
 	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+	hspi1.Init.MasterInterDataIdleness =
+	SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
 	hspi1.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
 	hspi1.Init.IOSwap = SPI_IO_SWAP_DISABLE;
@@ -1043,12 +1167,12 @@ static void MX_UART8_Init(void) {
 	if (HAL_HalfDuplex_Init(&huart8) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart8, UART_TXFIFO_THRESHOLD_1_8)
-			!= HAL_OK) {
+	if (HAL_UARTEx_SetTxFifoThreshold(&huart8,
+	UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart8, UART_RXFIFO_THRESHOLD_1_8)
-			!= HAL_OK) {
+	if (HAL_UARTEx_SetRxFifoThreshold(&huart8,
+	UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
 		Error_Handler();
 	}
 	if (HAL_UARTEx_DisableFifoMode(&huart8) != HAL_OK) {
@@ -1087,12 +1211,12 @@ static void MX_USART2_UART_Init(void) {
 	if (HAL_HalfDuplex_Init(&huart2) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8)
-			!= HAL_OK) {
+	if (HAL_UARTEx_SetTxFifoThreshold(&huart2,
+	UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8)
-			!= HAL_OK) {
+	if (HAL_UARTEx_SetRxFifoThreshold(&huart2,
+	UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
 		Error_Handler();
 	}
 	if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK) {

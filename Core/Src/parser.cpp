@@ -84,6 +84,10 @@ bool MotorManager::calcInterval() {
 
 	float_t motorRatio = MOTOR_XY_RATIO * 0.01f;
 	moveCmdCalcBufX = moveCmdCalcBufY = *moveBuf.peek();
+	if (moveCmdFinishedFlag) {
+		posBuf.remove();//Letzte Position entfernen wenn nächste erreicht
+		moveCmdFinishedFlag = false;
+	}
 
 	if (motorRatio > 1.0f) {
 		motorRatio = 2.0f - motorRatio;
@@ -112,7 +116,7 @@ bool MotorManager::calcInterval() {
 				motorX.startTimer();
 			if (!motorY.timerActiveFlag)
 				motorY.startTimer();
-			posBuf.remove();
+			moveCmdFinishedFlag = true;
 			return true;
 		} else {
 			ErrorCode = MOVE_BUF;

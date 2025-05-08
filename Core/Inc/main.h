@@ -50,10 +50,14 @@ extern DMA_HandleTypeDef hdma_tim24_ch2;
 extern UART_HandleTypeDef huart8;
 extern UART_HandleTypeDef huart2;
 
+typedef enum {
+	NONE, MOVE_BUF, STEP_BUF
+} ERROR_HandleCode;
 
 typedef enum {
-	NONE = 0x00, LOW_VOLTAGE = 0x01, MOVE_BUF = 0x10, STEP_BUF = 0x11
-} ERROR_HandleCode;
+	UNSPECIFIC, LOW_VOLTAGE
+} UserErrorCode;
+
 extern ERROR_HandleCode ErrorCode;
 extern uint8_t printFlag;
 
@@ -77,6 +81,7 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 void DMA_Callback(DMA_HandleTypeDef *hdma);
 void LowVoltageHandler();
+void UserErrorHandler(UserErrorCode);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

@@ -112,6 +112,7 @@ bool MotorManager::calcInterval() {
 				motorX.startTimer();
 			if (!motorY.timerActiveFlag)
 				motorY.startTimer();
+			posBuf.remove();
 			return true;
 		} else {
 			ErrorCode = MOVE_BUF;

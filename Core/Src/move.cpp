@@ -18,6 +18,9 @@
 #include "move.h"
 #include <algorithm>
 
+#define DEG_TO_RAD (M_PI / 180.0)
+#define RAD_TO_DEG (180.0 / M_PI)
+
 void Robot::resetPos() {
 	orientation = posX = posY = 0;
 	totalDistSinceHoming = 0;
@@ -46,7 +49,7 @@ float_t Robot::getPosY() {
  */
 float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
 		float_t oldOrientation) {
-	float_t target = atan2(newY - oldY, newX - oldX) * 180 / M_PI; // Zielwinkel berechnen
+	float_t target = atan2(newY - oldY, newX - oldX) * RAD_TO_DEG; // Zielwinkel berechnen
 	target = fmod(target + 360, 360.0);	// Zielwinkel normalisieren auf [0, 360]
 	oldOrientation = fmod(oldOrientation + 360, 360.0); // aktuelle Orientierung normalisieren auf [0, 360]
 	float_t turn = target - oldOrientation;				// Drehwinkel berechnen
@@ -67,6 +70,15 @@ float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
  */
 float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 	return sqrt(pow(newX - oldX, 2) + pow(newY - oldY, 2));
+}
+
+MotorManager::position calcNewPos(float_t distance, float_t orientation,
+		float_t oldX, float_t oldY) {
+	MotorManager::position newPos;
+	newPos.x = oldX + distance * cos(DEG_TO_RAD * DEG_TO_RAD);
+	newPos.y = oldY + distance * sin(DEG_TO_RAD * DEG_TO_RAD);
+	newPos.orient = orientation;
+	return newPos;
 }
 
 /* Robot ---------------------------------------------------------------------*/
@@ -182,6 +194,7 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 	cmd.printigMove = printing;
 
 	totalDistSinceHoming += distance;
+	motorMaster.posBuf.insert(calcNewPos(distance, orientation, posX, posY));
 	return motorMaster.moveBuf.insert(cmd);
 }
 
@@ -218,6 +231,7 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	orientation += degrees;
 	orientation = fmod(orientation + 360, 360.0); //Drehwinkel normalisieren auf [0, 360]
 
+	motorMaster.posBuf.insert( { posX, posY, orientation });
 	return motorMaster.moveBuf.insert(cmd);
 }
 

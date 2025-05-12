@@ -125,12 +125,6 @@ void LowVoltageHandler();
 #define LCD_CS_GPIO_Port GPIOE
 #define LCD_D4_Pin GPIO_PIN_9
 #define LCD_D4_GPIO_Port GPIOE
-#define LCD_D5_Pin GPIO_PIN_10
-#define LCD_D5_GPIO_Port GPIOE
-#define LCD_D6_Pin GPIO_PIN_11
-#define LCD_D6_GPIO_Port GPIOE
-#define LCD_D7_Pin GPIO_PIN_12
-#define LCD_D7_GPIO_Port GPIOE
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

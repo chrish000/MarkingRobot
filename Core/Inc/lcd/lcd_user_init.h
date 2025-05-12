@@ -12,9 +12,8 @@
 extern "C" {
 #endif
 
-#include "stm32h7xx.h"
+#include <stdint.h>
 #include "u8g2.h"
-#include "pins.h"
 
 extern u8g2_t u8g2;
 

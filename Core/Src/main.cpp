@@ -610,9 +610,9 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
 	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
 	hspi1.Init.TxCRCInitializationPattern =
-	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.RxCRCInitializationPattern =
-	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
 	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
@@ -1082,9 +1082,8 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOE,
-			Z_STEP_Pin | Z_DIR_Pin | LCD_CS_Pin | LCD_D4_Pin | LCD_D5_Pin
-					| LCD_D6_Pin | LCD_D7_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE, Z_STEP_Pin | Z_DIR_Pin | LCD_CS_Pin | LCD_D4_Pin,
+			GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
@@ -1124,7 +1123,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : PWRDET_Pin */
 	GPIO_InitStruct.Pin = PWRDET_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(PWRDET_GPIO_Port, &GPIO_InitStruct);
 
 	/*Configure GPIO pins : X_STOP_Pin Y_STOP_Pin */
@@ -1155,7 +1154,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : BUZZER_Pin */
 	GPIO_InitStruct.Pin = BUZZER_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
 
@@ -1178,10 +1177,8 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(LCD_ENCA_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pins : LCD_CS_Pin LCD_D4_Pin LCD_D5_Pin LCD_D6_Pin
-	 LCD_D7_Pin */
-	GPIO_InitStruct.Pin = LCD_CS_Pin | LCD_D4_Pin | LCD_D5_Pin | LCD_D6_Pin
-			| LCD_D7_Pin;
+	/*Configure GPIO pins : LCD_CS_Pin LCD_D4_Pin */
+	GPIO_InitStruct.Pin = LCD_CS_Pin | LCD_D4_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
@@ -1204,7 +1201,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : X_EN_Pin */
 	GPIO_InitStruct.Pin = X_EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
 
@@ -1218,7 +1215,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : Z_EN_Pin */
 	GPIO_InitStruct.Pin = Z_EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 

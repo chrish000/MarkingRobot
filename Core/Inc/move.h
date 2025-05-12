@@ -30,7 +30,6 @@
 class Robot {
 public:
 	Robot() :
-			pins(),
 			motorMaster(pins),
 			printhead(pins.TIM_Printhead,TIM_PrintheadChannel),
 			parser(this),

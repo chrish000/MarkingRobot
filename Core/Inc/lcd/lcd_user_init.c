@@ -8,6 +8,13 @@
 #include "lcd_user_init.h"
 #include "main.h"
 
+#define LCD_CS_PIN LCD_CS_Pin
+#define LCD_CS_PORT LCD_CS_GPIO_Port
+#define LCD_DATA_PIN LCD_EN_Pin
+#define LCD_DATA_PORT LCD_EN_GPIO_Port
+#define LCD_SCK_PIN LCD_D4_Pin
+#define LCD_SCK_PORT LCD_D4_GPIO_Port
+
 u8g2_t u8g2;
 
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,

@@ -28,11 +28,12 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "u8g2.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern u8g2_t u8g2;
 extern ADC_HandleTypeDef hadc1;
 extern CRC_HandleTypeDef hcrc;
 

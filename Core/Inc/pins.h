@@ -27,11 +27,11 @@ struct Pin {
 #define X_DIR_PIN X_DIR_Pin
 #define X_EN_PORT X_EN_GPIO_Port
 #define X_EN_PIN X_EN_Pin
-	TIM_HandleTypeDef *TIM_Motor_X = &htim23;
-	DMA_HandleTypeDef *TIM_DMA_ARR_X = &hdma_tim23_ch1;
-	DMA_HandleTypeDef *TIM_DMA_BSRR_X = &hdma_tim23_ch2;
-	UART_HandleTypeDef *TMC_UART_address_X = &huart2;
-	CRC_HandleTypeDef *CRC_Handle_X = &hcrc;
+	TIM_HandleTypeDef *TIM_Motor_X;
+	DMA_HandleTypeDef *TIM_DMA_ARR_X;
+	DMA_HandleTypeDef *TIM_DMA_BSRR_X;
+	UART_HandleTypeDef *TMC_UART_address_X;
+	CRC_HandleTypeDef *CRC_Handle_X;
 
 // Y
 #define Y_STEP_PORT Z_STEP_GPIO_Port
@@ -40,11 +40,11 @@ struct Pin {
 #define Y_DIR_PIN Z_DIR_Pin
 #define Y_EN_PORT Z_EN_GPIO_Port
 #define Y_EN_PIN Z_EN_Pin
-	TIM_HandleTypeDef *TIM_Motor_Y = &htim24;
-	DMA_HandleTypeDef *TIM_DMA_ARR_Y = &hdma_tim24_ch1;
-	DMA_HandleTypeDef *TIM_DMA_BSRR_Y = &hdma_tim24_ch2;
-	UART_HandleTypeDef *TMC_UART_address_Y = &huart8;
-	CRC_HandleTypeDef *CRC_Handle_Y = &hcrc;
+	TIM_HandleTypeDef *TIM_Motor_Y;
+	DMA_HandleTypeDef *TIM_DMA_ARR_Y;
+	DMA_HandleTypeDef *TIM_DMA_BSRR_Y;
+	UART_HandleTypeDef *TMC_UART_address_Y;
+	CRC_HandleTypeDef *CRC_Handle_Y;
 
 //ENDSTOP
 #define X_STOP_PIN X_STOP_Pin
@@ -60,7 +60,7 @@ struct Pin {
 #define PWRDET_EXTI PWRDET_EXTI_IRQn
 
 //PRINTHEAD
-	TIM_HandleTypeDef *TIM_Printhead = &htim3;
+	TIM_HandleTypeDef *TIM_Printhead;
 #define TIM_PrintheadChannel TIM_CHANNEL_1
 
 // FAN
@@ -72,12 +72,12 @@ struct Pin {
 #define FAN2_PIN FAN2_Pin
 
 //HE0
-	TIM_HandleTypeDef *TIM_HE0 = &htim2;
+	TIM_HandleTypeDef *TIM_HE0;
 #define TIM_HE0Channel TIM_CHANNEL_2
 
 // BATTERY
-	ADC_HandleTypeDef *ADC_Handle = &hadc1;
-	TIM_HandleTypeDef *ADC_TIM = &htim8;
+	ADC_HandleTypeDef *ADC_Handle;
+	TIM_HandleTypeDef *ADC_TIM;
 #define BATTERY_ALARM_PORT PWRDET_GPIO_Port
 #define BATTERY_ALARM_PIN PWRDET_Pin
 
@@ -86,7 +86,7 @@ struct Pin {
 #define LOW_PRESSURE_PIN PRESSURE_Pin
 
 //BUZZER
-	TIM_HandleTypeDef *TIM_BUZZER = &htim4;
+	TIM_HandleTypeDef *TIM_BUZZER;
 #define BUZZER_PORT BUZZER_GPIO_Port
 #define BUZZER_PIN BUZZER_Pin
 

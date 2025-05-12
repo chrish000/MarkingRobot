@@ -30,9 +30,12 @@
 class Robot {
 public:
 	Robot() :
-			motorMaster(pins), printhead(pins.TIM_Printhead,
-			TIM_PrintheadChannel), parser(this), ADC_Handle(pins.ADC_Handle), ADC_TIM(
-					pins.ADC_TIM) {
+			pins(),
+			motorMaster(pins),
+			printhead(pins.TIM_Printhead,TIM_PrintheadChannel),
+			parser(this),
+			ADC_Handle(pins.ADC_Handle),
+			ADC_TIM(pins.ADC_TIM) {
 	}
 
 	Pin pins;

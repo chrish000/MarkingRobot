@@ -53,6 +53,7 @@ public:
 	};
 
 	uint16_t ADC_BatteryVoltage = 0;
+	uint8_t ADC_BatteryPercentage = 0;
 	float_t batteryVoltage = 0;
 	bool lowAirPressure = false;
 	bool batteryAlarm = false;

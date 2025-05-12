@@ -1,12 +1,13 @@
+
 /*
- * lcd_user_init.h
+ * menue.h
  *
  *  Created on: May 12, 2025
  *      Author: chris
  */
 
-#ifndef INC_LCD_LCD_USER_INIT_H_
-#define INC_LCD_LCD_USER_INIT_H_
+#ifndef INC_LCD_MENUE_H_
+#define INC_LCD_MENUE_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,8 +22,10 @@ void MX_U8G2_Init(void);
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 		void *arg_ptr);
 
+void DisplayRoutine(void);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* INC_LCD_LCD_USER_INIT_H_ */
+#endif /* INC_LCD_MENUE_H_ */

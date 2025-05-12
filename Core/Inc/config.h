@@ -74,4 +74,12 @@
 #define HOMING_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
 //#define MOVE_TO_HOME_BEFORE_HOMING
 
+/**
+ *	###########################################################################
+ *	AKKU
+ *	###########################################################################
+ */
+#define MAX_BAT_VOLTAGE 25.2f
+#define MIN_BAT_VOLTAGE 22.2f
+
 #endif /* CONFIG_H */

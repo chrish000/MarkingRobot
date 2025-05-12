@@ -35,7 +35,7 @@
 #include "homing.h"
 #include "button.h"
 
-#include "lcd/lcd_user_init.h"
+#include "lcd/menu.h"
 #include "lcd/lcd_bitmaps.h"
 /* USER CODE END Includes */
 
@@ -114,6 +114,8 @@ static void MX_SPI1_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	robi.batteryVoltage = 0.00042305 * robi.ADC_BatteryVoltage - 2.77797271;
+	robi.ADC_BatteryPercentage = (uint8_t) (robi.batteryVoltage
+			- MIN_BAT_VOLTAGE) / (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100;
 }
 /**
  * @brief GPIO External Interrupt Callback Function
@@ -306,30 +308,14 @@ int main(void) {
 	/****** LCD ******/
 	MX_U8G2_Init();
 
-	HAL_Delay(1000);
-	u8g2_ClearDisplay(&u8g2);
-	u8g2_ClearBuffer(&u8g2);
-	u8g2_SetFont(&u8g2, u8g2_font_ncenB10_tr);
-
-	while (1) {
-		u8g2_ClearBuffer(&u8g2);
-		u8g2_DrawXBM(&u8g2, 0, 0, SHL_LOGO_FRAME_WIDTH, SHL_LOGO_FRAME_HEIGHT,
-				shl_logo);
-		u8g2_SendBuffer(&u8g2);
-		HAL_Delay(1000);
-
-		u8g2_ClearBuffer(&u8g2);
-		u8g2_DrawStr(&u8g2, 0, 10, "test test test test");
-		u8g2_SendBuffer(&u8g2);
-		HAL_Delay(1000);
-	}
-
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		/* Menue */
+		DisplayRoutine();
+
 		if (encDir != 0) {
 			menuIndex += encDir;
 			encDir = 0;
@@ -610,9 +596,9 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
 	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
 	hspi1.Init.TxCRCInitializationPattern =
-			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.RxCRCInitializationPattern =
-			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
 	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;

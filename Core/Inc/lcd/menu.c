@@ -1,11 +1,11 @@
 /*
- * lcd_user_init.c
+ * menue.c
  *
  *  Created on: May 12, 2025
  *      Author: chris
  */
 
-#include "lcd_user_init.h"
+#include "menu.h"
 #include "main.h"
 
 #define LCD_CS_PIN LCD_CS_Pin
@@ -16,6 +16,10 @@
 #define LCD_SCK_PORT LCD_D4_GPIO_Port
 
 u8g2_t u8g2;
+
+void DisplayRoutine() {
+
+}
 
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 		void *arg_ptr) {
@@ -58,4 +62,9 @@ void MX_U8G2_Init(void) {
 
 	u8g2_InitDisplay(&u8g2);
 	u8g2_SetPowerSave(&u8g2, 0);
+
+	//User Interface
+	u8g2_ClearDisplay(&u8g2);
+	u8g2_ClearBuffer(&u8g2);
+	u8g2_SetFont(&u8g2, u8g2_font_6x10_mr);
 }

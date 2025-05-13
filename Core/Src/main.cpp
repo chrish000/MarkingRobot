@@ -84,7 +84,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 
 /* Peripherie */
 ERROR_HandleCode ErrorCode = NONE;
-Robot robi;
+extern Robot robi;
 
 /* Sensorvariablen */
 uint8_t printFlag = false;
@@ -114,7 +114,7 @@ static void MX_SPI1_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	robi.batteryVoltage = 0.00042305 * robi.ADC_BatteryVoltage - 2.77797271;
-	robi.ADC_BatteryPercentage = (uint8_t) (robi.batteryVoltage
+	robi.batteryPercentage = (uint8_t) (robi.batteryVoltage
 			- MIN_BAT_VOLTAGE) / (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100;
 }
 /**
@@ -303,8 +303,6 @@ int main(void) {
 	 //robi.printingFlag = true;
 	 */
 
-	int8_t menuIndex = 0;
-
 	/****** LCD ******/
 	MX_U8G2_Init();
 
@@ -317,7 +315,7 @@ int main(void) {
 		DisplayRoutine();
 
 		if (encDir != 0) {
-			menuIndex += encDir;
+			menuIndex = (menuDir) encDir;
 			encDir = 0;
 			encAFlag = false;
 			encBFlag = false;

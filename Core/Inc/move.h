@@ -27,6 +27,8 @@
 #include <optional>
 #include "Buzzer/buzzer.h"
 
+extern Robot robi;
+
 class Robot {
 public:
 	Robot() :
@@ -53,7 +55,7 @@ public:
 	};
 
 	uint16_t ADC_BatteryVoltage = 0;
-	uint8_t ADC_BatteryPercentage = 0;
+	uint8_t batteryPercentage = 0;
 	float_t batteryVoltage = 0;
 	bool lowAirPressure = false;
 	bool batteryAlarm = false;

@@ -18,6 +18,8 @@
 #include "move.h"
 #include <algorithm>
 
+Robot robi;
+
 void Robot::resetPos() {
 	orientation = posX = posY = 0;
 	totalDistSinceHoming = 0;

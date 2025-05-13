@@ -58,16 +58,62 @@ void DisplayRoutine() {
 	case lesen_von_sd:
 		// Code für den Bildschirm "Lesen von SD-Karte"
 		StatusScreen();
-		//TODO
+		u8g2_DrawStr(&u8g2, 2, 48, "Lesen von SD");
+		u8g2_DrawStr(&u8g2, 2, 59, "Duese reinigen");
+		u8g2_DrawFrame(&u8g2, 0, 37, 95, 14);
+		if(menuIndex == selected) {
+			activeScreen = sd_datei_1;
+			menuIndex = undefined;
+		}
+		else if (menuIndex == next){
+			activeScreen = duese_reinigen;
+			menuIndex = undefined;
+		}
 		break;
 	case duese_reinigen:
 		// Code für den Bildschirm "Düse reinigen"
+		StatusScreen();
+		u8g2_DrawStr(&u8g2, 2, 48, "Lesen von SD");
+		u8g2_DrawStr(&u8g2, 2, 59, "Duese reinigen");
+		u8g2_DrawFrame(&u8g2, 0, 50, 95, 14);
+		if(menuIndex == selected) {
+			activeScreen = reinigung_zurueck;
+			menuIndex = undefined;
+		}
+		else if (menuIndex == prev){
+			activeScreen = lesen_von_sd;
+			menuIndex = undefined;
+		}
 		break;
 	case reinigung_zurueck:
 		// Code für die Rückkehr vom Bildschirm "Reinigung"
+		u8g2_DrawStr(&u8g2, 10, 20, "Reinigungsprogramm");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		if(menuIndex == selected) {
+			activeScreen = lesen_von_sd;
+			menuIndex = undefined;
+		}
+		else if (menuIndex == next){
+			activeScreen = reinigung_starten;
+			menuIndex = undefined;
+		}
 		break;
 	case reinigung_starten:
 		// Code zum Starten der Reinigung
+		u8g2_DrawStr(&u8g2, 10, 20, "Reinigungsprogramm");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
+		if(menuIndex == selected) {
+			activeScreen = reinigung_laeuft;
+			menuIndex = undefined;
+		}
+		else if (menuIndex == prev){
+			activeScreen = reinigung_zurueck;
+			menuIndex = undefined;
+		}
 		break;
 	case reinigung_laeuft:
 		// Code für den Bildschirm "Reinigung läuft"

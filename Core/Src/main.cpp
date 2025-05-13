@@ -319,12 +319,11 @@ int main(void) {
 			encDir = 0;
 			encAFlag = false;
 			encBFlag = false;
-			//updateMenuDisplay(menuIndex);
 		}
 
 		if (btnPressed) {
 			btnPressed = false;
-			//selectMenuItem(menuIndex);
+			menuIndex = selected;
 		}
 
 		/* Druckvorgang */

@@ -44,7 +44,7 @@ typedef enum : uint8_t{
 } screen;
 
 typedef enum : int8_t {
-	undefined = 0, prev = -1, next = 1
+	undefined = 0, prev = -1, next = 1, selected = 3
 } menuDir;
 extern menuDir menuIndex;
 

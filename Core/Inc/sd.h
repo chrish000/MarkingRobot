@@ -24,6 +24,7 @@
 
 class SD {
 public:
+	bool initFlag = false;
 	TCHAR lineBuffer[BUFFER_SIZE];
 
 	void init();

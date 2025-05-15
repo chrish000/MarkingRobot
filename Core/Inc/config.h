@@ -54,6 +54,10 @@
 #define PRINTHEAD_PERIOD 500    // ms
 #define PRINTHEAD_DUTY_CYCLE 10 //%
 
+#define CLEAN_PULSETIME 300 //ms
+#define CLEAN_PULSEWIDTH 80 //%
+#define CLEAN_TOTAL_TIME 10 //s
+
 /**
  *	###########################################################################
  *	HOMING
@@ -73,5 +77,13 @@
 #define HOMING_OFFSET_X 140 // mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define HOMING_OFFSET_Y 298 // mm	(von Roboter Antrieb aussen seitlich zu Duese)
 #define MOVE_TO_HOME_BEFORE_HOMING
+
+/**
+ *	###########################################################################
+ *	AKKU
+ *	###########################################################################
+ */
+#define MAX_BAT_VOLTAGE 25.2f
+#define MIN_BAT_VOLTAGE 22.2f
 
 #endif /* CONFIG_H */

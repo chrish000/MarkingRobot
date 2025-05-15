@@ -28,11 +28,12 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "u8g2.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern u8g2_t u8g2;
 extern ADC_HandleTypeDef hadc1;
 extern CRC_HandleTypeDef hcrc;
 
@@ -60,7 +61,15 @@ typedef enum {
 
 extern ERROR_HandleCode ErrorCode;
 extern uint8_t printFlag;
+extern uint8_t PressureAlarm;
 
+extern uint8_t distSequence;
+extern uint8_t homingSequence;
+extern uint8_t airSequence;
+extern uint8_t readFromSD;
+extern uint8_t homingRoutine;
+extern uint8_t homingFailed;
+extern uint8_t lowPressure;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -81,7 +90,12 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 void DMA_Callback(DMA_HandleTypeDef *hdma);
 void LowVoltageHandler();
-void UserErrorHandler(UserErrorCode);
+void UserErrorHandler(UserErrorCode errCode);
+void HandlePressureAlarm(void);
+void HandleDistanceHoming(void);
+void HandleHomingRoutine(void);
+void HandleHoming(void);
+void HandlePrintFinished(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -117,12 +131,24 @@ void UserErrorHandler(UserErrorCode);
 #define LCD_BTN_Pin GPIO_PIN_0
 #define LCD_BTN_GPIO_Port GPIOB
 #define LCD_BTN_EXTI_IRQn EXTI0_IRQn
+#define LCD_EN_Pin GPIO_PIN_1
+#define LCD_EN_GPIO_Port GPIOB
 #define LCD_ENCB_Pin GPIO_PIN_2
 #define LCD_ENCB_GPIO_Port GPIOB
 #define LCD_ENCB_EXTI_IRQn EXTI2_IRQn
 #define LCD_ENCA_Pin GPIO_PIN_7
 #define LCD_ENCA_GPIO_Port GPIOE
 #define LCD_ENCA_EXTI_IRQn EXTI9_5_IRQn
+#define LCD_CS_Pin GPIO_PIN_8
+#define LCD_CS_GPIO_Port GPIOE
+#define LCD_D4_Pin GPIO_PIN_9
+#define LCD_D4_GPIO_Port GPIOE
+#define LCD_D5_Pin GPIO_PIN_10
+#define LCD_D5_GPIO_Port GPIOE
+#define LCD_D6_Pin GPIO_PIN_11
+#define LCD_D6_GPIO_Port GPIOE
+#define LCD_D7_Pin GPIO_PIN_12
+#define LCD_D7_GPIO_Port GPIOE
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

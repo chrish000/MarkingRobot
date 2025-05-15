@@ -71,10 +71,16 @@ void adjustDistWithMotorRatio() {
 HOMING_StatusTypeDef home(Robot *rob) {
 
 	if (timeoutActive)
-		if (HAL_GetTick() - timeout > MAX_HOMING_TIMEOUT)
+		if (HAL_GetTick() - timeout > MAX_HOMING_TIMEOUT) {
+			homingFailed = true;
+			phase = 0;
 			return HOMING_TIMEOUT;
-	if (counterTry > MAX_HOMING_TRY)
+		}
+	if (counterTry > MAX_HOMING_TRY) {
+		homingFailed = true;
+		phase = 0;
 		return HOMING_TRY;
+	}
 
 	switch (phase) {
 	case 0:	//Vorbereiten

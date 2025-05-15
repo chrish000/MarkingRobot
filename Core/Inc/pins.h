@@ -52,6 +52,7 @@ struct Pin {
 #define X_STOP_PORT X_STOP_GPIO_Port
 #define Y_STOP_PORT Y_STOP_GPIO_Port
 #define PWRDET_PIN PWRDET_Pin
+#define PWRDET_PORT PWRDET_GPIO_Port
 #define PRESSURE_PIN PRESSURE_Pin
 #define PRESSURE_PORT PRESSURE_GPIO_Port
 #define X_STOP_EXTI X_STOP_EXTI_IRQn
@@ -99,6 +100,9 @@ struct Pin {
 #define LCD_BTN_EXTI LCD_BTN_EXTI_IRQn
 #define LCD_ENCA_EXTI LCD_ENCA_EXTI_IRQn
 #define LCD_ENCB_EXTI LCD_ENCB_EXTI_IRQn
+
+//LCD
+//located in Inc/lcd/lcd_user_init.c
 };
 
 #endif /* INC_PINS_H_ */

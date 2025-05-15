@@ -11,6 +11,9 @@
 void SD::init() {
 	fresult = f_mount(&fs, "/", 1);
 	checkFreeSpace();
+	if (getResult() != FR_OK)
+		initFlag = false;
+	initFlag = true;
 }
 
 /**
@@ -49,13 +52,15 @@ bool SD::getFilesInDir(DIR *dir, const TCHAR *dirPath, FILINFO *fNameStorage,
 		uint8_t maxFiles) {
 	if (f_opendir(dir, dirPath) != FR_OK)
 		return false;
-	// if(f_readdir(dir, fNameStorage) != FR_OK) return false; //Erster Name ist "Sysem Volume Information"
+
+	FILINFO file;
+	strncpy((char*)file.fname, "System Volume Information", sizeof(file.fname));
+
 	for (int i = 0; i < maxFiles; ++i) {
 		if (f_readdir(dir, fNameStorage) != FR_OK)
 			return false;
-		if (fNameStorage->fname[0] == 0)
-			return false;
-		fNameStorage++;
+		if (fNameStorage->fname[0] != 0 && strcmp((char*)fNameStorage->fname, (char*)file.fname) != 0)
+			fNameStorage++;
 	}
 	fresult = f_closedir(dir);
 	return true;

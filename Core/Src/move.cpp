@@ -21,6 +21,8 @@
 #define DEG_TO_RAD (M_PI / 180.0)
 #define RAD_TO_DEG (180.0 / M_PI)
 
+Robot robi;
+
 void Robot::resetPos() {
 	orientation = posX = posY = 0;
 	totalDistSinceHoming = 0;

@@ -34,6 +34,9 @@
 #include "homing.h"
 #include "button.h"
 #include <math.h>
+
+#include "lcd/menu.h"
+#include "lcd/lcd_bitmaps.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,12 +84,27 @@ DMA_HandleTypeDef hdma_usart2_rx;
 
 /* Peripherie */
 ERROR_HandleCode ErrorCode = NONE;
-Robot robi;
+extern Robot robi;
 
 /* Sensorvariablen */
 volatile uint8_t BatteryAlarm = false;
 uint8_t PressureAlarm = false;
 uint8_t printFlag = false;
+
+uint8_t distSequence = 0;
+uint8_t homingSequence = 0;
+uint8_t airSequence = 0;
+uint8_t readFromSD = true;
+uint8_t homingRoutine = false;
+uint8_t homingFailed = false;
+uint8_t lowPressure;
+uint8_t homingEnabledPressure = true;
+
+Robot::MoveParams distHomingPosBuffer;
+
+MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] = { };
+MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
+uint8_t cmdCnt = 0, posCnt = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -113,6 +131,8 @@ static void MX_SPI1_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	robi.batteryVoltage = 0.00042305 * robi.ADC_BatteryVoltage - 2.77797271;
+	robi.batteryPercentage = (uint8_t) (robi.batteryVoltage - MIN_BAT_VOLTAGE)
+			/ (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100;
 }
 /**
  * @brief GPIO External Interrupt Callback Function
@@ -224,7 +244,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 }
 
 void LowVoltageHandler() {
-
 	robi.motorMaster.moveBuf.remove(robi.motorMaster.buffer_size_move - 1);
 	while (robi.motorMaster.calcInterval()) {
 		if (robi.printhead.isActive() != printFlag) {
@@ -258,9 +277,214 @@ void UserErrorHandler(UserErrorCode errCode) {
 			Buzzer_Note(&robi.hbuzzer, error_sound);
 			break;
 		case LOW_VOLTAGE:
+			activeScreen = akku_leer;
 			Buzzer_Note(&robi.hbuzzer, battery_empty);
 			break;
 		}
+		DisplayRoutine();
+	}
+}
+
+void HandlePressureAlarm(void) {
+	switch (airSequence) {
+	case 0:
+		readFromSD = false;
+		homingEnabledPressure = false;
+		//Aktuelle Bewegung beenden
+		while (!robi.motorMaster.moveCmdFinishedFlag
+				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
+			robi.motorMaster.calcInterval();
+			if (robi.printhead.isActive() != printFlag) {
+				printFlag ? robi.printhead.start() : robi.printhead.stop();
+			}
+		}
+
+		//Puffer zwischenspeichern
+		while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
+			cmdCnt++;
+		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
+			posCnt++;
+
+		//Aktuelle Position setzen
+		if (posCnt != 0) {
+			robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x, tempPosBuf[0].y);
+		}
+		airSequence++;
+		break;
+
+	case 1:
+		//Zu home fahren
+		if (movementFinished(&robi)) {
+			robi.moveToHome();
+			while (!movementFinished(&robi))
+				robi.motorMaster.calcInterval();
+			activeScreen = druck_gering_abbrechen;
+			airSequence++;
+		}
+		break;
+
+	case 2:
+		//Auf Auftanken warten und danach referenzieren
+		DisplayRoutine();
+		if (!lowPressure) {
+			if (activeScreen == markieren_laeuft) {
+				homingEnabledPressure = true;
+				robi.isHomedFlag = false;
+				airSequence++;
+				break;
+			}
+		}
+		Buzzer_Play_Song(&robi.hbuzzer, air_empty,
+				(sizeof(air_empty) / sizeof(air_empty[0])),
+				BPM_SYSTEM_SOUND);
+		menuIndex = undefined;
+		break;
+
+	case 3:
+		if (robi.isHomedFlag){
+			homingEnabledPressure = false;
+			airSequence++;
+		}
+		break;
+
+	case 4:
+		if (posCnt != 0) {
+			//Zurück auf Position fahren
+			Robot::MoveParams originalPosition;
+			originalPosition.x = tempPosBuf[0].x;
+			originalPosition.y = tempPosBuf[0].y;
+			robi.moveToPos(originalPosition);
+			while (!movementFinished(&robi))
+				robi.motorMaster.calcInterval();
+
+			//Originale Orientierung einnehmen
+			float_t delta = fmod((tempPosBuf[0].orient - robi.getRot() + 540.0),
+					360.0) - 180.0;
+			robi.moveRot(delta, DEFAULT_SPEED, DEFAULT_ACCEL);
+			while (!movementFinished(&robi))
+				robi.motorMaster.calcInterval();
+
+			//Puffer wiederherstellen
+			robi.motorMaster.posBuf.consumerClear();
+			robi.motorMaster.moveBuf.consumerClear();
+			for (int i = 0; i < cmdCnt; ++i) {
+				robi.motorMaster.moveBuf.insert(tempCmdBuf[i]);
+			}
+			for (int i = 0; i < posCnt; ++i) {
+				robi.motorMaster.posBuf.insert(tempPosBuf[i]);
+			}
+			robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x, tempPosBuf[0].y);
+		}
+		cmdCnt = posCnt = 0;
+		readFromSD = true;
+		homingEnabledPressure = true;
+		PressureAlarm = false;
+		airSequence = 0;
+		break;
+	}
+}
+
+void HandleDistanceHoming(void) {
+	switch (distSequence) {
+	case 0:
+		readFromSD = false;
+		homingRoutine = true;
+		distSequence++;
+		break;
+	case 1:
+		if (!homingRoutine) {
+			readFromSD = true;
+			distSequence = 0;
+		}
+		break;
+	}
+}
+
+void HandleHomingRoutine(void) {
+	switch (homingSequence) {
+	case 0:
+		// Bewegungspuffer abarbeiten
+		while (robi.motorMaster.calcInterval()) {
+			if (robi.printhead.isActive() != printFlag) {
+				printFlag ? robi.printhead.start() : robi.printhead.stop();
+			}
+		}
+		readFromSD = false;
+		robi.printhead.stop();
+		distHomingPosBuffer.x = robi.getPosX();
+		distHomingPosBuffer.y = robi.getPosY();
+		robi.moveToHome();
+		while (robi.motorMaster.calcInterval())
+			;
+		if (lowPressure) {
+			activeScreen = druck_gering_abbrechen;
+			homingSequence = 2;
+		} else
+			homingSequence = 1;
+		robi.isHomedFlag = false;
+		homingSequence++;
+		break;
+	case 1: // Nur Homing
+		if (robi.isHomedFlag)
+			homingSequence = 3;
+		break;
+	case 2: // Luft und dann Homing
+		DisplayRoutine();
+		if (!lowPressure)
+			if (activeScreen == markieren_laeuft) {
+				robi.isHomedFlag = false;
+				homingSequence = 1;
+			}
+		Buzzer_Play_Song(&robi.hbuzzer, air_empty,
+				(sizeof(air_empty) / sizeof(air_empty[0])),
+				BPM_SYSTEM_SOUND);
+		menuIndex = undefined;
+		break;
+	case 3: // Fortsetzen
+		robi.moveToPos(distHomingPosBuffer);
+		robi.totalDistSinceHoming = 0;
+		homingSequence = 0;
+		homingRoutine = false;
+		break;
+	}
+}
+
+void HandleHoming(void) {
+	readFromSD = false;
+	timeoutActive = false;
+	counterTry = 0;
+	HOMING_StatusTypeDef status = HOMING_BUSY;
+	while (status == HOMING_BUSY) {
+		DisplayRoutine();
+		status = home(&robi);
+		robi.motorMaster.calcInterval();
+	}
+	if (status != HOMING_FINISHED) {
+		homingFailed = true;
+		activeScreen = referenzieren_gescheitert_abbrechen;
+	} else {
+		homingFailed = false;
+		readFromSD = true;
+	}
+}
+
+void HandlePrintFinished(void) {
+	if (movementFinished(&robi)) {
+		robi.printhead.stop();
+		robi.moveToHome();
+		while (!movementFinished(&robi))
+			robi.motorMaster.calcInterval();
+		robi.motorMaster.motorX.disableMotor();
+		robi.motorMaster.motorY.disableMotor();
+		robi.finishedFlag = false;
+		robi.printingFlag = false;
+		robi.sd.closeCurrentFile();
+		activeScreen = markieren_beendet;
+		DisplayRoutine();
+		Buzzer_Play_Song(&robi.hbuzzer, mario_level_complete,
+				(sizeof(mario_level_complete) / sizeof(mario_level_complete[0])),
+				BPM_MARIO_LEVEL);
+		Buzzer_NoNote(&robi.hbuzzer);
 	}
 }
 /* USER CODE END 0 */
@@ -311,56 +535,12 @@ int main(void) {
 	MX_FATFS_Init();
 	/* USER CODE BEGIN 2 */
 	robi.init();
+	MX_U8G2_Init();
 
-	/* Debugging TMC */
-	TMC2209::Status status = robi.motorMaster.motorX.tmc.getStatus();
-	TMC2209::Settings settings = robi.motorMaster.motorX.tmc.getSettings();
-	TMC2209::GlobalStatus gstatus =
-			robi.motorMaster.motorX.tmc.getGlobalStatus();
-
-	robi.motorMaster.motorX.tmc.enable();
-	robi.motorMaster.motorX.tmc.moveAtVelocity(1000);
-
-	status = robi.motorMaster.motorX.tmc.getStatus();
-	settings = robi.motorMaster.motorX.tmc.getSettings();
-	gstatus = robi.motorMaster.motorX.tmc.getGlobalStatus();
-
-	/* STEPS PER DEG TEST BEGIN */
 	/*
-	 int i = 0;
-	 while (1) {
-	 robi.motorMaster.calcInterval();
-	 switch (i) {
-	 case 0:
-	 if (home(&robi) == HOMING_FINISHED)
-	 i++;
-	 break;
-	 case 1:
-	 robi.moveRot(3600);
-	 i++;
-	 break;
-	 case 2:
-	 if (movementFinished(&robi))
-	 i++;
-	 break;
-	 case 3:
-	 home(&robi);
-	 break;
-	 }
-	 }
+	 Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
+	 (sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 	 */
-	/* STEPS PER DEG TEST END */
-
-	robi.isHomedFlag = true;
-	// robi.printhead.clean();
-	// Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
-	//		(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
-	// SD
-	HAL_Delay(1000);
-	robi.sd.init();
-	robi.sd.openFile("test.gcode");
-
-	int8_t menuIndex = 0;
 
 	uint8_t homingRoutine = false;
 	uint8_t distSequence = 0;
@@ -383,198 +563,60 @@ int main(void) {
 	/* USER CODE BEGIN WHILE */
 	while (1) {
 		/* Menue */
+		DisplayRoutine();
+
 		if (encDir != 0) {
-			menuIndex += encDir;
+			menuIndex = (menuDir) encDir;
 			encDir = 0;
 			encAFlag = false;
 			encBFlag = false;
-			// updateMenuDisplay(menuIndex);
 		}
 
 		if (btnPressed) {
+			HAL_Delay(10); //Entprellen
 			btnPressed = false;
-			// selectMenuItem(menuIndex);
+			menuIndex = selected;
 		}
 
+		DisplayRoutine();
+
 		/* Druckvorgang */
-		while (robi.printingFlag) {
+		if (robi.printingFlag) {
 
-			/* Zu niedriger Druck */
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
+
 			lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
-			if (lowPressure)
-				PressureAlarm = true;
-
-			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
-				switch (airSequence) {
-				case 0:
-					readFromSD = false;
-
-					//Aktuelle Bewegung beenden
-					while (!robi.motorMaster.moveCmdFinishedFlag
-							&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
-						robi.motorMaster.calcInterval();
-						if (robi.printhead.isActive() != printFlag) {
-							printFlag ?
-									robi.printhead.start() :
-									robi.printhead.stop();
-						}
-					}
-
-					//Puffer zwischenspeichern
-					while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
-						cmdCnt++;
-					while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
-						posCnt++;
-
-					//Aktuelle Position setzen
-					if (posCnt != 0) {
-						robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x,
-								tempPosBuf[0].y);
-					}
-					airSequence++;
-					break;
-
-				case 1:
-					//Zu home fahren
-					if (movementFinished(&robi)) {
-						robi.moveToHome();
-						while (!movementFinished(&robi))
-							robi.motorMaster.calcInterval();
-						airSequence++;
-					}
-					break;
-
-				case 2:
-					//Auf Auftanken warten und danach referenzieren
-					//TODO Fehler ausgeben und auf Eingabe warten
-					if (!lowPressure)
-						if (btnPressed) {
-							btnPressed = false;
-							robi.isHomedFlag = false;
-							airSequence++;
-						}
-					Buzzer_Play_Song(&robi.hbuzzer, air_empty,
-							(sizeof(air_empty) / sizeof(air_empty[0])),
-							BPM_SYSTEM_SOUND);
-					break;
-
-				case 3:
-					if (robi.isHomedFlag)
-						airSequence++;
-					break;
-
-				case 4:
-					if (posCnt != 0) {
-						//Zurück auf Position fahren
-						Robot::MoveParams originalPosition;
-						originalPosition.x = tempPosBuf[0].x;
-						originalPosition.y = tempPosBuf[0].y;
-						robi.moveToPos(originalPosition);
-						while (!movementFinished(&robi))
-							robi.motorMaster.calcInterval();
-
-						//Originale Orientierung einnehmen
-						float_t delta = fmod(
-								(tempPosBuf[0].orient - robi.getRot() + 540.0),
-								360.0) - 180.0;
-						robi.moveRot(delta, DEFAULT_SPEED, DEFAULT_ACCEL);
-						while (!movementFinished(&robi))
-							robi.motorMaster.calcInterval();
-
-						//Puffer wiederherstellen
-						robi.motorMaster.posBuf.consumerClear();
-						robi.motorMaster.moveBuf.consumerClear();
-						for (int i = 0; i < cmdCnt; ++i) {
-							robi.motorMaster.moveBuf.insert(tempCmdBuf[i]);
-						}
-						for (int i = 0; i < posCnt; ++i) {
-							robi.motorMaster.posBuf.insert(tempPosBuf[i]);
-						}
-						robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x,
-								tempPosBuf[0].y);
-					}
-					cmdCnt = posCnt = 0;
-					readFromSD = true;
-					PressureAlarm = false;
-					airSequence = 0;
-					break;
-
-				}
-			}
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
 					&& robi.isHomedFlag) {
-				switch (distSequence) {
-				case 0:
-					readFromSD = false;
-					homingRoutine = true;
-					distSequence++;
-					break;
-				case 1:
-					if (!homingRoutine) {
-						readFromSD = true;
-						distSequence = 0;
-					}
-					break;
-				}
+				HandleDistanceHoming();
 			}
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
-			if (homingRoutine) {
-				switch (homingSequence) {
-				case 0:
-					// Bewegungspuffer abarbeiten
-					while (robi.motorMaster.calcInterval()) {
-						if (robi.printhead.isActive() != printFlag) {
-							printFlag ?
-									robi.printhead.start() :
-									robi.printhead.stop();
-						}
-					}
-					readFromSD = false;
-					robi.printhead.stop();
-					distHomingPosBuffer.x = robi.getPosX();
-					distHomingPosBuffer.y = robi.getPosY();
-					robi.moveToHome();
-					while (robi.motorMaster.calcInterval())
-						;
-					if (lowPressure) {
-						homingSequence = 2;
-					} else
-						homingSequence = 1;
-					robi.isHomedFlag = false;
-					homingSequence++;
-					break;
-				case 1: // Nur Homing
-					if (robi.isHomedFlag)
-						homingSequence = 3;
-					break;
-				case 2: // Luft und dann Homing
-					if (!lowPressure)
-						if (btnPressed) {
-							btnPressed = false;
-							robi.isHomedFlag = false;
-							homingSequence = 1;
-						}
-					Buzzer_Play_Song(&robi.hbuzzer, air_empty,
-							(sizeof(air_empty) / sizeof(air_empty[0])),
-							BPM_SYSTEM_SOUND);
-					break;
-				case 3: // Fortsetzen
-					robi.moveToPos(distHomingPosBuffer);
-					robi.totalDistSinceHoming = 0;
-					homingSequence = 0;
-					homingRoutine = false;
-					break;
-				}
+			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
+				HandleHomingRoutine();
+			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
+
+			/* Zu niedriger Druck */
+			if (lowPressure && !homingRoutine)
+				PressureAlarm = true;
+
+			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
+				HandlePressureAlarm();
 			}
 
 			/* Roboter neu referenzieren wenn gefordert */
-			if (!robi.isHomedFlag) {
-				while (home(&robi) != HOMING_FINISHED)
-					robi.motorMaster.calcInterval();
+			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
+				HandleHoming();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 			/* Düse ansteuern*/
 			if (robi.printhead.isActive() != printFlag) {
@@ -593,23 +635,7 @@ int main(void) {
 
 			/* Ende von Druckvorgang */
 			if (robi.finishedFlag) {
-				if (movementFinished(&robi)) {
-					robi.printhead.stop();
-					robi.moveToHome();
-					while (!movementFinished(&robi))
-						robi.motorMaster.calcInterval();
-					robi.motorMaster.motorX.disableMotor();
-					robi.motorMaster.motorY.disableMotor();
-					robi.finishedFlag = false;
-					robi.printingFlag = false;
-					robi.sd.closeCurrentFile();
-
-					Buzzer_Play_Song(&robi.hbuzzer, mario_level_complete,
-							(sizeof(mario_level_complete)
-									/ sizeof(mario_level_complete[0])),
-							BPM_MARIO_LEVEL);
-					Buzzer_NoNote(&robi.hbuzzer);
-				}
+				HandlePrintFinished();
 			}
 		}
 
@@ -1285,7 +1311,9 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOE, Z_STEP_Pin | Z_DIR_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE,
+			Z_STEP_Pin | Z_DIR_Pin | LCD_CS_Pin | LCD_D4_Pin | LCD_D5_Pin
+					| LCD_D6_Pin | LCD_D7_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
@@ -1294,13 +1322,13 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
+	HAL_GPIO_WritePin(GPIOB, LCD_EN_Pin | FAN2_Pin | FAN1_Pin, GPIO_PIN_RESET);
+
+	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(GPIOD, X_DIR_Pin | X_STEP_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(X_EN_GPIO_Port, X_EN_Pin, GPIO_PIN_SET);
-
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOB, FAN2_Pin | FAN1_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(FAN0_GPIO_Port, FAN0_Pin, GPIO_PIN_SET);
@@ -1356,7 +1384,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : BUZZER_Pin */
 	GPIO_InitStruct.Pin = BUZZER_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(BUZZER_GPIO_Port, &GPIO_InitStruct);
 
@@ -1366,11 +1394,32 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	/*Configure GPIO pin : LCD_EN_Pin */
+	GPIO_InitStruct.Pin = LCD_EN_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(LCD_EN_GPIO_Port, &GPIO_InitStruct);
+
 	/*Configure GPIO pin : LCD_ENCA_Pin */
 	GPIO_InitStruct.Pin = LCD_ENCA_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
 	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	HAL_GPIO_Init(LCD_ENCA_GPIO_Port, &GPIO_InitStruct);
+
+	/*Configure GPIO pins : LCD_CS_Pin LCD_D4_Pin */
+	GPIO_InitStruct.Pin = LCD_CS_Pin | LCD_D4_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+	/*Configure GPIO pins : LCD_D5_Pin LCD_D6_Pin LCD_D7_Pin */
+	GPIO_InitStruct.Pin = LCD_D5_Pin | LCD_D6_Pin | LCD_D7_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
 	/*Configure GPIO pin : X_DIR_Pin */
 	GPIO_InitStruct.Pin = X_DIR_Pin;
@@ -1389,7 +1438,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : X_EN_Pin */
 	GPIO_InitStruct.Pin = X_EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(X_EN_GPIO_Port, &GPIO_InitStruct);
 
@@ -1403,7 +1452,7 @@ static void MX_GPIO_Init(void) {
 	/*Configure GPIO pin : Z_EN_Pin */
 	GPIO_InitStruct.Pin = Z_EN_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 

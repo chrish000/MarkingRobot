@@ -542,21 +542,6 @@ int main(void) {
 	 (sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 	 */
 
-	uint8_t homingRoutine = false;
-	uint8_t distSequence = 0;
-	uint8_t homingSequence = 0;
-	Robot::MoveParams distHomingPosBuffer;
-
-	uint8_t airSequence = 0;
-	uint8_t lowPressure;
-	MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] =
-			{ };
-	MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
-	uint8_t cmdCnt = 0, posCnt = 0;
-
-	robi.printingFlag = true;
-	uint8_t readFromSD = true;
-
 	/* USER CODE END 2 */
 
 	/* Infinite loop */

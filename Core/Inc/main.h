@@ -69,6 +69,7 @@ extern uint8_t airSequence;
 extern uint8_t readFromSD;
 extern uint8_t homingRoutine;
 extern uint8_t homingFailed;
+extern uint8_t lowPressure;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

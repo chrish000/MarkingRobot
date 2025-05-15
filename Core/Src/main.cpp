@@ -97,9 +97,10 @@ uint8_t airSequence = 0;
 uint8_t readFromSD = true;
 uint8_t homingRoutine = false;
 uint8_t homingFailed = false;
+uint8_t lowPressure;
 
 Robot::MoveParams distHomingPosBuffer;
-uint8_t lowPressure;
+
 MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] = { };
 MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
 uint8_t cmdCnt = 0, posCnt = 0;
@@ -249,10 +250,6 @@ void LowVoltageHandler() {
 		}
 	}
 	robi.printhead.stop();
-
-	activeScreen = akku_leer;
-	DisplayRoutine();
-
 	robi.motorMaster.motorX.disableMotor();
 	robi.motorMaster.motorX.stopTimer();
 	robi.motorMaster.motorY.disableMotor();
@@ -279,9 +276,11 @@ void UserErrorHandler(UserErrorCode errCode) {
 			Buzzer_Note(&robi.hbuzzer, error_sound);
 			break;
 		case LOW_VOLTAGE:
+			activeScreen = akku_leer;
 			Buzzer_Note(&robi.hbuzzer, battery_empty);
 			break;
 		}
+		DisplayRoutine();
 	}
 }
 
@@ -325,14 +324,18 @@ void HandlePressureAlarm(void) {
 
 	case 2:
 		//Auf Auftanken warten und danach referenzieren
-		if (!lowPressure)
+		DisplayRoutine();
+		if (!lowPressure) {
 			if (activeScreen == markieren_laeuft) {
 				robi.isHomedFlag = false;
 				airSequence++;
+				break;
 			}
+		}
 		Buzzer_Play_Song(&robi.hbuzzer, air_empty,
 				(sizeof(air_empty) / sizeof(air_empty[0])),
 				BPM_SYSTEM_SOUND);
+		menuIndex = undefined;
 		break;
 
 	case 3:
@@ -373,7 +376,6 @@ void HandlePressureAlarm(void) {
 		PressureAlarm = false;
 		airSequence = 0;
 		break;
-
 	}
 }
 
@@ -422,6 +424,7 @@ void HandleHomingRoutine(void) {
 			homingSequence = 3;
 		break;
 	case 2: // Luft und dann Homing
+		DisplayRoutine();
 		if (!lowPressure)
 			if (activeScreen == markieren_laeuft) {
 				robi.isHomedFlag = false;
@@ -430,6 +433,7 @@ void HandleHomingRoutine(void) {
 		Buzzer_Play_Song(&robi.hbuzzer, air_empty,
 				(sizeof(air_empty) / sizeof(air_empty[0])),
 				BPM_SYSTEM_SOUND);
+		menuIndex = undefined;
 		break;
 	case 3: // Fortsetzen
 		robi.moveToPos(distHomingPosBuffer);
@@ -471,6 +475,7 @@ void HandlePrintFinished(void) {
 		robi.printingFlag = false;
 		robi.sd.closeCurrentFile();
 		activeScreen = markieren_beendet;
+		DisplayRoutine();
 		Buzzer_Play_Song(&robi.hbuzzer, mario_level_complete,
 				(sizeof(mario_level_complete) / sizeof(mario_level_complete[0])),
 				BPM_MARIO_LEVEL);
@@ -526,14 +531,11 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	robi.init();
 	MX_U8G2_Init();
+
 	/*
 	 Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
 	 (sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 	 */
-	//TODO
-	//homing true
-	//druck false
-	robi.isHomedFlag = true;
 
 	/* USER CODE END 2 */
 
@@ -551,13 +553,18 @@ int main(void) {
 		}
 
 		if (btnPressed) {
-			HAL_Delay(5); //Entprellen
+			HAL_Delay(10); //Entprellen
 			btnPressed = false;
 			menuIndex = selected;
 		}
 
+		DisplayRoutine();
+
 		/* Druckvorgang */
 		if (robi.printingFlag) {
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 			lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
 
@@ -572,6 +579,9 @@ int main(void) {
 				HandleHomingRoutine();
 			}
 
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
+
 			/* Zu niedriger Druck */
 			if (lowPressure && !homingRoutine)
 				PressureAlarm = true;
@@ -584,6 +594,9 @@ int main(void) {
 			if (!robi.isHomedFlag && !homingFailed) {
 				HandleHoming();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 			/* Düse ansteuern*/
 			if (robi.printhead.isActive() != printFlag) {

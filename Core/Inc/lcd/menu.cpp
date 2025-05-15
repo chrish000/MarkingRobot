@@ -25,7 +25,6 @@
 #define FILE_NAME_BUFFER_SIZE 8
 #define MAX_FILE_NAME_LENGTH 20
 
-//extern Robot robi;
 u8g2_t u8g2;
 screen activeScreen = logo;
 uint32_t screenTimer = 0;
@@ -35,7 +34,7 @@ DIR dir;
 FILINFO fileNameBuf[FILE_NAME_BUFFER_SIZE] = { 0 };
 uint8_t selectedFile = 0;
 
-void vorgangAbbrechen(){
+void vorgangAbbrechen() {
 	robi.sd.closeCurrentFile();
 	robi.printhead.stop();
 	robi.printingFlag = false;
@@ -411,7 +410,9 @@ void DisplayRoutine() {
 		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
 		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
 		if (menuIndex == selected) {
-			activeScreen = markieren_laeuft;
+			if (!lowPressure) {
+				activeScreen = markieren_laeuft;
+			}
 			menuIndex = undefined;
 		} else if (menuIndex == prev) {
 			activeScreen = druck_gering_abbrechen;

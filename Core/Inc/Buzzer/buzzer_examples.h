@@ -61,13 +61,8 @@ note_t mario_level_complete[] = {
 };
 
 #define BPM_SYSTEM_SOUND 120
-note_t error_sound[]= {
-		{ NOTE_A4, 8, }, { NOTE_DS4, 4 }, { 0, 1 }
-};
-
-note_t battery_empty[]= {
-		{ NOTE_G5, 8, }, { NOTE_DS5, 8 }, { NOTE_B4, 4 }, { 0, 1 }
-};
+#define error_sound NOTE_A4
+#define battery_empty NOTE_G5
 
 note_t air_empty[]= {
 		{ NOTE_B7, 16 }, { 0, 16 },

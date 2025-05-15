@@ -48,8 +48,18 @@ public:
 		bool printigMove;
 	};
 
+	struct position {
+		float_t x;
+		float_t y;
+		float_t orient;
+	};
+
+	bool moveCmdFinishedFlag = false;
+
 	const static size_t buffer_size_move = 8;	//size = n-1 elements
 	jnk0le::Ringbuffer<moveCommands, buffer_size_move, false, 32> moveBuf;
+	jnk0le::Ringbuffer<position, buffer_size_move, false, 32> posBuf;
+
 
 	bool calcInterval();
 	void resetCalc();

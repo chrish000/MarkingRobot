@@ -55,6 +55,7 @@ public:
 	void stop() {
 		HAL_TIM_PWM_Stop(htim, channel);
 		active = false;
+		timerClean = 0;
 	}
 	bool isActive() {
 		return active;
@@ -63,11 +64,20 @@ public:
 		stop();
 		setParam();
 	}
-	void clean() {
-		setParam(CLEAN_PULSETIME, CLEAN_PULSEWIDTH);
-		start();
-		HAL_Delay(CLEAN_TOTAL_TIME * 1000);
-		stop();
+
+	//return true wenn fertig, false sonst
+	bool clean() {
+		if (timerClean == 0) {
+			timerClean = HAL_GetTick();
+			setParam(CLEAN_PULSETIME, CLEAN_PULSEWIDTH);
+			start();
+		}
+		if (HAL_GetTick() > timerClean + CLEAN_TOTAL_TIME * 1000) {
+			stop();
+			timerClean = 0;
+			return true;
+		}
+		return false;
 	}
 
 private:
@@ -75,6 +85,7 @@ private:
 	uint32_t channel;
 
 	bool active = false;
+	uint32_t timerClean = 0;
 };
 
 #endif /* PRINTHEAD_H_ */

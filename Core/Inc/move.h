@@ -32,11 +32,9 @@ extern Robot robi;
 class Robot {
 public:
 	Robot() :
-			motorMaster(pins),
-			printhead(pins.TIM_Printhead,TIM_PrintheadChannel),
-			parser(this),
-			ADC_Handle(pins.ADC_Handle),
-			ADC_TIM(pins.ADC_TIM) {
+			motorMaster(pins), printhead(pins.TIM_Printhead,
+			TIM_PrintheadChannel), parser(this), ADC_Handle(pins.ADC_Handle), ADC_TIM(
+					pins.ADC_TIM) {
 	}
 
 	Pin pins;
@@ -55,8 +53,8 @@ public:
 	};
 
 	uint16_t ADC_BatteryVoltage = 0;
-	uint8_t batteryPercentage = 0;
-	float_t batteryVoltage = 0;
+	float_t batteryVoltage;
+	uint8_t batteryPercentage;
 	bool lowAirPressure = false;
 	bool batteryAlarm = false;
 
@@ -74,6 +72,9 @@ public:
 	bool moveToHome();
 	void resetPos();
 	void setPos(float_t newOrientation, float_t newX, float_t newY);
+	float_t getPosX();
+	float_t getPosY();
+	float_t getRot();
 
 private:
 	ADC_HandleTypeDef *ADC_Handle;

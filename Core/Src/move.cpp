@@ -18,6 +18,9 @@
 #include "move.h"
 #include <algorithm>
 
+#define DEG_TO_RAD (M_PI / 180.0)
+#define RAD_TO_DEG (180.0 / M_PI)
+
 Robot robi;
 
 void Robot::resetPos() {
@@ -28,6 +31,17 @@ void Robot::setPos(float_t newOrientation, float_t newX, float_t newY) {
 	orientation = newOrientation;
 	posX = newX;
 	posY = newY;
+}
+
+float_t Robot::getPosX() {
+	return posX;
+}
+float_t Robot::getPosY() {
+	return posY;
+}
+
+float_t Robot::getRot() {
+	return orientation;
 }
 
 /**
@@ -41,7 +55,7 @@ void Robot::setPos(float_t newOrientation, float_t newX, float_t newY) {
  */
 float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
 		float_t oldOrientation) {
-	float_t target = atan2(newY - oldY, newX - oldX) * 180 / M_PI; // Zielwinkel berechnen
+	float_t target = atan2(newY - oldY, newX - oldX) * RAD_TO_DEG; // Zielwinkel berechnen
 	target = fmod(target + 360, 360.0);	// Zielwinkel normalisieren auf [0, 360]
 	oldOrientation = fmod(oldOrientation + 360, 360.0); // aktuelle Orientierung normalisieren auf [0, 360]
 	float_t turn = target - oldOrientation;				// Drehwinkel berechnen
@@ -62,6 +76,15 @@ float_t calcTurn(float_t newX, float_t newY, float_t oldX, float_t oldY,
  */
 float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 	return sqrt(pow(newX - oldX, 2) + pow(newY - oldY, 2));
+}
+
+MotorManager::position calcNewPos(float_t distance, float_t orientation,
+		float_t oldX, float_t oldY) {
+	MotorManager::position newPos;
+	newPos.x = oldX + distance * cos(DEG_TO_RAD * DEG_TO_RAD);
+	newPos.y = oldY + distance * sin(DEG_TO_RAD * DEG_TO_RAD);
+	newPos.orient = orientation;
+	return newPos;
 }
 
 /* Robot ---------------------------------------------------------------------*/
@@ -87,8 +110,6 @@ void Robot::init() {
 	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
-
-
 
 	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED); // ADC Kalibrieren
 	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*) &ADC_BatteryVoltage, 1); // ADC starten
@@ -179,6 +200,7 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 	cmd.printigMove = printing;
 
 	totalDistSinceHoming += distance;
+	motorMaster.posBuf.insert(calcNewPos(distance, orientation, posX, posY));
 	return motorMaster.moveBuf.insert(cmd);
 }
 
@@ -213,12 +235,18 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	cmd.printigMove = false;
 
 	orientation += degrees;
+	orientation = fmod(orientation + 360, 360.0); //Drehwinkel normalisieren auf [0, 360]
+
+	motorMaster.posBuf.insert( { posX, posY, orientation });
 	return motorMaster.moveBuf.insert(cmd);
 }
 
 bool Robot::moveToHome() {
-	if (!posX && !posY && !orientation) //steht bereits auf Position
+	if (posX == 0 && posY == 0 && orientation == 0) //steht bereits auf Position
 		return true;
+
+	if (motorMaster.moveBuf.writeAvailable() < 5) //Nicht genug Platz im Bewegungspuffer
+		return false;
 
 	MoveParams param;
 	param.x = 500;
@@ -233,6 +261,8 @@ bool Robot::moveToHome() {
 	status &= moveLin(-707.107);
 	status &= moveRot(-45);
 
-	setPos(0, 0, 0);
+	if (status == true)
+		setPos(0, 0, 0);
+
 	return status;
 }

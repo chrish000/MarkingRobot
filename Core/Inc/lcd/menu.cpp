@@ -8,7 +8,10 @@
 #include "main.h"
 #include "menu.h"
 #include "move.h"
+#include "sd.h"
+//#include "homing.h"
 #include "lcd_bitmaps.h"
+#include <cstring>
 
 #define LCD_CS_PIN LCD_CS_Pin
 #define LCD_CS_PORT LCD_CS_GPIO_Port
@@ -19,11 +22,38 @@
 
 #define DISPLAY_LOGO_TIME 1000 //ms
 
+#define FILE_NAME_BUFFER_SIZE 8
+#define MAX_FILE_NAME_LENGTH 20
+
 //extern Robot robi;
 u8g2_t u8g2;
 screen activeScreen = logo;
 uint32_t screenTimer = 0;
 menuDir menuIndex = undefined;
+
+DIR dir;
+FILINFO fileNameBuf[FILE_NAME_BUFFER_SIZE] = { 0 };
+uint8_t selectedFile = 0;
+
+void vorgangAbbrechen(){
+	robi.sd.closeCurrentFile();
+	robi.printhead.stop();
+	robi.printingFlag = false;
+	robi.motorMaster.moveBuf.consumerClear();
+	robi.motorMaster.posBuf.consumerClear();
+	robi.motorMaster.motorX.stepBuf.consumerClear();
+	robi.motorMaster.motorY.stepBuf.consumerClear();
+	robi.motorMaster.motorX.tmc.disable();
+	robi.motorMaster.motorY.tmc.disable();
+	distSequence = 0;
+	homingSequence = 0;
+	airSequence = 0;
+	readFromSD = true;
+	homingRoutine = false;
+	robi.isHomedFlag = false;
+	PressureAlarm = false;
+	robi.totalDistSinceHoming = 0;
+}
 
 void inline StatusScreen() {
 	char buffer[7];
@@ -35,19 +65,45 @@ void inline StatusScreen() {
 	u8g2_DrawStr(&u8g2, 0, 30, buffer);
 
 	u8g2_DrawStr(&u8g2, 99, 10, "Druck");
-	if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN)
-						== GPIO_PIN_RESET)
+	if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET)
 		u8g2_DrawStr(&u8g2, 99, 20, "n.OK");
 	else
 		u8g2_DrawStr(&u8g2, 99, 20, "OK");
 }
 
+void drawFileName(u8g2_t *u8g2, int x, int y, const char *str, int n) {
+	char buffer[n + 1];  // +1 für Nullterminator
+
+	int len = strlen(str);
+	if (len <= n) {
+		// Passt komplett, einfach kopieren
+		strncpy(buffer, str, n);
+		buffer[len] = '\0';
+	} else {
+		// Kürzen und durch '...' ersetzen
+		if (n >= 3) {
+			strncpy(buffer, str, n - 3);
+			buffer[n - 3] = '.';
+			buffer[n - 2] = '.';
+			buffer[n - 1] = '.';
+			buffer[n] = '\0';
+		} else {
+			// Weniger als 3 Zeichen verfügbar – nur Punkte
+			for (int i = 0; i < n; i++)
+				buffer[i] = '.';
+			buffer[n] = '\0';
+		}
+	}
+
+	u8g2_DrawStr(u8g2, x, y, buffer);
+}
+
 void DisplayRoutine() {
 	u8g2_ClearBuffer(&u8g2);
-
 	switch (activeScreen) {
 	case logo:
-		u8g2_DrawXBM(&u8g2, 0, 0, SHL_Logo_width, SHL_Logo_height, SHL_Logo_bits);
+		u8g2_DrawXBM(&u8g2, 0, 0, SHL_Logo_width, SHL_Logo_height,
+				SHL_Logo_bits);
 		if (screenTimer == 0)
 			screenTimer = HAL_GetTick();
 		if (HAL_GetTick() > screenTimer + DISPLAY_LOGO_TIME) {
@@ -61,11 +117,10 @@ void DisplayRoutine() {
 		u8g2_DrawStr(&u8g2, 2, 48, "Lesen von SD");
 		u8g2_DrawStr(&u8g2, 2, 59, "Duese reinigen");
 		u8g2_DrawFrame(&u8g2, 0, 37, 95, 14);
-		if(menuIndex == selected) {
-			activeScreen = sd_datei_1;
+		if (menuIndex == selected) {
+			activeScreen = sd_warten;
 			menuIndex = undefined;
-		}
-		else if (menuIndex == next){
+		} else if (menuIndex == next) {
 			activeScreen = duese_reinigen;
 			menuIndex = undefined;
 		}
@@ -76,11 +131,10 @@ void DisplayRoutine() {
 		u8g2_DrawStr(&u8g2, 2, 48, "Lesen von SD");
 		u8g2_DrawStr(&u8g2, 2, 59, "Duese reinigen");
 		u8g2_DrawFrame(&u8g2, 0, 50, 95, 14);
-		if(menuIndex == selected) {
+		if (menuIndex == selected) {
 			activeScreen = reinigung_zurueck;
 			menuIndex = undefined;
-		}
-		else if (menuIndex == prev){
+		} else if (menuIndex == prev) {
 			activeScreen = lesen_von_sd;
 			menuIndex = undefined;
 		}
@@ -91,11 +145,10 @@ void DisplayRoutine() {
 		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
 		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
 		u8g2_DrawStr(&u8g2, 85, 61, "starten");
-		if(menuIndex == selected) {
+		if (menuIndex == selected) {
 			activeScreen = lesen_von_sd;
 			menuIndex = undefined;
-		}
-		else if (menuIndex == next){
+		} else if (menuIndex == next) {
 			activeScreen = reinigung_starten;
 			menuIndex = undefined;
 		}
@@ -106,83 +159,358 @@ void DisplayRoutine() {
 		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
 		u8g2_DrawStr(&u8g2, 85, 61, "starten");
 		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
-		if(menuIndex == selected) {
+		if (menuIndex == selected) {
 			activeScreen = reinigung_laeuft;
 			menuIndex = undefined;
-		}
-		else if (menuIndex == prev){
+		} else if (menuIndex == prev) {
 			activeScreen = reinigung_zurueck;
 			menuIndex = undefined;
 		}
 		break;
 	case reinigung_laeuft:
 		// Code für den Bildschirm "Reinigung läuft"
-		u8g2_DrawXBM(&u8g2, 0, 0, Uhr_width, Uhr_height,
-				Uhr_bits);
+		u8g2_DrawStr(&u8g2, 15, 10, "Reinigung laeuft");
+		u8g2_DrawXBM(&u8g2, 50, 20, Uhr_width, Uhr_height, Uhr_bits);
+		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
+		u8g2_DrawFrame(&u8g2, 0, 52, 57, 12);
+		if (robi.printhead.clean()) {
+			activeScreen = reinigung_starten;
+			menuIndex = undefined;
+		}
+		if (menuIndex == selected) {
+			robi.printhead.stop();
+			activeScreen = reinigung_zurueck;
+			menuIndex = undefined;
+		}
+
 		break;
 	case sd_nicht_erkannt:
 		// Code für den Bildschirm "SD-Karte nicht erkannt"
+		u8g2_DrawStr(&u8g2, 20, 20, "SD nicht erkannt");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
+		if (menuIndex == selected) {
+			activeScreen = lesen_von_sd;
+			menuIndex = undefined;
+		}
 		break;
-	case sd_datei_1:
+	case sd_warten:
+		u8g2_DrawXBM(&u8g2, 50, 20, Uhr_width, Uhr_height, Uhr_bits);
+		u8g2_SendBuffer(&u8g2);  //Hier direkt schicken für korrekte Anzeige
+		if (!HAL_GPIO_ReadPin(SD_DET_GPIO_Port, SD_DET_Pin)) {
+			if (!robi.sd.initFlag)
+				robi.sd.init();
+			if (robi.sd.getFilesInDir(&dir, "/", fileNameBuf,
+			FILE_NAME_BUFFER_SIZE) == false) {
+				activeScreen = sd_nicht_erkannt;
+			} else
+				activeScreen = sd_datei_0;
+		} else {
+			activeScreen = sd_nicht_erkannt;
+		}
+		menuIndex = undefined;
+		break;
+	case sd_datei_0: {
 		// Code für die Anzeige der ersten SD-Datei
+		int y = 10;
+		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
+			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
+			MAX_FILE_NAME_LENGTH);
+			y += 14;
+		}
+		u8g2_DrawFrame(&u8g2, 0, 0, 128, 14);
+		if (menuIndex == selected) {
+			selectedFile = 0;
+			activeScreen = datei_auswaehlen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = sd_datei_1;
+			menuIndex = undefined;
+		}
 		break;
-	case sd_datei_2:
+	}
+	case sd_datei_1: {
 		// Code für die Anzeige der zweiten SD-Datei
+		int y = 10;
+		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
+			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
+			MAX_FILE_NAME_LENGTH);
+			y += 14;
+		}
+		u8g2_DrawFrame(&u8g2, 0, 14, 128, 14);
+		if (menuIndex == selected) {
+			selectedFile = 1;
+			activeScreen = datei_auswaehlen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = sd_datei_2;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = sd_datei_0;
+			menuIndex = undefined;
+		}
 		break;
-	case sd_datei_3:
+	}
+	case sd_datei_2: {
 		// Code für die Anzeige der dritten SD-Datei
+		int y = 10;
+		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
+			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
+			MAX_FILE_NAME_LENGTH);
+			y += 14;
+		}
+		u8g2_DrawFrame(&u8g2, 0, 28, 128, 14);
+
+		if (menuIndex == selected) {
+			selectedFile = 2;
+			activeScreen = datei_auswaehlen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = sd_datei_3;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = sd_datei_1;
+			menuIndex = undefined;
+		}
 		break;
-	case sd_datei_4:
+	}
+	case sd_datei_3: {
 		// Code für die Anzeige der vierten SD-Datei
+		int y = 10;
+		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
+			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
+			MAX_FILE_NAME_LENGTH);
+			y += 14;
+		}
+		u8g2_DrawFrame(&u8g2, 0, 42, 128, 14);
+		if (menuIndex == selected) {
+			selectedFile = 3;
+			activeScreen = datei_auswaehlen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = sd_datei_2;
+			menuIndex = undefined;
+		}
 		break;
-	case sd_datei_5:
-		// Code für die Anzeige der fünften SD-Datei
-		break;
+	}
 	case datei_auswaehlen_zurueck:
 		// Code für die Rückkehr vom Bildschirm "Datei auswählen"
+		u8g2_DrawStr(&u8g2, 0, 10, "Ausgewaehlt:");
+		drawFileName(&u8g2, 0, 24, fileNameBuf[selectedFile].fname,
+		MAX_FILE_NAME_LENGTH);
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		if (menuIndex == selected) {
+			activeScreen = sd_datei_0;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = datei_auswaehlen_starten;
+			menuIndex = undefined;
+		}
 		break;
 	case datei_auswaehlen_starten:
 		// Code zum Starten der Dateiauswahl
+		u8g2_DrawStr(&u8g2, 0, 10, "Ausgewaehlt:");
+		drawFileName(&u8g2, 0, 24, fileNameBuf[selectedFile].fname,
+		MAX_FILE_NAME_LENGTH);
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
+		if (menuIndex == selected) {
+			activeScreen = roboter_ausrichten_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = datei_auswaehlen_zurueck;
+			menuIndex = undefined;
+		}
 		break;
 	case roboter_ausrichten_zurueck:
 		// Code für die Rückkehr vom Bildschirm "Roboter ausrichten"
-		u8g2_DrawXBM(&u8g2, 0, 0, Referenzieren_width, Referenzieren_height,
+		u8g2_DrawStr(&u8g2, 10, 10, "Roboter ausrichten");
+		u8g2_DrawXBM(&u8g2, 35, 14, Referenzieren_width, Referenzieren_height,
 				Referenzieren_bits);
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		if (menuIndex == selected) {
+			activeScreen = sd_datei_0;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = roboter_ausrichten_starten;
+			menuIndex = undefined;
+		}
 		break;
 	case roboter_ausrichten_starten:
 		// Code zum Starten des Ausrichtens des Roboters
-		u8g2_DrawXBM(&u8g2, 0, 0, Referenzieren_width, Referenzieren_height,
+		u8g2_DrawStr(&u8g2, 10, 10, "Roboter ausrichten");
+		u8g2_DrawXBM(&u8g2, 35, 14, Referenzieren_width, Referenzieren_height,
 				Referenzieren_bits);
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
+		if (menuIndex == selected) {
+			robi.sd.openFile(fileNameBuf[selectedFile].fname);
+			robi.printingFlag = true;
+			homingFailed = false;
+			activeScreen = markieren_laeuft;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = roboter_ausrichten_zurueck;
+			menuIndex = undefined;
+		}
 		break;
 	case markieren_laeuft:
 		// Code für den Bildschirm "Markieren läuft"
-		u8g2_DrawXBM(&u8g2, 0, 0, Uhr_width, Uhr_height,
-				Uhr_bits);
+		StatusScreen();
+		u8g2_DrawXBM(&u8g2, 50, 20, Uhr_width, Uhr_height, Uhr_bits);
+		u8g2_DrawStr(&u8g2, 15, 61, "Markieren laeuft");
 		break;
 	case markieren_beendet:
 		// Code für den Bildschirm "Markieren beendet"
-		u8g2_DrawXBM(&u8g2, 0, 0, Flagge_width, Flagge_height,
-				Flagge_bits);
+		StatusScreen();
+		u8g2_DrawXBM(&u8g2, 50, 5, Flagge_width, Flagge_height, Flagge_bits);
+		u8g2_DrawStr(&u8g2, 15, 48, "Markieren beendet");
+		u8g2_DrawStr(&u8g2, 85, 61, "weiter");
+		u8g2_DrawFrame(&u8g2, 83, 52, 39, 12);
+		if (menuIndex == selected) {
+			activeScreen = lesen_von_sd;
+			menuIndex = undefined;
+		}
 		break;
 	case druck_gering_abbrechen:
 		// Code zum Abbrechen bei geringem Druck
+		u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
+		u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
+		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
+		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET)
+			u8g2_DrawStr(&u8g2, 76, 40, "n.OK");
+		else
+			u8g2_DrawStr(&u8g2, 76, 40, "OK");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
+		u8g2_DrawFrame(&u8g2, 0, 52, 57, 12);
+		if (menuIndex == selected) {
+			activeScreen = druck_abbrechen_bestaetigen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = druck_gering_starten;
+			menuIndex = undefined;
+		}
 		break;
 	case druck_gering_starten:
 		// Code zum Starten bei geringem Druck
+		u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
+		u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
+		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
+		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET)
+			u8g2_DrawStr(&u8g2, 76, 40, "n.OK");
+		else
+			u8g2_DrawStr(&u8g2, 76, 40, "OK");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
+		if (menuIndex == selected) {
+			activeScreen = markieren_laeuft;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = druck_gering_abbrechen;
+			menuIndex = undefined;
+		}
+		break;
+	case druck_abbrechen_bestaetigen_zurueck:
+		u8g2_DrawStr(&u8g2, 10, 25, "Vorgang abbrechen?");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 73, 61, "abbrechen");
+		if (menuIndex == selected) {
+			activeScreen = druck_gering_abbrechen;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = druck_abbrechen_bestaetigen_starten;
+			menuIndex = undefined;
+		}
+		break;
+	case druck_abbrechen_bestaetigen_starten:
+		u8g2_DrawStr(&u8g2, 10, 25, "Vorgang abbrechen?");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawStr(&u8g2, 73, 61, "abbrechen");
+		u8g2_DrawFrame(&u8g2, 71, 52, 57, 12);
+		if (menuIndex == selected) {
+			vorgangAbbrechen();
+			activeScreen = lesen_von_sd;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = druck_abbrechen_bestaetigen_zurueck;
+			menuIndex = undefined;
+		}
 		break;
 	case referenzieren_gescheitert_abbrechen:
 		// Code zum Abbrechen, wenn das Referenzieren fehlgeschlagen ist
+		u8g2_DrawStr(&u8g2, 5, 10, "Fehler Referenzieren");
+		u8g2_DrawStr(&u8g2, 15, 30, "Erneut versuchen?");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
+		u8g2_DrawFrame(&u8g2, 0, 52, 57, 12);
+		if (menuIndex == selected) {
+			activeScreen = referenzieren_abbrechen_bestaetigen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = referenzieren_gescheitert_starten;
+			menuIndex = undefined;
+		}
 		break;
 	case referenzieren_gescheitert_starten:
 		// Code zum Starten des Referenzierens nach einem Fehler
+		u8g2_DrawStr(&u8g2, 5, 10, "Fehler Referenzieren");
+		u8g2_DrawStr(&u8g2, 15, 30, "Erneut versuchen?");
+		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
+		if (menuIndex == selected) {
+			activeScreen = roboter_ausrichten_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = referenzieren_gescheitert_abbrechen;
+			menuIndex = undefined;
+		}
+		break;
+	case referenzieren_abbrechen_bestaetigen_zurueck:
+		u8g2_DrawStr(&u8g2, 10, 25, "Vorgang abbrechen?");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 73, 61, "abbrechen");
+		if (menuIndex == selected) {
+			activeScreen = referenzieren_gescheitert_abbrechen;
+			menuIndex = undefined;
+		} else if (menuIndex == next) {
+			activeScreen = referenzieren_abbrechen_bestaetigen_starten;
+			menuIndex = undefined;
+		}
+		break;
+	case referenzieren_abbrechen_bestaetigen_starten:
+		u8g2_DrawStr(&u8g2, 10, 25, "Vorgang abbrechen?");
+		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
+		u8g2_DrawStr(&u8g2, 73, 61, "abbrechen");
+		u8g2_DrawFrame(&u8g2, 71, 52, 57, 12);
+		if (menuIndex == selected) {
+			vorgangAbbrechen();
+			activeScreen = lesen_von_sd;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = referenzieren_abbrechen_bestaetigen_zurueck;
+			menuIndex = undefined;
+		}
 		break;
 	case akku_leer:
 		// Code für den Bildschirm "Akku leer"
-		u8g2_DrawXBM(&u8g2, 0, 0, Batterie_width, Batterie_height,
+		u8g2_DrawStr(&u8g2, 35, 10, "Akku leer");
+		u8g2_DrawXBM(&u8g2, 35, 25, Batterie_width, Batterie_height,
 				Batterie_bits);
 		break;
 	default:
 		// Optional: Code für den Fall, dass aktiveScreen einen ungültigen Wert hat
+		u8g2_DrawStr(&u8g2, 0, 10, "ERROR");
 		break;
 	}
 

@@ -51,13 +51,24 @@ extern DMA_HandleTypeDef hdma_tim24_ch2;
 extern UART_HandleTypeDef huart8;
 extern UART_HandleTypeDef huart2;
 
+typedef enum {
+	NONE, MOVE_BUF, STEP_BUF
+} ERROR_HandleCode;
 
 typedef enum {
-	NONE = 0x00, LOW_VOLTAGE = 0x01, MOVE_BUF = 0x10, STEP_BUF = 0x11
-} ERROR_HandleCode;
+	UNSPECIFIC, LOW_VOLTAGE
+} UserErrorCode;
+
 extern ERROR_HandleCode ErrorCode;
 extern uint8_t printFlag;
+extern uint8_t PressureAlarm;
 
+extern uint8_t distSequence;
+extern uint8_t homingSequence;
+extern uint8_t airSequence;
+extern uint8_t readFromSD;
+extern uint8_t homingRoutine;
+extern uint8_t homingFailed;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -78,6 +89,12 @@ void Error_Handler(void);
 /* USER CODE BEGIN EFP */
 void DMA_Callback(DMA_HandleTypeDef *hdma);
 void LowVoltageHandler();
+void UserErrorHandler(UserErrorCode errCode);
+void HandlePressureAlarm(void);
+void HandleDistanceHoming(void);
+void HandleHomingRoutine(void);
+void HandleHoming(void);
+void HandlePrintFinished(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -125,6 +142,12 @@ void LowVoltageHandler();
 #define LCD_CS_GPIO_Port GPIOE
 #define LCD_D4_Pin GPIO_PIN_9
 #define LCD_D4_GPIO_Port GPIOE
+#define LCD_D5_Pin GPIO_PIN_10
+#define LCD_D5_GPIO_Port GPIOE
+#define LCD_D6_Pin GPIO_PIN_11
+#define LCD_D6_GPIO_Port GPIOE
+#define LCD_D7_Pin GPIO_PIN_12
+#define LCD_D7_GPIO_Port GPIOE
 #define X_DIR_Pin GPIO_PIN_3
 #define X_DIR_GPIO_Port GPIOD
 #define X_STEP_Pin GPIO_PIN_4

@@ -98,6 +98,7 @@ uint8_t readFromSD = true;
 uint8_t homingRoutine = false;
 uint8_t homingFailed = false;
 uint8_t lowPressure;
+uint8_t homingEnabledPressure = true;
 
 Robot::MoveParams distHomingPosBuffer;
 
@@ -288,7 +289,7 @@ void HandlePressureAlarm(void) {
 	switch (airSequence) {
 	case 0:
 		readFromSD = false;
-
+		homingEnabledPressure = false;
 		//Aktuelle Bewegung beenden
 		while (!robi.motorMaster.moveCmdFinishedFlag
 				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
@@ -327,6 +328,7 @@ void HandlePressureAlarm(void) {
 		DisplayRoutine();
 		if (!lowPressure) {
 			if (activeScreen == markieren_laeuft) {
+				homingEnabledPressure = true;
 				robi.isHomedFlag = false;
 				airSequence++;
 				break;
@@ -339,8 +341,10 @@ void HandlePressureAlarm(void) {
 		break;
 
 	case 3:
-		if (robi.isHomedFlag)
+		if (robi.isHomedFlag){
+			homingEnabledPressure = false;
 			airSequence++;
+		}
 		break;
 
 	case 4:
@@ -373,6 +377,7 @@ void HandlePressureAlarm(void) {
 		}
 		cmdCnt = posCnt = 0;
 		readFromSD = true;
+		homingEnabledPressure = true;
 		PressureAlarm = false;
 		airSequence = 0;
 		break;
@@ -591,7 +596,7 @@ int main(void) {
 			}
 
 			/* Roboter neu referenzieren wenn gefordert */
-			if (!robi.isHomedFlag && !homingFailed) {
+			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
 				HandleHoming();
 			}
 

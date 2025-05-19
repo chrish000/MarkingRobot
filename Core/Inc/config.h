@@ -63,20 +63,21 @@
  *	HOMING
  *	###########################################################################
  */
-#define MAX_HOMING_DIST 500     // mm
-#define DIST_BETWEEN_PROBING 20 // mm
-#define HOMING_MAX_FAULT 0.02   // deg
+#define MAX_HOMING_DIST 500     //mm
+#define DIST_BETWEEN_PROBING 20 //mm
+#define HOMING_MAX_FAULT 0.02   //deg
 #define MAX_HOMING_TRY 10
-#define MAX_HOMING_TIMEOUT 30000 // ms
+#define MAX_HOMING_TIMEOUT 30000 //ms
 
-#define HOMING_SPEED_PROBING 40 // mm/s
-#define HOMING_SPPED_MOVING 150 // mm/s
-#define HOMING_ACCEL 75         // mm/s^2
+#define HOMING_SPEED_PROBING 40 //mm/s
+#define HOMING_SPPED_MOVING 150 //mm/s
+#define HOMING_ACCEL 75         //mm/s^2
 
-#define SENSOR_DIST 356     // mm
-#define HOMING_OFFSET_X 140 // mm	(von Roboter Rahmen aussen hinten zu Duese)
-#define HOMING_OFFSET_Y 298 // mm	(von Roboter Antrieb aussen seitlich zu Duese)
-#define MOVE_TO_HOME_BEFORE_HOMING
+#define SENSOR_DIST 356     //mm
+#define NULLPUNKT_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
+#define NULLPUNKT_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
+#define NULLPUNKT_WINKELABSTAND 120 //mm (Abstand von Zeichungs-Nullpunkt und Winkel) TODO: optimieren
+#define MOVE_TO_HOME_BEFORE_HOMING	//Auskommentiern um zu aktivieren
 
 /**
  *	###########################################################################

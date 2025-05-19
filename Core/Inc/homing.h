@@ -89,11 +89,10 @@ HOMING_StatusTypeDef home(Robot *rob) {
 #ifdef MOVE_TO_HOME_BEFORE_HOMING
 			rob->moveToHome();
 #endif
-			rob->moveRot(90, DEFAULT_SPEED, DEFAULT_ACCEL);
 			phase = 1;
 		}
 		break;
-	case 1:	//Y abtasten (Rotation)
+	case 1:	//X abtasten (Rotation)
 		if (movementFinished(rob)) {
 			Dist = xDist = yDist = 0;
 			enableSensors();
@@ -103,7 +102,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			phase = 2;
 		}
 		break;
-	case 2:	//Y abgetastet (Rotation)
+	case 2:	//X abgetastet (Rotation)
 		if (xFlag && yFlag) {
 			timeoutActive = false;
 			stopMotors(rob);
@@ -120,8 +119,8 @@ HOMING_StatusTypeDef home(Robot *rob) {
 
 			//Fehler anpassen
 			rob->moveLin(errorDistance + DIST_BETWEEN_PROBING,
-					HOMING_SPEED_PROBING,
-					HOMING_ACCEL);
+			HOMING_SPEED_PROBING,
+			HOMING_ACCEL);
 			(xDist < yDist) ?
 					rob->moveRot(error, HOMING_SPEED_PROBING, HOMING_ACCEL) :
 					rob->moveRot(-error, HOMING_SPEED_PROBING, HOMING_ACCEL);
@@ -135,7 +134,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			}
 		}
 		break;
-	case 3: //Y nullen
+	case 3: //X nullen
 		if (movementFinished(rob)) {
 			timeoutActive = false;
 			Dist = xDist = yDist = 0;
@@ -146,22 +145,24 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			phase = 4;
 		}
 		break;
-	case 4: //Y genullt
+	case 4: //X genullt
 		if (xFlag || yFlag) {
 			timeoutActive = false;
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120,
+			rob->moveLin(
+					NULLPUNKT_OFFSET_Y - NULLPUNKT_OFFSET_X
+							+ NULLPUNKT_WINKELABSTAND,
 					HOMING_SPPED_MOVING, HOMING_ACCEL);
 			phase = 5;
 		}
 		break;
-	case 5: //X vorbereiten
-		rob->moveRot(-90, HOMING_SPPED_MOVING);
+	case 5: //Y vorbereiten
+		rob->moveRot(90, HOMING_SPPED_MOVING);
 		phase = 6;
 		break;
-	case 6:	//X nullen
+	case 6:	//Y nullen
 		if (movementFinished(rob)) {
 			timeoutActive = false;
 			Dist = xDist = yDist = 0;
@@ -172,14 +173,17 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			phase = 7;
 		}
 		break;
-	case 7:	//X genullt
+	case 7:	//Y genullt
 		if (xFlag || yFlag) {
 			timeoutActive = false;
 			stopMotors(rob);
 			disableSensors();
 
-			rob->moveLin(HOMING_OFFSET_Y - HOMING_OFFSET_X + 120,
-			HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->moveLin(
+					NULLPUNKT_OFFSET_Y - NULLPUNKT_OFFSET_X
+							+ NULLPUNKT_WINKELABSTAND,
+					HOMING_SPPED_MOVING, HOMING_ACCEL);
+			rob->moveRot(-90, DEFAULT_SPEED, DEFAULT_ACCEL);
 			phase = 8;
 		}
 		break;

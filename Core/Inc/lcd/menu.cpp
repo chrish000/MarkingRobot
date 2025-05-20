@@ -28,7 +28,7 @@
 u8g2_t u8g2;
 screen activeScreen = logo;
 uint32_t screenTimer = 0;
-menuDir menuIndex = undefined;
+volatile menuDir menuIndex = undefined;
 
 DIR dir;
 FILINFO fileNameBuf[FILE_NAME_BUFFER_SIZE] = { 0 };

@@ -11,9 +11,7 @@
 #include "pins.h"
 #include "stm32h7xx_hal.h"
 
-volatile bool encAFlag, encBFlag = false;
-volatile int8_t encDir = 0; //-1 = ccw, 1 = cw
-volatile bool btnPressed = false;
+volatile bool encAFlag = false, encBFlag = false;
 
 void LCD_enableButton() {
 	HAL_NVIC_EnableIRQ(LCD_BTN_EXTI);

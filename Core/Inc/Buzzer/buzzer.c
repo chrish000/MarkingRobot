@@ -22,6 +22,7 @@ void Buzzer_Note(Buzzer_HandleTypeDef *handle, uint32_t noteFreq) {
 
 void Buzzer_NoNote(Buzzer_HandleTypeDef *handle) {
 	Buzzer_Note(handle, 0);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
 
 void Buzzer_Init(Buzzer_HandleTypeDef *handle, Buzzer_InitTypeDef *config) {

@@ -154,12 +154,12 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			rob->moveLin(
 					NULLPUNKT_OFFSET_Y - NULLPUNKT_OFFSET_X
 							+ NULLPUNKT_WINKELABSTAND,
-					HOMING_SPPED_MOVING, HOMING_ACCEL);
+					HOMING_SPEED_MOVING, HOMING_ACCEL);
 			phase = 5;
 		}
 		break;
 	case 5: //Y vorbereiten
-		rob->moveRot(90, HOMING_SPPED_MOVING);
+		rob->moveRot(90, HOMING_SPEED_MOVING);
 		phase = 6;
 		break;
 	case 6:	//Y nullen
@@ -182,7 +182,7 @@ HOMING_StatusTypeDef home(Robot *rob) {
 			rob->moveLin(
 					NULLPUNKT_OFFSET_Y - NULLPUNKT_OFFSET_X
 							+ NULLPUNKT_WINKELABSTAND,
-					HOMING_SPPED_MOVING, HOMING_ACCEL);
+					HOMING_SPEED_MOVING, HOMING_ACCEL);
 			rob->moveRot(-90, DEFAULT_SPEED, DEFAULT_ACCEL);
 			phase = 8;
 		}

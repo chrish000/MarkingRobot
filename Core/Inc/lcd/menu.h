@@ -47,11 +47,11 @@ typedef enum : uint8_t{
 	akku_leer = 40,
 } screen;
 
-typedef enum : int8_t {
+typedef enum : volatile int8_t {
 	undefined = 0, prev = -1, next = 1, selected = 3
 } menuDir;
 
-extern menuDir menuIndex;
+extern volatile menuDir menuIndex;
 extern screen activeScreen;
 
 void MX_U8G2_Init(void);

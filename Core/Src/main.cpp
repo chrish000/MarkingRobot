@@ -158,20 +158,25 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		break;
 
 	case LCD_BTN_PIN:
-		btnPressed = true;
+		//HAL_Delay(100); //Entprellen
+		menuIndex = selected;
 		break;
 
 	case LCD_ENCA_PIN:
 		encAFlag = true;
 		if (encBFlag) {
-			encDir = 1; // cw
+			menuIndex = next;  // cw
+			encAFlag = false;
+			encBFlag = false;
 		}
 		break;
 
 	case LCD_ENCB_PIN:
 		encBFlag = true;
 		if (encAFlag) {
-			encDir = -1; // ccw
+			menuIndex = prev; // ccw
+			encAFlag = false;
+			encBFlag = false;
 		}
 		break;
 	}
@@ -291,8 +296,8 @@ void HandlePressureAlarm(void) {
 		readFromSD = false;
 		homingEnabledPressure = false;
 		//Aktuelle Bewegung beenden
-		while (!robi.motorMaster.moveCmdFinishedFlag
-				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
+		while (!robi.motorMaster.moveCmdFinishedFlag //XXX
+		&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
 			robi.motorMaster.calcInterval();
 			if (robi.printhead.isActive() != printFlag) {
 				printFlag ? robi.printhead.start() : robi.printhead.stop();
@@ -302,7 +307,7 @@ void HandlePressureAlarm(void) {
 		//Puffer zwischenspeichern
 		while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
 			cmdCnt++;
-		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
+		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt])) //XXX
 			posCnt++;
 
 		//Aktuelle Position setzen
@@ -341,7 +346,7 @@ void HandlePressureAlarm(void) {
 		break;
 
 	case 3:
-		if (robi.isHomedFlag){
+		if (robi.isHomedFlag) {
 			homingEnabledPressure = false;
 			airSequence++;
 		}
@@ -550,21 +555,6 @@ int main(void) {
 		/* Menue */
 		DisplayRoutine();
 
-		if (encDir != 0) {
-			menuIndex = (menuDir) encDir;
-			encDir = 0;
-			encAFlag = false;
-			encBFlag = false;
-		}
-
-		if (btnPressed) {
-			HAL_Delay(10); //Entprellen
-			btnPressed = false;
-			menuIndex = selected;
-		}
-
-		DisplayRoutine();
-
 		/* Druckvorgang */
 		if (robi.printingFlag) {
 
@@ -573,11 +563,17 @@ int main(void) {
 
 			lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
 
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
+
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
 					&& robi.isHomedFlag) {
 				HandleDistanceHoming();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
 			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
@@ -591,9 +587,15 @@ int main(void) {
 			if (lowPressure && !homingRoutine)
 				PressureAlarm = true;
 
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
+
 			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
 				HandlePressureAlarm();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 			/* Roboter neu referenzieren wenn gefordert */
 			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
@@ -607,6 +609,9 @@ int main(void) {
 			if (robi.printhead.isActive() != printFlag) {
 				printFlag ? robi.printhead.start() : robi.printhead.stop();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 			/* Befehl aus SD lesen */
 			if (robi.motorMaster.moveBuf.writeAvailable() >= 2 && readFromSD) {
@@ -622,6 +627,9 @@ int main(void) {
 			if (robi.finishedFlag) {
 				HandlePrintFinished();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 		}
 
 		/* USER CODE END WHILE */

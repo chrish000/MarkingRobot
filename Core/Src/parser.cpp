@@ -21,6 +21,10 @@
 #include <climits>
 #include <algorithm>
 
+#define MOTOR_RATIO (MOTOR_XY_RATIO * 0.01f)
+
+constexpr float motorRatio = 2.0f - MOTOR_XY_RATIO * 0.01f;
+
 // Konstruktor
 MotorManager::MotorManager(Pin pins) :
 		motorX(pins.TIM_Motor_X, pins.TIM_DMA_ARR_X, pins.TIM_DMA_BSRR_X,
@@ -82,25 +86,16 @@ bool MotorManager::calcInterval() {
 	if (moveBuf.isEmpty())
 		return false; 	//Berechne falls Daten vorhanden
 
-	float_t motorRatio = MOTOR_XY_RATIO * 0.01f;
-	moveCmdCalcBufX = moveCmdCalcBufY = *moveBuf.peek();
+	moveCmdCalcBufX = *moveBuf.peek();
+	moveCmdCalcBufY = moveCmdCalcBufX;
 	if (moveCmdFinishedFlag) {
-		posBuf.remove();//Letzte Position entfernen wenn nächste erreicht
+		posBuf.remove(); 	//Letzte Position entfernen wenn nächste erreicht
 		moveCmdFinishedFlag = false;
 	}
 
-	if (motorRatio > 1.0f) {
-		motorRatio = 2.0f - motorRatio;
-		moveCmdCalcBufX.accel = moveCmdCalcBufY.accel * motorRatio;
-		moveCmdCalcBufX.speed = moveCmdCalcBufY.speed * motorRatio;
-		moveCmdCalcBufX.stepDistance = moveCmdCalcBufY.stepDistance
-				* motorRatio;
-	} else {
-		moveCmdCalcBufY.accel = moveCmdCalcBufX.accel * motorRatio;
-		moveCmdCalcBufY.speed = moveCmdCalcBufX.speed * motorRatio;
-		moveCmdCalcBufY.stepDistance = moveCmdCalcBufX.stepDistance
-				* motorRatio;
-	}
+	moveCmdCalcBufY.accel = moveCmdCalcBufX.accel * motorRatio;
+	moveCmdCalcBufY.speed = moveCmdCalcBufX.speed * motorRatio;
+	moveCmdCalcBufY.stepDistance = moveCmdCalcBufX.stepDistance * motorRatio;
 
 	calcRoutine(&moveCmdCalcBufX, &calcX, &motorX);
 	calcRoutine(&moveCmdCalcBufY, &calcY, &motorY);

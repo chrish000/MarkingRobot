@@ -30,6 +30,7 @@ typedef enum : uint8_t{
 	sd_datei_1 = 11,
 	sd_datei_2 = 12,
 	sd_datei_3 = 13,
+	sd_zurueck = 14,
 	datei_auswaehlen_zurueck = 20,
 	datei_auswaehlen_starten = 21,
 	roboter_ausrichten_zurueck = 22,
@@ -53,11 +54,12 @@ typedef enum : volatile int8_t {
 
 extern volatile menuDir menuIndex;
 extern screen activeScreen;
+extern screen lastScreen;
 
 void MX_U8G2_Init(void);
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 		void *arg_ptr);
-
+void UpdateStatusBarFast(void);
 void DisplayRoutine(void);
 
 #ifdef __cplusplus

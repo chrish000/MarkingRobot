@@ -16,6 +16,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "utils.h"
 #include "move.h"
+#include "button.h"
 #include <algorithm>
 
 #define DEG_TO_RAD (M_PI / 180.0)
@@ -96,6 +97,8 @@ MotorManager::position calcNewPos(float_t distance, float_t orientation,
 void Robot::init() {
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
+	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_RESET);//Endschalter
+	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_RESET);//Endschalter
 
 	motorMaster.moveBuf.consumerClear();
 	motorMaster.motorX.init();
@@ -107,9 +110,10 @@ void Robot::init() {
 
 	printhead.init();
 
-	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);//Lüfter
+
+	LCD_enableButton();
+	LCD_enableEncoder();
 
 	HAL_ADCEx_Calibration_Start(ADC_Handle, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED); // ADC Kalibrieren
 	HAL_ADC_Start_DMA(ADC_Handle, (uint32_t*) &ADC_BatteryVoltage, 1); // ADC starten

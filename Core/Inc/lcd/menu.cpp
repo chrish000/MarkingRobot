@@ -22,11 +22,12 @@
 
 #define DISPLAY_LOGO_TIME 1000 //ms
 
-#define FILE_NAME_BUFFER_SIZE 8
+#define FILE_NAME_BUFFER_SIZE 4
 #define MAX_FILE_NAME_LENGTH 20
 
 u8g2_t u8g2;
 screen activeScreen = logo;
+screen lastScreen = activeScreen;
 uint32_t screenTimer = 0;
 volatile menuDir menuIndex = undefined;
 
@@ -54,13 +55,52 @@ void vorgangAbbrechen() {
 	robi.totalDistSinceHoming = 0;
 }
 
+void UpdateStatusBarFast() {
+	static float lastVoltage = -1.0f;
+	static uint8_t lastPercentage = 255;
+	static uint8_t lastPressureState = 1;
+
+	float voltage = robi.batteryVoltage;
+	uint8_t percentage = robi.batteryPercentage;
+	uint8_t pressureState = lowPressure;
+
+	// Nur aktualisieren, wenn sich Werte geändert haben
+	if (voltage == lastVoltage && percentage == lastPercentage
+			&& pressureState == lastPressureState)
+		return;
+
+	// Bildschirmbereich löschen (nur den relevanten Teil!)
+	//u8g2_SetDrawColor(&u8g2, 0);  // Hintergrundfarbe (löschen)
+	//u8g2_DrawBox(&u8g2, 0, 10, 23, 35);
+	//u8g2_SetDrawColor(&u8g2, 1);  // Vordergrundfarbe (schreiben)
+
+	// Akku-Spannung
+	char buffer[5];
+	snprintf(buffer, sizeof(buffer), "%2.1f", voltage);
+	u8g2_DrawStr(&u8g2, 0, 20, buffer);
+
+	// Ladezustand
+	snprintf(buffer, sizeof(buffer), "%2d", percentage);
+	u8g2_DrawStr(&u8g2, 0, 30, buffer);
+
+	// Druckstatus
+	u8g2_DrawStr(&u8g2, 99, 20, (pressureState == 1) ? "n.OK" : "OK  ");
+
+	u8g2_SendBuffer(&u8g2);
+
+	// Werte speichern für nächsten Vergleich
+	lastVoltage = voltage;
+	lastPercentage = percentage;
+	lastPressureState = pressureState;
+}
+
 void inline StatusScreen() {
 	char buffer[7];
 
 	u8g2_DrawStr(&u8g2, 0, 10, "Akku");
-	snprintf(buffer, sizeof(buffer), "%.1f V", robi.batteryVoltage);
+	snprintf(buffer, sizeof(buffer), "%2.1f V", robi.batteryVoltage);
 	u8g2_DrawStr(&u8g2, 0, 20, buffer);
-	snprintf(buffer, sizeof(buffer), "%i %%", robi.batteryPercentage);
+	snprintf(buffer, sizeof(buffer), "%2d %%", robi.batteryPercentage);
 	u8g2_DrawStr(&u8g2, 0, 30, buffer);
 
 	u8g2_DrawStr(&u8g2, 99, 10, "Druck");
@@ -99,6 +139,7 @@ void drawFileName(u8g2_t *u8g2, int x, int y, const char *str, int n) {
 
 void DisplayRoutine() {
 	u8g2_ClearBuffer(&u8g2);
+	lastScreen = activeScreen;
 	switch (activeScreen) {
 	case logo:
 		u8g2_DrawXBM(&u8g2, 0, 0, SHL_Logo_width, SHL_Logo_height,
@@ -203,15 +244,15 @@ void DisplayRoutine() {
 			FILE_NAME_BUFFER_SIZE) == false) {
 				activeScreen = sd_nicht_erkannt;
 			} else
-				activeScreen = sd_datei_0;
+				activeScreen = sd_zurueck;
 		} else {
 			activeScreen = sd_nicht_erkannt;
 		}
 		menuIndex = undefined;
 		break;
-	case sd_datei_0: {
-		// Code für die Anzeige der ersten SD-Datei
-		int y = 10;
+	case sd_zurueck: {
+		u8g2_DrawStr(&u8g2, 2, 10, "< zurueck");
+		int y = 24;
 		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
 			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
 			MAX_FILE_NAME_LENGTH);
@@ -219,18 +260,18 @@ void DisplayRoutine() {
 		}
 		u8g2_DrawFrame(&u8g2, 0, 0, 128, 14);
 		if (menuIndex == selected) {
-			selectedFile = 0;
-			activeScreen = datei_auswaehlen_zurueck;
+			activeScreen = lesen_von_sd;
 			menuIndex = undefined;
-		} else if (menuIndex == next) {
-			activeScreen = sd_datei_1;
+		} else if (menuIndex == next && fileNameBuf[0].fname[0] != '\0') {
+			activeScreen = sd_datei_0;
 			menuIndex = undefined;
 		}
 		break;
 	}
-	case sd_datei_1: {
-		// Code für die Anzeige der zweiten SD-Datei
-		int y = 10;
+	case sd_datei_0: {
+		// Code für die Anzeige der ersten SD-Datei
+		u8g2_DrawStr(&u8g2, 2, 10, "< zurueck");
+		int y = 24;
 		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
 			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
 			MAX_FILE_NAME_LENGTH);
@@ -238,10 +279,33 @@ void DisplayRoutine() {
 		}
 		u8g2_DrawFrame(&u8g2, 0, 14, 128, 14);
 		if (menuIndex == selected) {
+			selectedFile = 0;
+			activeScreen = datei_auswaehlen_zurueck;
+			menuIndex = undefined;
+		} else if (menuIndex == next && fileNameBuf[1].fname[0] != '\0') {
+			activeScreen = sd_datei_1;
+			menuIndex = undefined;
+		} else if (menuIndex == prev) {
+			activeScreen = sd_zurueck;
+			menuIndex = undefined;
+		}
+		break;
+	}
+	case sd_datei_1: {
+		// Code für die Anzeige der zweiten SD-Datei
+		u8g2_DrawStr(&u8g2, 2, 10, "< zurueck");
+		int y = 24;
+		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
+			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
+			MAX_FILE_NAME_LENGTH);
+			y += 14;
+		}
+		u8g2_DrawFrame(&u8g2, 0, 28, 128, 14);
+		if (menuIndex == selected) {
 			selectedFile = 1;
 			activeScreen = datei_auswaehlen_zurueck;
 			menuIndex = undefined;
-		} else if (menuIndex == next) {
+		} else if (menuIndex == next && fileNameBuf[2].fname[0] != '\0') {
 			activeScreen = sd_datei_2;
 			menuIndex = undefined;
 		} else if (menuIndex == prev) {
@@ -252,19 +316,20 @@ void DisplayRoutine() {
 	}
 	case sd_datei_2: {
 		// Code für die Anzeige der dritten SD-Datei
-		int y = 10;
+		u8g2_DrawStr(&u8g2, 2, 10, "< zurueck");
+		int y = 24;
 		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
 			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
 			MAX_FILE_NAME_LENGTH);
 			y += 14;
 		}
-		u8g2_DrawFrame(&u8g2, 0, 28, 128, 14);
+		u8g2_DrawFrame(&u8g2, 0, 42, 128, 14);
 
 		if (menuIndex == selected) {
 			selectedFile = 2;
 			activeScreen = datei_auswaehlen_zurueck;
 			menuIndex = undefined;
-		} else if (menuIndex == next) {
+		} else if (menuIndex == next && fileNameBuf[3].fname[0] != '\0') {
 			activeScreen = sd_datei_3;
 			menuIndex = undefined;
 		} else if (menuIndex == prev) {
@@ -275,13 +340,14 @@ void DisplayRoutine() {
 	}
 	case sd_datei_3: {
 		// Code für die Anzeige der vierten SD-Datei
-		int y = 10;
+		u8g2_DrawStr(&u8g2, 2, 10, "< zurueck");
+		int y = 24;
 		for (int i = 0; i < FILE_NAME_BUFFER_SIZE; ++i) {
 			drawFileName(&u8g2, 2, y, fileNameBuf[i].fname,
 			MAX_FILE_NAME_LENGTH);
 			y += 14;
 		}
-		u8g2_DrawFrame(&u8g2, 0, 42, 128, 14);
+		u8g2_DrawFrame(&u8g2, 0, 56, 128, 14);
 		if (menuIndex == selected) {
 			selectedFile = 3;
 			activeScreen = datei_auswaehlen_zurueck;
@@ -327,7 +393,7 @@ void DisplayRoutine() {
 	case roboter_ausrichten_zurueck:
 		// Code für die Rückkehr vom Bildschirm "Roboter ausrichten"
 		u8g2_DrawStr(&u8g2, 10, 10, "Roboter ausrichten");
-		u8g2_DrawXBM(&u8g2, 35, 14, Referenzieren_width, Referenzieren_height,
+		u8g2_DrawXBM(&u8g2, 50, 14, Referenzieren_width, Referenzieren_height,
 				Referenzieren_bits);
 		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
 		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
@@ -343,7 +409,7 @@ void DisplayRoutine() {
 	case roboter_ausrichten_starten:
 		// Code zum Starten des Ausrichtens des Roboters
 		u8g2_DrawStr(&u8g2, 10, 10, "Roboter ausrichten");
-		u8g2_DrawXBM(&u8g2, 35, 14, Referenzieren_width, Referenzieren_height,
+		u8g2_DrawXBM(&u8g2, 50, 14, Referenzieren_width, Referenzieren_height,
 				Referenzieren_bits);
 		u8g2_DrawStr(&u8g2, 2, 61, "zurueck");
 		u8g2_DrawStr(&u8g2, 85, 61, "starten");
@@ -379,13 +445,17 @@ void DisplayRoutine() {
 		break;
 	case druck_gering_abbrechen:
 		// Code zum Abbrechen bei geringem Druck
-		u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
-		u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
-		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
-		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET)
+		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET) {
+			u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
+			u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
 			u8g2_DrawStr(&u8g2, 76, 40, "n.OK");
-		else
+		} else {
+			u8g2_DrawStr(&u8g2, 0, 10, "Druck OK");
+			u8g2_DrawStr(&u8g2, 0, 24, "Fortfahren?");
 			u8g2_DrawStr(&u8g2, 76, 40, "OK");
+		}
+		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
+
 		u8g2_DrawStr(&u8g2, 85, 61, "starten");
 		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
 		u8g2_DrawFrame(&u8g2, 0, 52, 57, 12);
@@ -399,13 +469,17 @@ void DisplayRoutine() {
 		break;
 	case druck_gering_starten:
 		// Code zum Starten bei geringem Druck
-		u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
-		u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
-		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
-		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET)
+		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET) {
+			u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
+			u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
 			u8g2_DrawStr(&u8g2, 76, 40, "n.OK");
-		else
+		} else {
+			u8g2_DrawStr(&u8g2, 0, 10, "Druck OK");
+			u8g2_DrawStr(&u8g2, 0, 24, "Fortfahren?");
 			u8g2_DrawStr(&u8g2, 76, 40, "OK");
+		}
+		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
+
 		u8g2_DrawStr(&u8g2, 85, 61, "starten");
 		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
 		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
@@ -516,35 +590,51 @@ void DisplayRoutine() {
 	}
 
 	u8g2_SendBuffer(&u8g2);
+
+	HAL_NVIC_EnableIRQ(LCD_BTN_EXTI);
+
+	if (activeScreen != lastScreen)
+		DisplayRoutine();
 }
 
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 		void *arg_ptr) {
 	switch (msg) {
+
 	case U8X8_MSG_DELAY_MILLI:
 		HAL_Delay(arg_int);
 		break;
 
-	case U8X8_MSG_DELAY_NANO:			// delay arg_int * 1 nano second
+	case U8X8_MSG_DELAY_NANO:
 		__NOP();
 		break;
 
-	case U8X8_MSG_DELAY_100NANO:		// delay arg_int * 100 nano seconds
-		for (volatile int i = 0; i < 20; i++) {
-			__NOP();
-		}
+	case U8X8_MSG_DELAY_100NANO:
+		__NOP();
+		__NOP();
+		__NOP();
+		__NOP();
 		break;
 
 	case U8X8_MSG_GPIO_CS:
-		HAL_GPIO_WritePin(LCD_CS_PORT, LCD_CS_Pin, (GPIO_PinState) arg_int);
+		if (arg_int)
+			LCD_CS_PORT->BSRR = LCD_CS_PIN;
+		else
+			LCD_CS_PORT->BSRR = (LCD_CS_PIN << 16);
 		break;
 
 	case U8X8_MSG_GPIO_SPI_DATA:
-		HAL_GPIO_WritePin(LCD_DATA_PORT, LCD_DATA_PIN, (GPIO_PinState) arg_int);
+		if (arg_int)
+			LCD_DATA_PORT->BSRR = LCD_DATA_PIN;
+		else
+			LCD_DATA_PORT->BSRR = (LCD_DATA_PIN << 16);
 		break;
 
 	case U8X8_MSG_GPIO_SPI_CLOCK:
-		HAL_GPIO_WritePin(LCD_SCK_PORT, LCD_SCK_PIN, (GPIO_PinState) arg_int);
+		if (arg_int)
+			LCD_SCK_PORT->BSRR = LCD_SCK_PIN;
+		else
+			LCD_SCK_PORT->BSRR = (LCD_SCK_PIN << 16);
 		break;
 
 	default:

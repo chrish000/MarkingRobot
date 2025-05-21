@@ -32,7 +32,6 @@
 #include "Buzzer/buzzer.h"
 #include "Buzzer/buzzer_examples.h"
 #include "homing.h"
-#include "button.h"
 #include <math.h>
 
 #include "lcd/menu.h"
@@ -133,6 +132,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	robi.batteryVoltage = 0.00042305 * robi.ADC_BatteryVoltage - 2.77797271;
 	robi.batteryPercentage = (uint8_t) (robi.batteryVoltage - MIN_BAT_VOLTAGE)
 			/ (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100;
+	lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
 }
 /**
  * @brief GPIO External Interrupt Callback Function
@@ -158,26 +158,18 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		break;
 
 	case LCD_BTN_PIN:
-		//HAL_Delay(100); //Entprellen
+		HAL_NVIC_DisableIRQ(LCD_BTN_EXTI); //wird in DisplayRoutine() wieder aktiviert
 		menuIndex = selected;
 		break;
 
 	case LCD_ENCA_PIN:
-		encAFlag = true;
-		if (encBFlag) {
+		if(LCD_ENCB_PORT->IDR & LCD_ENCB_PIN)
 			menuIndex = next;  // cw
-			encAFlag = false;
-			encBFlag = false;
-		}
+		else
+			menuIndex = prev;
 		break;
 
-	case LCD_ENCB_PIN:
-		encBFlag = true;
-		if (encAFlag) {
-			menuIndex = prev; // ccw
-			encAFlag = false;
-			encBFlag = false;
-		}
+	default:
 		break;
 	}
 }
@@ -296,8 +288,8 @@ void HandlePressureAlarm(void) {
 		readFromSD = false;
 		homingEnabledPressure = false;
 		//Aktuelle Bewegung beenden
-		while (!robi.motorMaster.moveCmdFinishedFlag //XXX
-		&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
+		while (!robi.motorMaster.moveCmdFinishedFlag
+				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
 			robi.motorMaster.calcInterval();
 			if (robi.printhead.isActive() != printFlag) {
 				printFlag ? robi.printhead.start() : robi.printhead.stop();
@@ -307,7 +299,7 @@ void HandlePressureAlarm(void) {
 		//Puffer zwischenspeichern
 		while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
 			cmdCnt++;
-		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt])) //XXX
+		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
 			posCnt++;
 
 		//Aktuelle Position setzen
@@ -324,6 +316,9 @@ void HandlePressureAlarm(void) {
 			while (!movementFinished(&robi))
 				robi.motorMaster.calcInterval();
 			activeScreen = druck_gering_abbrechen;
+			Buzzer_Play_Song_Blocking(&robi.hbuzzer, air_empty,
+							(sizeof(air_empty) / sizeof(air_empty[0])),
+							BPM_SYSTEM_SOUND);
 			airSequence++;
 		}
 		break;
@@ -333,16 +328,14 @@ void HandlePressureAlarm(void) {
 		DisplayRoutine();
 		if (!lowPressure) {
 			if (activeScreen == markieren_laeuft) {
+				Buzzer_NoNote(&robi.hbuzzer);
 				homingEnabledPressure = true;
 				robi.isHomedFlag = false;
+				menuIndex = undefined;
 				airSequence++;
 				break;
 			}
 		}
-		Buzzer_Play_Song(&robi.hbuzzer, air_empty,
-				(sizeof(air_empty) / sizeof(air_empty[0])),
-				BPM_SYSTEM_SOUND);
-		menuIndex = undefined;
 		break;
 
 	case 3:
@@ -430,6 +423,7 @@ void HandleHomingRoutine(void) {
 		homingSequence++;
 		break;
 	case 1: // Nur Homing
+		DisplayRoutine();
 		if (robi.isHomedFlag)
 			homingSequence = 3;
 		break;
@@ -467,6 +461,8 @@ void HandleHoming(void) {
 	if (status != HOMING_FINISHED) {
 		homingFailed = true;
 		activeScreen = referenzieren_gescheitert_abbrechen;
+		DisplayRoutine();
+		robi.printingFlag = false;//wird in menu.cpp wieder gesetzt
 	} else {
 		homingFailed = false;
 		readFromSD = true;
@@ -486,7 +482,8 @@ void HandlePrintFinished(void) {
 		robi.sd.closeCurrentFile();
 		activeScreen = markieren_beendet;
 		DisplayRoutine();
-		Buzzer_Play_Song(&robi.hbuzzer, mario_level_complete,
+
+		Buzzer_Play_Song_Blocking(&robi.hbuzzer, mario_level_complete,
 				(sizeof(mario_level_complete) / sizeof(mario_level_complete[0])),
 				BPM_MARIO_LEVEL);
 		Buzzer_NoNote(&robi.hbuzzer);
@@ -543,7 +540,7 @@ int main(void) {
 	MX_U8G2_Init();
 
 	/*
-	 Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
+	 Buzzer_Play_Song_Blocking(&robi.hbuzzer, mario_theme,
 	 (sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 	 */
 
@@ -552,8 +549,6 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		/* Menue */
-		DisplayRoutine();
 
 		/* Druckvorgang */
 		if (robi.printingFlag) {
@@ -561,10 +556,9 @@ int main(void) {
 			/* Motoren ansteuern */
 			robi.motorMaster.calcInterval();
 
-			lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
+			//lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN); verlagert in ADC Callback
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
+			//UpdateStatusBarFast(); begrenzt maximal mögliche geschw.
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
@@ -572,46 +566,28 @@ int main(void) {
 				HandleDistanceHoming();
 			}
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
 			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
 				HandleHomingRoutine();
 			}
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-
 			/* Zu niedriger Druck */
 			if (lowPressure && !homingRoutine)
 				PressureAlarm = true;
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-
 			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
 				HandlePressureAlarm();
 			}
-
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
 
 			/* Roboter neu referenzieren wenn gefordert */
 			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
 				HandleHoming();
 			}
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-
 			/* Düse ansteuern*/
 			if (robi.printhead.isActive() != printFlag) {
 				printFlag ? robi.printhead.start() : robi.printhead.stop();
 			}
-
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
 
 			/* Befehl aus SD lesen */
 			if (robi.motorMaster.moveBuf.writeAvailable() >= 2 && readFromSD) {
@@ -620,17 +596,14 @@ int main(void) {
 							robi.sd.lineBuffer);
 			}
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-
 			/* Ende von Druckvorgang */
 			if (robi.finishedFlag) {
 				HandlePrintFinished();
 			}
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-		}
+		} else
+			/* Menue */
+			DisplayRoutine();
 
 		/* USER CODE END WHILE */
 
@@ -681,8 +654,7 @@ void SystemClock_Config(void) {
 	/** Initializes the CPU, AHB and APB buses clocks
 	 */
 	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-
-	| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1
+			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_D3PCLK1
 			| RCC_CLOCKTYPE_D1PCLK1;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
 	RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
@@ -744,8 +716,7 @@ static void MX_ADC1_Init(void) {
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
 	hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T8_TRGO;
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-	hadc1.Init.ConversionDataManagement =
-	ADC_CONVERSIONDATA_DMA_CIRCULAR;
+	hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_CIRCULAR;
 	hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
 	hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
 	hadc1.Init.OversamplingMode = DISABLE;
@@ -776,6 +747,7 @@ static void MX_ADC1_Init(void) {
 	/* USER CODE BEGIN ADC1_Init 2 */
 
 	/* USER CODE END ADC1_Init 2 */
+
 }
 
 /**
@@ -799,8 +771,7 @@ static void MX_CRC_Init(void) {
 	hcrc.Init.CRCLength = CRC_POLYLENGTH_8B;
 	hcrc.Init.InitValue = 0;
 	hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_BYTE;
-	hcrc.Init.OutputDataInversionMode =
-	CRC_OUTPUTDATA_INVERSION_DISABLE;
+	hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
 	hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
 	if (HAL_CRC_Init(&hcrc) != HAL_OK) {
 		Error_Handler();
@@ -808,6 +779,7 @@ static void MX_CRC_Init(void) {
 	/* USER CODE BEGIN CRC_Init 2 */
 
 	/* USER CODE END CRC_Init 2 */
+
 }
 
 /**
@@ -841,12 +813,11 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
 	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
 	hspi1.Init.TxCRCInitializationPattern =
-	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.RxCRCInitializationPattern =
-	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-	hspi1.Init.MasterInterDataIdleness =
-	SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
 	hspi1.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
 	hspi1.Init.IOSwap = SPI_IO_SWAP_DISABLE;
@@ -856,6 +827,7 @@ static void MX_SPI1_Init(void) {
 	/* USER CODE BEGIN SPI1_Init 2 */
 
 	/* USER CODE END SPI1_Init 2 */
+
 }
 
 /**
@@ -911,6 +883,7 @@ static void MX_TIM2_Init(void) {
 
 	/* USER CODE END TIM2_Init 2 */
 	HAL_TIM_MspPostInit(&htim2);
+
 }
 
 /**
@@ -958,6 +931,7 @@ static void MX_TIM3_Init(void) {
 
 	/* USER CODE END TIM3_Init 2 */
 	HAL_TIM_MspPostInit(&htim3);
+
 }
 
 /**
@@ -999,6 +973,7 @@ static void MX_TIM4_Init(void) {
 	/* USER CODE BEGIN TIM4_Init 2 */
 
 	/* USER CODE END TIM4_Init 2 */
+
 }
 
 /**
@@ -1021,7 +996,7 @@ static void MX_TIM8_Init(void) {
 	htim8.Instance = TIM8;
 	htim8.Init.Prescaler = 27500 - 1;
 	htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim8.Init.Period = 10000 - 1;
+	htim8.Init.Period = 5000 - 1;
 	htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim8.Init.RepetitionCounter = 0;
 	htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -1042,6 +1017,7 @@ static void MX_TIM8_Init(void) {
 	/* USER CODE BEGIN TIM8_Init 2 */
 
 	/* USER CODE END TIM8_Init 2 */
+
 }
 
 /**
@@ -1099,6 +1075,7 @@ static void MX_TIM23_Init(void) {
 	/* USER CODE BEGIN TIM23_Init 2 */
 
 	/* USER CODE END TIM23_Init 2 */
+
 }
 
 /**
@@ -1156,6 +1133,7 @@ static void MX_TIM24_Init(void) {
 	/* USER CODE BEGIN TIM24_Init 2 */
 
 	/* USER CODE END TIM24_Init 2 */
+
 }
 
 /**
@@ -1186,12 +1164,12 @@ static void MX_UART8_Init(void) {
 	if (HAL_HalfDuplex_Init(&huart8) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart8,
-	UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
+	if (HAL_UARTEx_SetTxFifoThreshold(&huart8, UART_TXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart8,
-	UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
+	if (HAL_UARTEx_SetRxFifoThreshold(&huart8, UART_RXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
 	if (HAL_UARTEx_DisableFifoMode(&huart8) != HAL_OK) {
@@ -1200,6 +1178,7 @@ static void MX_UART8_Init(void) {
 	/* USER CODE BEGIN UART8_Init 2 */
 
 	/* USER CODE END UART8_Init 2 */
+
 }
 
 /**
@@ -1230,12 +1209,12 @@ static void MX_USART2_UART_Init(void) {
 	if (HAL_HalfDuplex_Init(&huart2) != HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetTxFifoThreshold(&huart2,
-	UART_TXFIFO_THRESHOLD_1_8) != HAL_OK) {
+	if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
-	if (HAL_UARTEx_SetRxFifoThreshold(&huart2,
-	UART_RXFIFO_THRESHOLD_1_8) != HAL_OK) {
+	if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8)
+			!= HAL_OK) {
 		Error_Handler();
 	}
 	if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK) {
@@ -1244,6 +1223,7 @@ static void MX_USART2_UART_Init(void) {
 	/* USER CODE BEGIN USART2_Init 2 */
 
 	/* USER CODE END USART2_Init 2 */
+
 }
 
 /**
@@ -1283,6 +1263,7 @@ static void MX_DMA_Init(void) {
 	/* DMA2_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
 }
 
 /**
@@ -1450,7 +1431,7 @@ static void MX_GPIO_Init(void) {
 	HAL_GPIO_Init(Z_EN_GPIO_Port, &GPIO_InitStruct);
 
 	/* EXTI interrupt init*/
-	HAL_NVIC_SetPriority(LCD_BTN_EXTI_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(LCD_BTN_EXTI_IRQn, 1, 0);
 	HAL_NVIC_EnableIRQ(LCD_BTN_EXTI_IRQn);
 
 	HAL_NVIC_SetPriority(X_STOP_EXTI_IRQn, 2, 0);
@@ -1490,19 +1471,19 @@ void Error_Handler(void) {
 	/* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef USE_FULL_ASSERT
+#ifdef  USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-	/* USER CODE BEGIN 6 */
+  /* USER CODE BEGIN 6 */
 	/* User can add his own implementation to report the file name and line number,
 	   ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-	/* USER CODE END 6 */
+  /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

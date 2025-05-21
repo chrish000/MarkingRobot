@@ -67,6 +67,5 @@ note_t mario_level_complete[] = {
 note_t air_empty[]= {
 		{ NOTE_B7, 16 }, { 0, 16 },
 		{ NOTE_B6, 16 }, { 0, 16 },
-		{ NOTE_B5, 16 }, { 0, 16 },
-		{ 0, 1 }
+		{ NOTE_B5, 16 }, { 0, 16 }
 };

@@ -24,14 +24,14 @@
 #define MICROSTEPS 128
 #define STEPS_PER_MM 92.847f
 #define MM_PER_STEP (1.0 / STEPS_PER_MM)
-#define STEPS_PER_DEG 412.49f
+#define STEPS_PER_DEG 411.2f//412.49f
 
 #define DEFAULT_SPEED 1000 // in mm/s
 #define MAX_SPEED 1100
 #define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 2000
 
-#define DIST_TILL_NEW_HOMING 0xffffffff // mm
+//#define DIST_TILL_NEW_HOMING 0xffffffff //mm
 
 #define RUN_CURRENT_DEFAULT 2000
 #define HOLD_CURRENT_DEFAULT 100
@@ -76,7 +76,7 @@
 #define SENSOR_DIST 356     //mm
 #define NULLPUNKT_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define NULLPUNKT_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
-#define NULLPUNKT_WINKELABSTAND 110 //mm (Abstand von Zeichungs-Nullpunkt und Winkel) TODO: optimieren
+#define NULLPUNKT_WINKELABSTAND 35 //mm (Abstand von Zeichungs-Nullpunkt und Winkel)
 #define MOVE_TO_HOME_BEFORE_HOMING	//Auskommentiern um zu aktivieren
 
 /**
@@ -84,7 +84,10 @@
  *	AKKU
  *	###########################################################################
  */
-#define MAX_BAT_VOLTAGE 25.2f
+#define ADC_MAX 65535.0f
+#define V_REF 3.3f
+#define VOLTAGE_DIVIDER_RATIO 7.6862f
 #define MIN_BAT_VOLTAGE 22.2f
+#define MAX_BAT_VOLTAGE 25.2f
 
 #endif /* CONFIG_H */

@@ -129,9 +129,9 @@ static void MX_SPI1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	robi.batteryVoltage = 0.00042305 * robi.ADC_BatteryVoltage - 2.77797271;
-	robi.batteryPercentage = (uint8_t) (robi.batteryVoltage - MIN_BAT_VOLTAGE)
-			/ (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100;
+	robi.batteryVoltage = ((robi.ADC_BatteryVoltage / ADC_MAX) * V_REF) * VOLTAGE_DIVIDER_RATIO;
+	robi.batteryPercentage = (uint8_t)((robi.batteryVoltage - MIN_BAT_VOLTAGE) /
+	                                   (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100);
 	lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
 }
 /**
@@ -553,18 +553,17 @@ int main(void) {
 		/* Druckvorgang */
 		if (robi.printingFlag) {
 
-			/* Motoren ansteuern */
-			robi.motorMaster.calcInterval();
-
 			//lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN); verlagert in ADC Callback
 
 			//UpdateStatusBarFast(); begrenzt maximal mögliche geschw.
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
+			/*
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
 					&& robi.isHomedFlag) {
 				HandleDistanceHoming();
 			}
+			*/
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
 			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
@@ -600,6 +599,9 @@ int main(void) {
 			if (robi.finishedFlag) {
 				HandlePrintFinished();
 			}
+
+			/* Motoren ansteuern */
+			robi.motorMaster.calcInterval();
 
 		} else
 			/* Menue */

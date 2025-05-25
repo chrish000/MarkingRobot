@@ -88,10 +88,8 @@ bool MotorManager::calcInterval() {
 
 	moveCmdCalcBufX = *moveBuf.peek();
 	moveCmdCalcBufY = moveCmdCalcBufX;
-	if (moveCmdFinishedFlag) {
-		posBuf.remove(); 	//Letzte Position entfernen wenn nächste erreicht
-		moveCmdFinishedFlag = false;
-	}
+
+	moveCmdFinishedFlag = false;
 
 	moveCmdCalcBufY.accel = moveCmdCalcBufX.accel * motorRatio;
 	moveCmdCalcBufY.speed = moveCmdCalcBufX.speed * motorRatio;
@@ -112,7 +110,7 @@ bool MotorManager::calcInterval() {
 			if (!motorY.timerActiveFlag)
 				motorY.startTimer();
 			moveCmdFinishedFlag = true;
-			//posBuf.remove();
+			posBuf.remove();
 			return true;
 		} else {
 			ErrorCode = MOVE_BUF;

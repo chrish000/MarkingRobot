@@ -101,6 +101,7 @@ uint8_t homingEnabledPressure = true;
 
 Robot::MoveParams distHomingPosBuffer;
 
+const MotorManager::position* currentPos = nullptr;
 MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] = { };
 MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
 uint8_t cmdCnt = 0, posCnt = 0;
@@ -287,6 +288,14 @@ void HandlePressureAlarm(void) {
 	case 0:
 		readFromSD = false;
 		homingEnabledPressure = false;
+
+		//Aktuelle Position speichern
+		currentPos = robi.motorMaster.posBuf.peek();
+		if (currentPos != nullptr) {
+			tempPosBuf[0] = *currentPos;
+			posCnt = 1;
+		}
+
 		//Aktuelle Bewegung beenden
 		while (!robi.motorMaster.moveCmdFinishedFlag
 				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
@@ -303,9 +312,10 @@ void HandlePressureAlarm(void) {
 			posCnt++;
 
 		//Aktuelle Position setzen
-		if (posCnt != 0) {
-			robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x, tempPosBuf[0].y);
+		if (currentPos != nullptr) {
+			robi.setPos(currentPos->orient, currentPos->x, currentPos->y);
 		}
+
 		airSequence++;
 		break;
 
@@ -543,6 +553,31 @@ int main(void) {
 	 Buzzer_Play_Song_Blocking(&robi.hbuzzer, mario_theme,
 	 (sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 	 */
+
+	//DEBUGGING
+
+	Robot::MoveParams param;
+	param.x = 1000;
+	param.y = 0;
+	robi.moveToPos(param);
+	param.x = 1000;
+	param.y = 1000;
+	robi.moveToPos(param);
+	param.x = 0;
+	param.y = 1000;
+	robi.moveToPos(param);
+	robi.motorMaster.calcInterval();
+	while(1) {
+		if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
+			HandleHomingRoutine();
+		}
+		HandlePressureAlarm();
+		if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
+			HandleHoming();
+		}
+		robi.motorMaster.calcInterval();
+	}
+	//DEBUGGING
 
 	/* USER CODE END 2 */
 

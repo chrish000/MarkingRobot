@@ -82,8 +82,9 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 MotorManager::position calcNewPos(float_t distance, float_t orientation,
 		float_t oldX, float_t oldY) {
 	MotorManager::position newPos;
-	newPos.x = oldX + distance * cos(DEG_TO_RAD * DEG_TO_RAD);
-	newPos.y = oldY + distance * sin(DEG_TO_RAD * DEG_TO_RAD);
+	float_t angleRad = orientation * DEG_TO_RAD;
+	newPos.x = oldX + distance * cos(angleRad);
+	newPos.y = oldY + distance * sin(angleRad);
 	newPos.orient = orientation;
 	return newPos;
 }
@@ -97,8 +98,8 @@ MotorManager::position calcNewPos(float_t distance, float_t orientation,
 void Robot::init() {
 	HAL_NVIC_DisableIRQ(X_STOP_EXTI);
 	HAL_NVIC_DisableIRQ(Y_STOP_EXTI);
-	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_RESET);//Endschalter
-	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_RESET);//Endschalter
+	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_RESET); //Endschalter
+	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_RESET); //Endschalter
 
 	motorMaster.moveBuf.consumerClear();
 	motorMaster.motorX.init();
@@ -110,7 +111,7 @@ void Robot::init() {
 
 	printhead.init();
 
-	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET);//Lüfter
+	HAL_GPIO_WritePin(FAN0_PORT, FAN0_PIN, GPIO_PIN_SET); //Lüfter
 
 	LCD_enableButton();
 	LCD_enableEncoder();

@@ -79,6 +79,15 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 	return sqrt(pow(newX - oldX, 2) + pow(newY - oldY, 2));
 }
 
+
+/**
+ * @brief Berechet die neue Position anhand von Strecke und Orientierung
+ * @param distance Zu fahrende Strecke
+ * @param orientation Aktuelle Orientierung der Bewegungsrichtung
+ * @param oldX X-Koordinate der aktuellen Position
+ * @param oldY Y-Koordinate der aktuellen Position
+ * @retval None
+ */
 MotorManager::position calcNewPos(float_t distance, float_t orientation,
 		float_t oldX, float_t oldY) {
 	MotorManager::position newPos;
@@ -246,6 +255,12 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	return motorMaster.moveBuf.insert(cmd);
 }
 
+
+/**
+ * @brief Bewegungsberechunng für die Fahrt zur Basis
+ * @param None
+ * @retval None
+ */
 bool Robot::moveToHome() {
 	if (posX == 0 && posY == 0 && orientation == 0) //steht bereits auf Position
 		return true;

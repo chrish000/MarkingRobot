@@ -101,7 +101,7 @@ uint8_t homingEnabledPressure = true;
 
 Robot::MoveParams distHomingPosBuffer;
 
-const MotorManager::position* currentPos = nullptr;
+const MotorManager::position *currentPos = nullptr;
 MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] = { };
 MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
 uint8_t cmdCnt = 0, posCnt = 0;
@@ -129,10 +129,18 @@ static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/**
+ * @brief ADC Conversion complete callback functipon.
+ * 			Speichert Batteriespannung und Ladungszustand. Speichert Pinzustand von Druckalarm.
+ * @param hadc Pointer zu ADC-Handler
+ * @retval None
+ */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	robi.batteryVoltage = ((robi.ADC_BatteryVoltage / ADC_MAX) * V_REF) * VOLTAGE_DIVIDER_RATIO;
-	robi.batteryPercentage = (uint8_t)((robi.batteryVoltage - MIN_BAT_VOLTAGE) /
-	                                   (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100);
+	robi.batteryVoltage = ((robi.ADC_BatteryVoltage / ADC_MAX) * V_REF)
+			* VOLTAGE_DIVIDER_RATIO;
+	robi.batteryPercentage = (uint8_t) ((robi.batteryVoltage - MIN_BAT_VOLTAGE)
+			/ (MAX_BAT_VOLTAGE - MIN_BAT_VOLTAGE) * 100);
 	lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN);
 }
 /**
@@ -164,7 +172,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		break;
 
 	case LCD_ENCA_PIN:
-		if(LCD_ENCB_PORT->IDR & LCD_ENCB_PIN)
+		if (LCD_ENCB_PORT->IDR & LCD_ENCB_PIN)
 			menuIndex = next;  // cw
 		else
 			menuIndex = prev;
@@ -218,6 +226,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	}
 }
 
+/**
+ * @brief DMA Finished Callback Function (DMA für Motoransteuerung)
+ * @param hdma Poniter zu DMA-Handler
+ * @retval None
+ */
 void DMA_Callback(DMA_HandleTypeDef *hdma) {
 	StepperMotor *motor = nullptr;
 
@@ -235,12 +248,22 @@ void DMA_Callback(DMA_HandleTypeDef *hdma) {
 	}
 }
 
+/**
+ * @brief Timer period finished callback (z.B. Buzzer)
+ * @param htim Poniter zu Timer-Handler
+ * @retval None
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == robi.pins.TIM_BUZZER->Instance) {
 		HAL_GPIO_TogglePin(BUZZER_PORT, BUZZER_PIN);
 	}
 }
 
+/**
+ * @brief Handle-Funktion für Batteriealarm
+ * @param None
+ * @retval None
+ */
 void LowVoltageHandler() {
 	robi.motorMaster.moveBuf.remove(robi.motorMaster.buffer_size_move - 1);
 	while (robi.motorMaster.calcInterval()) {
@@ -268,6 +291,11 @@ void LowVoltageHandler() {
 	UserErrorHandler(LOW_VOLTAGE);
 }
 
+/**
+ * @brief Handle-Funktion für Error
+ * @param errCode Error-Code für die Fallbehandlung
+ * @retval None
+ */
 void UserErrorHandler(UserErrorCode errCode) {
 	while (1) {
 		switch (errCode) {
@@ -283,6 +311,11 @@ void UserErrorHandler(UserErrorCode errCode) {
 	}
 }
 
+/**
+ * @brief Handle-Funktion für niedrigen Druck bei Markiervorgang
+ * @param None
+ * @retval None
+ */
 void HandlePressureAlarm(void) {
 	switch (airSequence) {
 	case 0:
@@ -327,8 +360,8 @@ void HandlePressureAlarm(void) {
 				robi.motorMaster.calcInterval();
 			activeScreen = druck_gering_abbrechen;
 			Buzzer_Play_Song_Blocking(&robi.hbuzzer, air_empty,
-							(sizeof(air_empty) / sizeof(air_empty[0])),
-							BPM_SYSTEM_SOUND);
+					(sizeof(air_empty) / sizeof(air_empty[0])),
+					BPM_SYSTEM_SOUND);
 			airSequence++;
 		}
 		break;
@@ -392,6 +425,12 @@ void HandlePressureAlarm(void) {
 	}
 }
 
+
+/**
+ * @brief Handle-Funktion für erneutes Homing bei Markiervorgang
+ * @param None
+ * @retval None
+ */
 void HandleDistanceHoming(void) {
 	switch (distSequence) {
 	case 0:
@@ -408,6 +447,12 @@ void HandleDistanceHoming(void) {
 	}
 }
 
+
+/**
+ * @brief Handle-Funktion für die Homing-Routine mit Anfahrt an Basis
+ * @param None
+ * @retval None
+ */
 void HandleHomingRoutine(void) {
 	switch (homingSequence) {
 	case 0:
@@ -458,6 +503,12 @@ void HandleHomingRoutine(void) {
 	}
 }
 
+
+/**
+ * @brief Handle-Funktion Homing-Vorgang
+ * @param None
+ * @retval None
+ */
 void HandleHoming(void) {
 	readFromSD = false;
 	timeoutActive = false;
@@ -472,13 +523,19 @@ void HandleHoming(void) {
 		homingFailed = true;
 		activeScreen = referenzieren_gescheitert_abbrechen;
 		DisplayRoutine();
-		robi.printingFlag = false;//wird in menu.cpp wieder gesetzt
+		robi.printingFlag = false; //wird in menu.cpp wieder gesetzt
 	} else {
 		homingFailed = false;
 		readFromSD = true;
 	}
 }
 
+
+/**
+ * @brief Handle-Funktion "Fertig"-Ereignis, ausgelöst durch M5 G-Code
+ * @param None
+ * @retval None
+ */
 void HandlePrintFinished(void) {
 	if (movementFinished(&robi)) {
 		robi.printhead.stop();
@@ -554,31 +611,6 @@ int main(void) {
 	 (sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 	 */
 
-	//DEBUGGING
-
-	Robot::MoveParams param;
-	param.x = 1000;
-	param.y = 0;
-	robi.moveToPos(param);
-	param.x = 1000;
-	param.y = 1000;
-	robi.moveToPos(param);
-	param.x = 0;
-	param.y = 1000;
-	robi.moveToPos(param);
-	robi.motorMaster.calcInterval();
-	while(1) {
-		if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
-			HandleHomingRoutine();
-		}
-		HandlePressureAlarm();
-		if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
-			HandleHoming();
-		}
-		robi.motorMaster.calcInterval();
-	}
-	//DEBUGGING
-
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -594,11 +626,11 @@ int main(void) {
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			/*
-			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
-					&& robi.isHomedFlag) {
-				HandleDistanceHoming();
-			}
-			*/
+			 if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
+			 && robi.isHomedFlag) {
+			 HandleDistanceHoming();
+			 }
+			 */
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
 			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
@@ -850,9 +882,9 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
 	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
 	hspi1.Init.TxCRCInitializationPattern =
-			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.RxCRCInitializationPattern =
-			SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
 	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
 	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
 	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;

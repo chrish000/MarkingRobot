@@ -4,7 +4,7 @@
 
 /* PUBLIC */
 /**
- * @brief
+ * @brief Initialisierungsfunktion
  * @param None
  * @retval None
  */
@@ -17,16 +17,16 @@ void SD::init() {
 }
 
 /**
- * @brief
- * @param size_t: Length of Buffer
- * @retval None
+ * @brief Gibt die Stringlänge des Lese-Puffers aus
+ * @param None
+ * @retval size_t: Length of Buffer
  */
 size_t SD::getBufferSize() {
 	return strnlen(lineBuffer, BUFFER_SIZE);
 }
 
 /**
- * @brief
+ * @brief Leert den Lese-Üuffer
  * @param None
  * @retval None
  */
@@ -44,8 +44,11 @@ FRESULT SD::getResult() {
 }
 
 /**
- * @brief
- * @param
+ * @brief Liest alle Dateien in Verzeichnis
+ * @param dir Pointer auf Verzeichnis
+ * @param dirPath String des Verzeichnispfads
+ * @param fNameStorage Speicherplatz für gelesene Dateien
+ * @param maxFiles Maximal zu lesende Dateien
  * @retval bool: true wenn erfolgreich, false sonst
  */
 bool SD::getFilesInDir(DIR *dir, const TCHAR *dirPath, FILINFO *fNameStorage,
@@ -67,7 +70,7 @@ bool SD::getFilesInDir(DIR *dir, const TCHAR *dirPath, FILINFO *fNameStorage,
 }
 
 /**
- * @brief
+ * @brief Öffnet Datei
  * @param const TCHAR*: Poniter zu String des Dateipfadnamens
  * @retval None
  */
@@ -76,7 +79,7 @@ void SD::openFile(const TCHAR *path) {
 }
 
 /**
- * @brief
+ * @brief Öffnet Verzeichnis
  * @param DIR*: Pointer zu Verzeichniss
  * @param const TCHAR*: Poniter zu String des Dateipfadnamens
  * @retval None
@@ -86,7 +89,7 @@ void SD::openDIR(DIR *dir, const TCHAR *dirPath) {
 }
 
 /**
- * @brief
+ * @brief Schließt aktuelles Verzeichnis
  * @param None
  * @retval None
  */
@@ -96,7 +99,7 @@ void SD::closeCurrentDir() {
 }
 
 /**
- * @brief
+ * @brief Schließt aktuell geöffnete Datei
  * @param None
  * @retval None
  */
@@ -106,7 +109,7 @@ void SD::closeCurrentFile() {
 }
 
 /**
- * @brief
+ * @brief Liest die nächste Zeile in der Datei
  * @param None
  * @retval None
  */
@@ -118,7 +121,7 @@ bool SD::readNextLine() {
 
 /* PRIVATE */
 /**
- * @brief
+ * @brief Liest den gesamten und freien Speicherplatz auf der SD
  * @param None
  * @retval None
  */

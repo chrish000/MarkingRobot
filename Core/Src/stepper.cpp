@@ -36,6 +36,11 @@ StepperMotor::~StepperMotor() {
 	stopTimer();
 }
 
+/**
+ * @brief Initialisierungsfunktion
+ * @param None
+ * @retval None
+ */
 void StepperMotor::init() {
 	stepBuf.consumerClear();
 
@@ -79,6 +84,11 @@ void StepperMotor::stopTimer() {
 
 }
 
+/**
+ * @brief Aktiviert Motor
+ * @param None
+ * @retval None
+ */
 void StepperMotor::enableMotor() {
 	if(!motorEnabled) {
 			tmc.enable();
@@ -86,6 +96,11 @@ void StepperMotor::enableMotor() {
 	}
 }
 
+/**
+ * @brief Deaktiviert Motor
+ * @param None
+ * @retval None
+ */
 void StepperMotor::disableMotor() {
 	if(motorEnabled) {
 			tmc.enable();

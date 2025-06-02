@@ -261,13 +261,13 @@ int main(void) {
 
 	//robi.printhead.clean();
 
-	Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
-			(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
+	//Buzzer_Play_Song(&robi.hbuzzer, mario_theme,
+	//		(sizeof(mario_theme) / sizeof(mario_theme[0])), BPM_MARIO);
 
 	//SD
 	HAL_Delay(1000);
 	robi.sd.init();
-	robi.sd.openFile("test.gcode");
+	robi.sd.openFile("MEI01.gcode");
 
 	robi.printingFlag = true;
 	/* USER CODE END 2 */
@@ -279,21 +279,18 @@ int main(void) {
 		/* Druckvorgang */
 		if (robi.printingFlag) {
 			/* Referenzierung auslösen wenn Strecke erreicht */
+			/*
 			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING) {
 				while (robi.motorMaster.calcInterval())
 					; //Bewegungspuffer abarbeiten
 				robi.isHomedFlag = false;
 			}
+			*/
 
 			/* Roboter neu referenzieren wenn nötig */
 			if (!robi.isHomedFlag) {
-				/*
-				while (1) {
-					if (home(&robi) == HOMING_FINISHED)
-						break;
+				while (home(&robi) != HOMING_FINISHED)
 					robi.motorMaster.calcInterval();
-				}
-				*/
 			}
 
 			/* Düse ansteuern*/
@@ -324,10 +321,12 @@ int main(void) {
 					robi.printingFlag = false;
 					robi.sd.closeCurrentFile();
 
+					/*
 					Buzzer_Play_Song(&robi.hbuzzer, mario_level_complete,
 							(sizeof(mario_level_complete)
 									/ sizeof(mario_level_complete[0])),
 							BPM_MARIO_LEVEL);
+							*/
 				}
 			}
 		}

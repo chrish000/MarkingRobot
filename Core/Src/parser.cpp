@@ -21,9 +21,9 @@
 #include <climits>
 #include <algorithm>
 
-#define MOTOR_RATIO (MOTOR_XY_RATIO * 0.01f)
+#define MOTOR_RATIO (MOTOR_XY_RATIO * 0.01)
 
-constexpr float motorRatio = 2.0f - MOTOR_XY_RATIO * 0.01f;
+constexpr float motorRatio = 2.0 - MOTOR_RATIO;
 
 // Konstruktor
 MotorManager::MotorManager(Pin pins) :
@@ -149,7 +149,7 @@ float_t MotorManager::trapezoid(moveCommands *moveCmd,
 					0 : -moveCmd->accel;
 
 	calc->currentSpeed += calc->currentAccel * calc->interval;
-	calc->interval = 1.0f / calc->currentSpeed;
+	calc->interval = 1.0 / calc->currentSpeed;
 	calc->stepCnt++;
 
 	return (calc->interval * F_TIM);
@@ -166,10 +166,10 @@ void MotorManager::calculateTrapezoidAccelerationParameters(
 	float_t speedSquared = moveCmd->speed * moveCmd->speed;
 	float_t vMinSquared = V_MIN * V_MIN;
 	calc->accelStepCnt = static_cast<uint32_t>((speedSquared - vMinSquared)
-			/ (2.0f * moveCmd->accel) + 0.5f); //+0.5 für korrektes runden ohne roundf()
+			/ (2.0 * moveCmd->accel) + 0.5); //+0.5 für korrektes runden ohne roundf()
 
-	if (calc->accelStepCnt > moveCmd->stepDistance * 0.5f) {
-		calc->accelStepCnt = moveCmd->stepDistance * 0.5f;
+	if (calc->accelStepCnt > moveCmd->stepDistance * 0.5) {
+		calc->accelStepCnt = moveCmd->stepDistance * 0.5;
 		moveCmd->speed = sqrtf(2 * moveCmd->accel * calc->accelStepCnt);
 	}
 }

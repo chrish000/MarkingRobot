@@ -24,7 +24,7 @@
 #define MICROSTEPS 128
 #define STEPS_PER_MM 92.847f
 #define MM_PER_STEP (1.0 / STEPS_PER_MM)
-#define STEPS_PER_DEG 411.2f//412.49f
+#define STEPS_PER_DEG 412.49f//411.2f
 
 #define DEFAULT_SPEED 1000 // in mm/s
 #define MAX_SPEED 1100
@@ -37,8 +37,8 @@
 #define HOLD_CURRENT_DEFAULT 100
 
 // #define REVERSE_BOTH_MOTOR_DIRECTION
-#define Inverse_Motor_X_Dir false
-#define Inverse_Motor_Y_Dir false
+//#define INVERT_MOTOR_X_DIR //Auskommentiern um zu aktivieren
+//#define INVERT_MOTOR_Y_DIR //Auskommentiern um zu aktivieren
 #define MOTOR_XY_RATIO 100.14f //% (<100 -> mehr links; >100 -> mehr rechts)
 
 // Beschleunigungskurve: {Trapezoid; Bezier}

@@ -202,15 +202,17 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 	cmd.speed = speed * STEPS_PER_MM;
 	cmd.accel = accel * STEPS_PER_MM;
 	cmd.stepDistance = steps;
-	if (Inverse_Motor_X_Dir)
+#ifdef INVERT_MOTOR_X_DIR
 		cmd.directionX = (direction ? Direction::Reverse : Direction::Forward);
-	else
+#else
 		cmd.directionX = (direction ? Direction::Forward : Direction::Reverse);
+#endif
 
-	if (Inverse_Motor_Y_Dir)
+#ifdef INVERT_MOTOR_Y_DIR
 		cmd.directionY = (!direction ? Direction::Reverse : Direction::Forward);
-	else
+#else
 		cmd.directionY = (!direction ? Direction::Forward : Direction::Reverse);
+#endif
 	cmd.printigMove = printing;
 
 	totalDistSinceHoming += distance;
@@ -237,15 +239,17 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	cmd.speed = speed * STEPS_PER_MM;
 	cmd.accel = accel * STEPS_PER_MM;
 	cmd.stepDistance = steps;
-	if (Inverse_Motor_X_Dir)
+#ifdef INVERT_MOTOR_X_DIR
 		cmd.directionX = (direction ? Direction::Reverse : Direction::Forward);
-	else
+#else
 		cmd.directionX = (direction ? Direction::Forward : Direction::Reverse);
+#endif
 
-	if (Inverse_Motor_Y_Dir)
+#ifdef INVERT_MOTOR_Y_DIR
 		cmd.directionY = (direction ? Direction::Reverse : Direction::Forward);
-	else
+#else
 		cmd.directionY = (direction ? Direction::Forward : Direction::Reverse);
+#endif
 	cmd.printigMove = false;
 
 	orientation += degrees;

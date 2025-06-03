@@ -83,14 +83,23 @@ bool MotorManager::calcInterval() {
 	if (moveBuf.isEmpty())
 		return false; 	//Berechne falls Daten vorhanden
 
-	moveCmdCalcBufX = *moveBuf.peek();
-	moveCmdCalcBufY = moveCmdCalcBufX;
-
 	moveCmdFinishedFlag = false;
 
-	moveCmdCalcBufY.accel = moveCmdCalcBufX.accel * motorRatio;
-	moveCmdCalcBufY.speed = moveCmdCalcBufX.speed * motorRatio;
-	moveCmdCalcBufY.stepDistance = moveCmdCalcBufX.stepDistance * motorRatio;
+	float_t motorRatio = MOTOR_XY_RATIO * 0.01f;
+	moveCmdCalcBufX = moveCmdCalcBufY = *moveBuf.peek();
+
+	if (motorRatio > 1.0f) {
+		motorRatio = 2.0f - motorRatio;
+		moveCmdCalcBufX.accel = moveCmdCalcBufY.accel * motorRatio;
+		moveCmdCalcBufX.speed = moveCmdCalcBufY.speed * motorRatio;
+		moveCmdCalcBufX.stepDistance = moveCmdCalcBufY.stepDistance
+				* motorRatio;
+	} else {
+		moveCmdCalcBufY.accel = moveCmdCalcBufX.accel * motorRatio;
+		moveCmdCalcBufY.speed = moveCmdCalcBufX.speed * motorRatio;
+		moveCmdCalcBufY.stepDistance = moveCmdCalcBufX.stepDistance
+				* motorRatio;
+	}
 
 	calcRoutine(&moveCmdCalcBufX, &calcX, &motorX);
 	calcRoutine(&moveCmdCalcBufY, &calcY, &motorY);

@@ -417,6 +417,7 @@ void DisplayRoutine() {
 		if (menuIndex == selected) {
 			robi.sd.openFile(fileNameBuf[selectedFile].fname);
 			robi.printingFlag = true;
+			robi.isHomedFlag = false;
 			homingFailed = false;
 			activeScreen = markieren_laeuft;
 			menuIndex = undefined;

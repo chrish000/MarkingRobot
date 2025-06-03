@@ -37,11 +37,8 @@ MotorManager::MotorManager(Pin pins) :
 }
 
 // Destruktor
-MotorManager::~MotorManager() {
-	moveBuf.~Ringbuffer();
-	motorX.~StepperMotor();
-	motorY.~StepperMotor();
-}
+MotorManager::~MotorManager() = default;
+
 
 void MotorManager::resetCalc() {
 	calcX = intervalCalcStruct { };

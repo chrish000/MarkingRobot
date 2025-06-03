@@ -425,7 +425,6 @@ void HandlePressureAlarm(void) {
 	}
 }
 
-
 /**
  * @brief Handle-Funktion für erneutes Homing bei Markiervorgang
  * @param None
@@ -447,13 +446,13 @@ void HandleDistanceHoming(void) {
 	}
 }
 
-
 /**
  * @brief Handle-Funktion für die Homing-Routine mit Anfahrt an Basis
  * @param None
  * @retval None
  */
 void HandleHomingRoutine(void) {
+	homingRoutine = true;
 	switch (homingSequence) {
 	case 0:
 		// Bewegungspuffer abarbeiten
@@ -503,7 +502,6 @@ void HandleHomingRoutine(void) {
 	}
 }
 
-
 /**
  * @brief Handle-Funktion Homing-Vorgang
  * @param None
@@ -530,7 +528,6 @@ void HandleHoming(void) {
 	}
 }
 
-
 /**
  * @brief Handle-Funktion "Fertig"-Ereignis, ausgelöst durch M5 G-Code
  * @param None
@@ -550,9 +547,11 @@ void HandlePrintFinished(void) {
 		activeScreen = markieren_beendet;
 		DisplayRoutine();
 
+		/*
 		Buzzer_Play_Song_Blocking(&robi.hbuzzer, mario_level_complete,
 				(sizeof(mario_level_complete) / sizeof(mario_level_complete[0])),
 				BPM_MARIO_LEVEL);
+				*/
 		Buzzer_NoNote(&robi.hbuzzer);
 	}
 }
@@ -626,24 +625,29 @@ int main(void) {
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
 			/*
-			 if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
-			 && robi.isHomedFlag) {
-			 HandleDistanceHoming();
-			 }
-			 */
+			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING || homingRoutine) {
+				HandleHomingRoutine();
+			}
+			*/
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
+			/*
 			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
 				HandleHomingRoutine();
 			}
+			*/
 
 			/* Zu niedriger Druck */
-			if (lowPressure && !homingRoutine)
+			if ((lowPressure && !homingRoutine) || PressureAlarm) {
 				PressureAlarm = true;
+				HandlePressureAlarm();
+			}
 
+			/*
 			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
 				HandlePressureAlarm();
 			}
+			*/
 
 			/* Roboter neu referenzieren wenn gefordert */
 			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {

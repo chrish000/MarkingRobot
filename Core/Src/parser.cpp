@@ -126,7 +126,7 @@ bool MotorManager::calcInterval() {
 			|| calcX.stepCnt == moveCmdCalcBufX.stepDistance)
 			&& (motorY.stepBuf.isFull()
 					|| calcY.stepCnt == moveCmdCalcBufY.stepDistance)) {
-		printFlag = moveCmdCalcBufX.printigMove;
+		printFlag = moveCmdCalcBufX.printingMove;
 		if (!motorX.timerActiveFlag)
 			motorX.startTimer();
 		if (!motorY.timerActiveFlag)

@@ -79,7 +79,6 @@ float_t calcDistance(float_t newX, float_t newY, float_t oldX, float_t oldY) {
 	return sqrt(pow(newX - oldX, 2) + pow(newY - oldY, 2));
 }
 
-
 /**
  * @brief Berechet die neue Position anhand von Strecke und Orientierung
  * @param distance Zu fahrende Strecke
@@ -151,34 +150,35 @@ bool Robot::moveToPos(MoveParams param) {
 	float_t newAccel = param.accel.value_or(accel);
 	bool printing = (bool) param.printing.value_or(false);
 
-	if (!(newX == posX && newY == posY)) {
-		speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
-		accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);
-		float_t turn = calcTurn(newX, newY, posX, posY, orientation);
-		if (turn != 0) {
-			if (motorMaster.moveBuf.writeAvailable() >= 2) {
-				if (moveRot(turn, DEFAULT_SPEED, accel) == false)
-					return false;
-				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
-						printing) == false)
-					return false;
-				posX = newX;
-				posY = newY;
-				return true;
-			} else
-				return false;
-		} else {
-			if (motorMaster.moveBuf.writeAvailable() != 0) {
-				if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
-						printing) == false)
-					return false;
-				posX = newX;
-				posY = newY;
-				return true;
-			} else
-				return false;
-		}
+	if (newX == posX && newY == posY)
+		return true;
+
+	speed = std::clamp(newSpeed, 0.0f, (float_t) MAX_SPEED); //Neue Geschwindigkeit speichern
+	accel = std::clamp(newAccel, 0.0f, (float_t) MAX_ACCEL);
+	float_t turn = calcTurn(newX, newY, posX, posY, orientation);
+
+	if (turn != 0) {
+		if (motorMaster.moveBuf.writeAvailable() < 2)
+			return false;
+		if (moveRot(turn, DEFAULT_SPEED, accel) == false)
+			return false;
+		if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
+				printing) == false)
+			return false;
+		posX = newX;
+		posY = newY;
+		return true;
+	} else {
+		if (motorMaster.moveBuf.writeAvailable() == 0)
+			return false;
+		if (moveLin(calcDistance(newX, newY, posX, posY), speed, accel,
+				printing) == false)
+			return false;
+		posX = newX;
+		posY = newY;
+		return true;
 	}
+
 	return false;
 }
 
@@ -205,15 +205,15 @@ bool Robot::moveLin(float_t distance, float_t speed, float_t accel,
 #ifdef INVERT_MOTOR_X_DIR
 		cmd.directionX = (direction ? Direction::Reverse : Direction::Forward);
 #else
-		cmd.directionX = (direction ? Direction::Forward : Direction::Reverse);
+	cmd.directionX = (direction ? Direction::Forward : Direction::Reverse);
 #endif
 
 #ifdef INVERT_MOTOR_Y_DIR
 		cmd.directionY = (!direction ? Direction::Reverse : Direction::Forward);
 #else
-		cmd.directionY = (!direction ? Direction::Forward : Direction::Reverse);
+	cmd.directionY = (!direction ? Direction::Forward : Direction::Reverse);
 #endif
-	cmd.printigMove = printing;
+	cmd.printingMove = printing;
 
 	totalDistSinceHoming += distance;
 	motorMaster.posBuf.insert(calcNewPos(distance, orientation, posX, posY));
@@ -242,15 +242,15 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 #ifdef INVERT_MOTOR_X_DIR
 		cmd.directionX = (direction ? Direction::Reverse : Direction::Forward);
 #else
-		cmd.directionX = (direction ? Direction::Forward : Direction::Reverse);
+	cmd.directionX = (direction ? Direction::Forward : Direction::Reverse);
 #endif
 
 #ifdef INVERT_MOTOR_Y_DIR
 		cmd.directionY = (direction ? Direction::Reverse : Direction::Forward);
 #else
-		cmd.directionY = (direction ? Direction::Forward : Direction::Reverse);
+	cmd.directionY = (direction ? Direction::Forward : Direction::Reverse);
 #endif
-	cmd.printigMove = false;
+	cmd.printingMove = false;
 
 	orientation += degrees;
 	orientation = fmod(orientation + 360, 360.0); //Drehwinkel normalisieren auf [0, 360]
@@ -258,7 +258,6 @@ bool Robot::moveRot(float_t degrees, float_t speed, float_t accel) {
 	motorMaster.posBuf.insert( { posX, posY, orientation });
 	return motorMaster.moveBuf.insert(cmd);
 }
-
 
 /**
  * @brief Bewegungsberechunng für die Fahrt zur Basis

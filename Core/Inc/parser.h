@@ -45,7 +45,7 @@ public:
 		uint32_t stepDistance;
 		Direction directionX;
 		Direction directionY;
-		bool printigMove;
+		bool printingMove;
 	};
 
 	struct position {

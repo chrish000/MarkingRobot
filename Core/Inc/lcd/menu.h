@@ -17,44 +17,44 @@ extern "C" {
 
 extern u8g2_t u8g2;
 
-typedef enum : uint8_t{
-	logo = 0,
-	lesen_von_sd = 1,
-	duese_reinigen = 2,
-	reinigung_zurueck = 3,
-	reinigung_starten = 4,
-	reinigung_laeuft = 5,
-	sd_nicht_erkannt = 6,
-	sd_warten = 7,
-	sd_datei_0 = 10,
-	sd_datei_1 = 11,
-	sd_datei_2 = 12,
-	sd_datei_3 = 13,
-	sd_zurueck = 14,
-	datei_auswaehlen_zurueck = 20,
-	datei_auswaehlen_starten = 21,
-	roboter_ausrichten_zurueck = 22,
-	roboter_ausrichten_starten = 23,
-	markieren_laeuft = 30,
-	markieren_beendet = 31,
-	druck_gering_abbrechen = 32,
-	druck_gering_starten = 33,
-	referenzieren_gescheitert_abbrechen = 34,
-	referenzieren_gescheitert_starten = 35,
-	druck_abbrechen_bestaetigen_zurueck = 36,
-	druck_abbrechen_bestaetigen_starten = 37,
-	referenzieren_abbrechen_bestaetigen_zurueck = 38,
-	referenzieren_abbrechen_bestaetigen_starten = 39,
-	akku_leer = 40,
-} screen;
+typedef enum {
+	logo,
+	lesen_von_sd,
+	duese_reinigen,
+	reinigung_zurueck,
+	reinigung_starten,
+	reinigung_laeuft,
+	sd_nicht_erkannt,
+	sd_warten,
+	sd_datei_0,
+	sd_datei_1,
+	sd_datei_2,
+	sd_datei_3,
+	sd_zurueck,
+	datei_auswaehlen_zurueck,
+	datei_auswaehlen_starten,
+	roboter_ausrichten_zurueck,
+	roboter_ausrichten_starten,
+	markieren_laeuft,
+	markieren_beendet,
+	druck_gering_abbrechen,
+	druck_gering_starten,
+	referenzieren_gescheitert_abbrechen,
+	referenzieren_gescheitert_starten,
+	druck_abbrechen_bestaetigen_zurueck,
+	druck_abbrechen_bestaetigen_starten,
+	referenzieren_abbrechen_bestaetigen_zurueck,
+	referenzieren_abbrechen_bestaetigen_starten,
+	akku_leer,
+} Screen;
 
-typedef enum : volatile int8_t {
-	undefined = 0, prev = -1, next = 1, selected = 3
-} menuDir;
+typedef enum {
+	undefined, prev, next, selected
+} MenuEnc;
 
-extern volatile menuDir menuIndex;
-extern screen activeScreen;
-extern screen lastScreen;
+extern volatile MenuEnc menuIndex;
+extern Screen activeScreen;
+extern Screen lastScreen;
 
 void MX_U8G2_Init(void);
 uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,

@@ -26,10 +26,10 @@
 #define MAX_FILE_NAME_LENGTH 20
 
 u8g2_t u8g2;
-screen activeScreen = logo;
-screen lastScreen = activeScreen;
+Screen activeScreen = logo;
+Screen lastScreen = activeScreen;
 uint32_t screenTimer = 0;
-volatile menuDir menuIndex = undefined;
+volatile MenuEnc menuIndex = undefined;
 
 DIR dir;
 FILINFO fileNameBuf[FILE_NAME_BUFFER_SIZE] = { 0 };

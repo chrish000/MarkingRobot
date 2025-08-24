@@ -91,13 +91,13 @@ uint8_t PressureAlarm = false;
 uint8_t printFlag = false;
 
 uint8_t distSequence = 0;
-uint8_t homingSequence = 0;
-uint8_t airSequence = 0;
-uint8_t readFromSD = true;
-uint8_t homingRoutine = false;
-uint8_t homingFailed = false;
-uint8_t lowPressure;
-uint8_t homingEnabledPressure = true;
+uint8_t homingSequence = 0;			  // Schrittvariable fuer Homing-Routine
+uint8_t airSequence = 0;			  // Schrittvariable fuer Druckluftbetankung
+uint8_t readFromSD = true;// Globale Flag, ob von SD gelesen werden darf für Befehlsverarbeitung
+uint8_t homingRoutine = false;		  // Globale Flag, ob Homing aktiv ist
+uint8_t homingFailed = false;		  // Globale Flag, ob Homing fehlgeschlagen
+uint8_t lowPressure;	// Flag ob Druck zu gering ist, gesetzt in ADC-Callbck
+uint8_t homingEnabledPressure = true; // Globale Flag, ob homing durchgefuert werden darf. Gesteuert durch HandlePressureAlarm()
 
 Robot::MoveParams distHomingPosBuffer;
 
@@ -167,13 +167,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 		break;
 
 	case LCD_BTN_PIN:
-		HAL_NVIC_DisableIRQ(LCD_BTN_EXTI); //wird in DisplayRoutine() wieder aktiviert
+		HAL_NVIC_DisableIRQ(LCD_BTN_EXTI); // wird in DisplayRoutine() wieder aktiviert
 		menuIndex = selected;
 		break;
 
 	case LCD_ENCA_PIN:
 		if (LCD_ENCB_PORT->IDR & LCD_ENCB_PIN)
-			menuIndex = next;  // cw
+			menuIndex = next; // cw
 		else
 			menuIndex = prev;
 		break;
@@ -322,14 +322,14 @@ void HandlePressureAlarm(void) {
 		readFromSD = false;
 		homingEnabledPressure = false;
 
-		//Aktuelle Position speichern
+		// Aktuelle Position speichern
 		currentPos = robi.motorMaster.posBuf.peek();
 		if (currentPos != nullptr) {
 			tempPosBuf[0] = *currentPos;
 			posCnt = 1;
 		}
 
-		//Aktuelle Bewegung beenden
+		// Aktuelle Bewegung beenden
 		while (!robi.motorMaster.moveCmdFinishedFlag
 				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
 			robi.motorMaster.calcInterval();
@@ -338,13 +338,13 @@ void HandlePressureAlarm(void) {
 			}
 		}
 
-		//Puffer zwischenspeichern
+		// Puffer zwischenspeichern
 		while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
 			cmdCnt++;
 		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
 			posCnt++;
 
-		//Aktuelle Position setzen
+		// Aktuelle Position setzen
 		if (currentPos != nullptr) {
 			robi.setPos(currentPos->orient, currentPos->x, currentPos->y);
 		}
@@ -353,7 +353,7 @@ void HandlePressureAlarm(void) {
 		break;
 
 	case 1:
-		//Zu home fahren
+		// Zu home fahren
 		if (movementFinished(&robi)) {
 			robi.moveToHome();
 			while (!movementFinished(&robi))
@@ -367,12 +367,12 @@ void HandlePressureAlarm(void) {
 		break;
 
 	case 2:
-		//Auf Auftanken warten und danach referenzieren
+		// Auf Auftanken warten und danach referenzieren
 		DisplayRoutine();
 		if (!lowPressure) {
 			if (activeScreen == markieren_laeuft) {
 				Buzzer_NoNote(&robi.hbuzzer);
-				homingEnabledPressure = true;
+				homingEnabledPressure = true; //Homing-Routine freischalten
 				robi.isHomedFlag = false;
 				menuIndex = undefined;
 				airSequence++;
@@ -382,7 +382,8 @@ void HandlePressureAlarm(void) {
 		break;
 
 	case 3:
-		if (robi.isHomedFlag) {
+		if (robi.isHomedFlag) //warten bis Homing abgeschlossen
+		{
 			homingEnabledPressure = false;
 			airSequence++;
 		}
@@ -390,7 +391,7 @@ void HandlePressureAlarm(void) {
 
 	case 4:
 		if (posCnt != 0) {
-			//Zurück auf Position fahren
+			// Zurück auf Position fahren
 			Robot::MoveParams originalPosition;
 			originalPosition.x = tempPosBuf[0].x;
 			originalPosition.y = tempPosBuf[0].y;
@@ -398,14 +399,14 @@ void HandlePressureAlarm(void) {
 			while (!movementFinished(&robi))
 				robi.motorMaster.calcInterval();
 
-			//Originale Orientierung einnehmen
+			// Originale Orientierung einnehmen
 			float_t delta = fmod((tempPosBuf[0].orient - robi.getRot() + 540.0),
 					360.0) - 180.0;
 			robi.moveRot(delta, DEFAULT_SPEED, DEFAULT_ACCEL);
 			while (!movementFinished(&robi))
 				robi.motorMaster.calcInterval();
 
-			//Puffer wiederherstellen
+			// Puffer wiederherstellen
 			robi.motorMaster.posBuf.consumerClear();
 			robi.motorMaster.moveBuf.consumerClear();
 			for (int i = 0; i < cmdCnt; ++i) {
@@ -452,9 +453,9 @@ void HandleDistanceHoming(void) {
  * @retval None
  */
 void HandleHomingRoutine(void) {
-	homingRoutine = true;
 	switch (homingSequence) {
 	case 0:
+		homingRoutine = true;
 		// Bewegungspuffer abarbeiten
 		while (robi.motorMaster.calcInterval()) {
 			if (robi.printhead.isActive() != printFlag) {
@@ -474,7 +475,6 @@ void HandleHomingRoutine(void) {
 		} else
 			homingSequence = 1;
 		robi.isHomedFlag = false;
-		homingSequence++;
 		break;
 	case 1: // Nur Homing
 		DisplayRoutine();
@@ -483,7 +483,7 @@ void HandleHomingRoutine(void) {
 		break;
 	case 2: // Luft und dann Homing
 		DisplayRoutine();
-		if (!lowPressure)
+		if (!lowPressure) // Warten, bis Druck anliegt
 			if (activeScreen == markieren_laeuft) {
 				robi.isHomedFlag = false;
 				homingSequence = 1;
@@ -493,8 +493,8 @@ void HandleHomingRoutine(void) {
 				BPM_SYSTEM_SOUND);
 		menuIndex = undefined;
 		break;
-	case 3: // Fortsetzen
-		robi.moveToPos(distHomingPosBuffer);
+	case 3:									 // Fortsetzen
+		robi.moveToPos(distHomingPosBuffer); // Zu alter Position fahren
 		robi.totalDistSinceHoming = 0;
 		homingSequence = 0;
 		homingRoutine = false;
@@ -521,7 +521,7 @@ void HandleHoming(void) {
 		homingFailed = true;
 		activeScreen = referenzieren_gescheitert_abbrechen;
 		DisplayRoutine();
-		robi.printingFlag = false; //wird in menu.cpp wieder gesetzt
+		robi.printingFlag = false; // wird in menu.cpp wieder gesetzt
 	} else {
 		homingFailed = false;
 		readFromSD = true;
@@ -548,10 +548,10 @@ void HandlePrintFinished(void) {
 		DisplayRoutine();
 
 		/*
-		Buzzer_Play_Song_Blocking(&robi.hbuzzer, mario_level_complete,
-				(sizeof(mario_level_complete) / sizeof(mario_level_complete[0])),
-				BPM_MARIO_LEVEL);
-				*/
+		 Buzzer_Play_Song_Blocking(&robi.hbuzzer, mario_level_complete,
+		 (sizeof(mario_level_complete) / sizeof(mario_level_complete[0])),
+		 BPM_MARIO_LEVEL);
+		 */
 		Buzzer_NoNote(&robi.hbuzzer);
 	}
 }
@@ -619,35 +619,28 @@ int main(void) {
 		/* Druckvorgang */
 		if (robi.printingFlag) {
 
-			//lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN); verlagert in ADC Callback
+			// lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN); verlagert in ADC Callback
 
-			//UpdateStatusBarFast(); begrenzt maximal mögliche geschw.
+			// UpdateStatusBarFast(); begrenzt maximal mögliche geschw.
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
-			/*
-			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING || homingRoutine) {
+			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
+					|| homingRoutine) {
 				HandleHomingRoutine();
 			}
-			*/
 
 			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
 			/*
-			if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
-				HandleHomingRoutine();
-			}
-			*/
+			 if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
+			 HandleHomingRoutine();
+			 }
+			 */
 
 			/* Zu niedriger Druck */
 			if ((lowPressure && !homingRoutine) || PressureAlarm) {
 				PressureAlarm = true;
 				HandlePressureAlarm();
 			}
-
-			/*
-			if (PressureAlarm) { //TODO Prüfen, ob in jeder Situation korrekt ausgeführt
-				HandlePressureAlarm();
-			}
-			*/
 
 			/* Roboter neu referenzieren wenn gefordert */
 			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
@@ -673,7 +666,6 @@ int main(void) {
 
 			/* Motoren ansteuern */
 			robi.motorMaster.calcInterval();
-
 		} else
 			/* Menue */
 			DisplayRoutine();
@@ -820,7 +812,6 @@ static void MX_ADC1_Init(void) {
 	/* USER CODE BEGIN ADC1_Init 2 */
 
 	/* USER CODE END ADC1_Init 2 */
-
 }
 
 /**
@@ -852,7 +843,6 @@ static void MX_CRC_Init(void) {
 	/* USER CODE BEGIN CRC_Init 2 */
 
 	/* USER CODE END CRC_Init 2 */
-
 }
 
 /**
@@ -900,7 +890,6 @@ static void MX_SPI1_Init(void) {
 	/* USER CODE BEGIN SPI1_Init 2 */
 
 	/* USER CODE END SPI1_Init 2 */
-
 }
 
 /**
@@ -956,7 +945,6 @@ static void MX_TIM2_Init(void) {
 
 	/* USER CODE END TIM2_Init 2 */
 	HAL_TIM_MspPostInit(&htim2);
-
 }
 
 /**
@@ -1004,7 +992,6 @@ static void MX_TIM3_Init(void) {
 
 	/* USER CODE END TIM3_Init 2 */
 	HAL_TIM_MspPostInit(&htim3);
-
 }
 
 /**
@@ -1046,7 +1033,6 @@ static void MX_TIM4_Init(void) {
 	/* USER CODE BEGIN TIM4_Init 2 */
 
 	/* USER CODE END TIM4_Init 2 */
-
 }
 
 /**
@@ -1090,7 +1076,6 @@ static void MX_TIM8_Init(void) {
 	/* USER CODE BEGIN TIM8_Init 2 */
 
 	/* USER CODE END TIM8_Init 2 */
-
 }
 
 /**
@@ -1148,7 +1133,6 @@ static void MX_TIM23_Init(void) {
 	/* USER CODE BEGIN TIM23_Init 2 */
 
 	/* USER CODE END TIM23_Init 2 */
-
 }
 
 /**
@@ -1206,7 +1190,6 @@ static void MX_TIM24_Init(void) {
 	/* USER CODE BEGIN TIM24_Init 2 */
 
 	/* USER CODE END TIM24_Init 2 */
-
 }
 
 /**
@@ -1251,7 +1234,6 @@ static void MX_UART8_Init(void) {
 	/* USER CODE BEGIN UART8_Init 2 */
 
 	/* USER CODE END UART8_Init 2 */
-
 }
 
 /**
@@ -1296,7 +1278,6 @@ static void MX_USART2_UART_Init(void) {
 	/* USER CODE BEGIN USART2_Init 2 */
 
 	/* USER CODE END USART2_Init 2 */
-
 }
 
 /**
@@ -1336,7 +1317,6 @@ static void MX_DMA_Init(void) {
 	/* DMA2_Stream0_IRQn interrupt configuration */
 	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-
 }
 
 /**
@@ -1544,19 +1524,19 @@ void Error_Handler(void) {
 	/* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
+	/* USER CODE BEGIN 6 */
 	/* User can add his own implementation to report the file name and line number,
 	   ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+	/* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

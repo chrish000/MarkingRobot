@@ -82,7 +82,7 @@
 #define SENSOR_DIST 356     //mm
 #define NULLPUNKT_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define NULLPUNKT_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
-#define NULLPUNKT_WINKELABSTAND 35 //mm (Abstand von Zeichungs-Nullpunkt und Winkel)
+#define NULLPUNKT_WINKELABSTAND 100 //mm (Abstand von Zeichungs-Nullpunkt und Winkel)
 #define MOVE_TO_HOME_BEFORE_HOMING	//Auskommentiern um zu aktivieren
 
 /**

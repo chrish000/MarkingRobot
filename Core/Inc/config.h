@@ -31,7 +31,7 @@
 #define DEFAULT_ACCEL 1000
 #define MAX_ACCEL 2000
 
-#define DIST_TILL_NEW_HOMING 30000 //mm
+#define DIST_TILL_NEW_HOMING 15000 //mm
 
 #define RUN_CURRENT_DEFAULT 2000
 #define HOLD_CURRENT_DEFAULT 100
@@ -57,6 +57,7 @@
  *	MARKIEREINHEIT
  *	###########################################################################
  */
+//#define USE_AIR_RUNOUT //Auskommentiern um zu aktivieren. ACHTUNG: Kann zu Bugs führen
 #define PRINTHEAD_PERIOD 500    // ms
 #define PRINTHEAD_DUTY_CYCLE 10 //%
 
@@ -83,7 +84,7 @@
 #define NULLPUNKT_OFFSET_X 140 //mm	(von Roboter Rahmen aussen hinten zu Duese)
 #define NULLPUNKT_OFFSET_Y 298 //mm	(von Roboter Antrieb aussen seitlich zu Duese)
 #define NULLPUNKT_WINKELABSTAND 100 //mm (Abstand von Zeichungs-Nullpunkt und Winkel)
-#define MOVE_TO_HOME_BEFORE_HOMING	//Auskommentiern um zu aktivieren
+//#define MOVE_TO_HOME_BEFORE_HOMING	//Auskommentiern um zu aktivieren, kann zu Bugs fuehren
 
 /**
  *	###########################################################################

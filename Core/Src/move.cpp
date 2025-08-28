@@ -109,7 +109,7 @@ void Robot::init() {
 	HAL_GPIO_WritePin(FAN1_PORT, FAN1_PIN, GPIO_PIN_RESET); //Endschalter
 	HAL_GPIO_WritePin(FAN2_PORT, FAN2_PIN, GPIO_PIN_RESET); //Endschalter
 
-	motorMaster.moveBuf.consumerClear();
+	motorMaster.clearAllBuffers();
 	motorMaster.motorX.init();
 	motorMaster.motorY.init();
 	motorMaster.motorX.tmc.setup();

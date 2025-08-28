@@ -25,6 +25,7 @@
 #define F_TIM 275000000 //275MHz
 #define V_MIN (STEPS_PER_MM * 0.5) //Mindestgeschwindigkeit in steps/s (= x.x mm/s), MUSS mindestens *0.2 sein!
 
+//Forward und Reverse sind nicht aus Sicht der Roboter-Bewegungsrichtung sondern aus Sicht des Motors
 enum class Direction : bool {
 	Forward = true, Reverse = false
 };
@@ -62,6 +63,7 @@ public:
 
 
 	bool calcInterval();
+	void clearAllBuffers();
 	void resetCalc();
 
 private:

@@ -67,7 +67,7 @@ extern uint8_t distSequence;
 extern uint8_t homingSequence;
 extern uint8_t airSequence;
 extern uint8_t readFromSD;
-extern uint8_t homingRoutine;
+extern uint8_t distHomingRoutine;
 extern uint8_t homingFailed;
 extern uint8_t lowPressure;
 /* USER CODE END ET */
@@ -92,8 +92,7 @@ void DMA_Callback(DMA_HandleTypeDef *hdma);
 void LowVoltageHandler();
 void UserErrorHandler(UserErrorCode errCode);
 void HandlePressureAlarm(void);
-void HandleDistanceHoming(void);
-void HandleHomingRoutine(void);
+void HandleDistHomingRoutine(void);
 void HandleHoming(void);
 void HandlePrintFinished(void);
 /* USER CODE END EFP */

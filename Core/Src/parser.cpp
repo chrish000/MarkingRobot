@@ -35,6 +35,12 @@ MotorManager::MotorManager(Pin pins) :
 // Destruktor
 MotorManager::~MotorManager() = default;
 
+void MotorManager::clearAllBuffers() {
+    moveBuf.consumerClear();
+    posBuf.consumerClear();
+    motorX.stepBuf.consumerClear();
+    motorY.stepBuf.consumerClear();
+}
 
 void MotorManager::resetCalc() {
 	calcX = intervalCalcStruct { };
@@ -102,12 +108,12 @@ bool MotorManager::calcInterval() {
 		resetCalc();
 
 		if (moveBuf.remove()) {
+			posBuf.remove();
 			if (!motorX.timerActiveFlag)
 				motorX.startTimer();
 			if (!motorY.timerActiveFlag)
 				motorY.startTimer();
 			moveCmdFinishedFlag = true;
-			posBuf.remove();
 			return true;
 		} else {
 			ErrorCode = MOVE_BUF;

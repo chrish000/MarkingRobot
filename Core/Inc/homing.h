@@ -43,18 +43,16 @@ void stopMotors(Robot *rob) {
 	rob->motorMaster.motorX.stopTimer();
 	rob->motorMaster.motorY.stopTimer();
 	//Alle Puffer leeren
-	rob->motorMaster.moveBuf.consumerClear();
-	rob->motorMaster.motorX.stepBuf.consumerClear();
-	rob->motorMaster.motorY.stepBuf.consumerClear();
+	rob->motorMaster.clearAllBuffers();
 	rob->motorMaster.resetCalc();
 	//rob->resetPos();
 }
 
 bool movementFinished(Robot *rob) {
 	bool status = true;
-	//status &= !rob->motorMaster.motorX.timerActiveFlag;
 	status &= rob->motorMaster.moveBuf.isEmpty();
 	status &= rob->motorMaster.motorX.stepBuf.isEmpty();
+	status &= rob->motorMaster.motorY.stepBuf.isEmpty();
 	return status;
 }
 

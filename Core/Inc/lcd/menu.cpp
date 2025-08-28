@@ -49,7 +49,7 @@ void vorgangAbbrechen() {
 	homingSequence = 0;
 	airSequence = 0;
 	readFromSD = true;
-	homingRoutine = false;
+	distHomingRoutine = false;
 	robi.isHomedFlag = false;
 	PressureAlarm = false;
 	robi.totalDistSinceHoming = 0;
@@ -444,45 +444,45 @@ void DisplayRoutine() {
 			menuIndex = undefined;
 		}
 		break;
-	case druck_gering_abbrechen:
+	case luft_auftanken_abbrechen:
 		// Code zum Abbrechen bei geringem Druck
 		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET) {
-			u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
-			u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
+			u8g2_DrawStr(&u8g2, 0, 10, "Jetzt Auftanken");
+			u8g2_DrawStr(&u8g2, 0, 24, "Druck zu gering!");
 			u8g2_DrawStr(&u8g2, 76, 40, "n.OK");
 		} else {
-			u8g2_DrawStr(&u8g2, 0, 10, "Druck OK");
+			u8g2_DrawStr(&u8g2, 0, 10, "Jetzt Auftanken");
 			u8g2_DrawStr(&u8g2, 0, 24, "Fortfahren?");
 			u8g2_DrawStr(&u8g2, 76, 40, "OK");
 		}
 		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
 
-		u8g2_DrawStr(&u8g2, 85, 61, "starten");
+		u8g2_DrawStr(&u8g2, 85, 61, "weiter");
 		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
 		u8g2_DrawFrame(&u8g2, 0, 52, 57, 12);
 		if (menuIndex == selected) {
 			activeScreen = druck_abbrechen_bestaetigen_zurueck;
 			menuIndex = undefined;
 		} else if (menuIndex == next) {
-			activeScreen = druck_gering_starten;
+			activeScreen = luft_auftanken_starten;
 			menuIndex = undefined;
 		}
 		break;
-	case druck_gering_starten:
+	case luft_auftanken_starten:
 		// Code zum Starten bei geringem Druck
 		if (HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN) == GPIO_PIN_RESET) {
-			u8g2_DrawStr(&u8g2, 0, 10, "Druck zu gering");
-			u8g2_DrawStr(&u8g2, 0, 24, "Auftanken!");
+			u8g2_DrawStr(&u8g2, 0, 10, "Jetzt Auftanken");
+			u8g2_DrawStr(&u8g2, 0, 24, "Druck zu gering!");
 			u8g2_DrawStr(&u8g2, 76, 40, "n.OK");
 		} else {
-			u8g2_DrawStr(&u8g2, 0, 10, "Druck OK");
+			u8g2_DrawStr(&u8g2, 0, 10, "Jetzt Auftanken");
 			u8g2_DrawStr(&u8g2, 0, 24, "Fortfahren?");
 			u8g2_DrawStr(&u8g2, 76, 40, "OK");
 		}
 		u8g2_DrawStr(&u8g2, 40, 40, "Druck:");
 
-		u8g2_DrawStr(&u8g2, 85, 61, "starten");
-		u8g2_DrawFrame(&u8g2, 83, 52, 45, 12);
+		u8g2_DrawStr(&u8g2, 85, 61, "weiter");
+		u8g2_DrawFrame(&u8g2, 83, 52, 39, 12);
 		u8g2_DrawStr(&u8g2, 2, 61, "abbrechen");
 		if (menuIndex == selected) {
 			if (!lowPressure) {
@@ -490,7 +490,7 @@ void DisplayRoutine() {
 			}
 			menuIndex = undefined;
 		} else if (menuIndex == prev) {
-			activeScreen = druck_gering_abbrechen;
+			activeScreen = luft_auftanken_abbrechen;
 			menuIndex = undefined;
 		}
 		break;
@@ -500,7 +500,7 @@ void DisplayRoutine() {
 		u8g2_DrawFrame(&u8g2, 0, 52, 45, 12);
 		u8g2_DrawStr(&u8g2, 73, 61, "abbrechen");
 		if (menuIndex == selected) {
-			activeScreen = druck_gering_abbrechen;
+			activeScreen = luft_auftanken_abbrechen;
 			menuIndex = undefined;
 		} else if (menuIndex == next) {
 			activeScreen = druck_abbrechen_bestaetigen_starten;
@@ -643,6 +643,7 @@ uint8_t u8x8_gpio_and_delay_stm32(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int,
 	}
 	return 1;
 }
+
 
 void MX_U8G2_Init(void) {
 	u8g2_Setup_st7920_s_128x64_f(&u8g2,

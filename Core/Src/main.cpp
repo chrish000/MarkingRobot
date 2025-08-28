@@ -94,14 +94,14 @@ uint8_t distSequence = 0;
 uint8_t homingSequence = 0;			  // Schrittvariable fuer Homing-Routine
 uint8_t airSequence = 0;			  // Schrittvariable fuer Druckluftbetankung
 uint8_t readFromSD = true;// Globale Flag, ob von SD gelesen werden darf für Befehlsverarbeitung
-uint8_t homingRoutine = false;		  // Globale Flag, ob Homing aktiv ist
+uint8_t distHomingRoutine = false;		  // Globale Flag, ob Homing aktiv ist
 uint8_t homingFailed = false;		  // Globale Flag, ob Homing fehlgeschlagen
 uint8_t lowPressure;	// Flag ob Druck zu gering ist, gesetzt in ADC-Callbck
 uint8_t homingEnabledPressure = true; // Globale Flag, ob homing durchgefuert werden darf. Gesteuert durch HandlePressureAlarm()
 
 Robot::MoveParams distHomingPosBuffer;
 
-const MotorManager::position *currentPos = nullptr;
+MotorManager::position pressureAlarmPos;
 MotorManager::moveCommands tempCmdBuf[robi.motorMaster.buffer_size_move] = { };
 MotorManager::position tempPosBuf[robi.motorMaster.buffer_size_move] = { };
 uint8_t cmdCnt = 0, posCnt = 0;
@@ -311,6 +311,7 @@ void UserErrorHandler(UserErrorCode errCode) {
 	}
 }
 
+#ifdef USE_AIR_RUNOUT
 /**
  * @brief Handle-Funktion für niedrigen Druck bei Markiervorgang
  * @param None
@@ -323,15 +324,12 @@ void HandlePressureAlarm(void) {
 		homingEnabledPressure = false;
 
 		// Aktuelle Position speichern
-		currentPos = robi.motorMaster.posBuf.peek();
-		if (currentPos != nullptr) {
-			tempPosBuf[0] = *currentPos;
-			posCnt = 1;
-		}
+		pressureAlarmPos = *robi.motorMaster.posBuf.peek();
 
 		// Aktuelle Bewegung beenden
 		while (!robi.motorMaster.moveCmdFinishedFlag
-				&& !robi.motorMaster.motorX.stepBuf.isEmpty()) {
+				&& !robi.motorMaster.motorX.stepBuf.isEmpty()
+				&& !robi.motorMaster.motorY.stepBuf.isEmpty()) {
 			robi.motorMaster.calcInterval();
 			if (robi.printhead.isActive() != printFlag) {
 				printFlag ? robi.printhead.start() : robi.printhead.stop();
@@ -339,15 +337,19 @@ void HandlePressureAlarm(void) {
 		}
 
 		// Puffer zwischenspeichern
+		cmdCnt = 0;
 		while (robi.motorMaster.moveBuf.remove(tempCmdBuf[cmdCnt]))
 			cmdCnt++;
+		posCnt = 0;
 		while (robi.motorMaster.posBuf.remove(tempPosBuf[posCnt]))
 			posCnt++;
 
-		// Aktuelle Position setzen
-		if (currentPos != nullptr) {
-			robi.setPos(currentPos->orient, currentPos->x, currentPos->y);
-		}
+		//Puffer leeren
+		robi.motorMaster.clearAllBuffers();
+
+		// Tatsächliche Position setzen für Berechnungen der Homing-Bewegung
+		robi.setPos(pressureAlarmPos.orient, pressureAlarmPos.x,
+				pressureAlarmPos.y);
 
 		airSequence++;
 		break;
@@ -355,10 +357,12 @@ void HandlePressureAlarm(void) {
 	case 1:
 		// Zu home fahren
 		if (movementFinished(&robi)) {
+			robi.printhead.stop();
 			robi.moveToHome();
 			while (!movementFinished(&robi))
 				robi.motorMaster.calcInterval();
-			activeScreen = druck_gering_abbrechen;
+			robi.motorMaster.clearAllBuffers();
+			activeScreen = luft_auftanken_abbrechen;
 			Buzzer_Play_Song_Blocking(&robi.hbuzzer, air_empty,
 					(sizeof(air_empty) / sizeof(air_empty[0])),
 					BPM_SYSTEM_SOUND);
@@ -386,36 +390,43 @@ void HandlePressureAlarm(void) {
 		{
 			homingEnabledPressure = false;
 			airSequence++;
+
+			//Bewegung sbchließen
+			while (!movementFinished(&robi))
+				robi.motorMaster.calcInterval();
 		}
 		break;
 
 	case 4:
-		if (posCnt != 0) {
+		if (posCnt != 0) { //Wenn Puffer nicht leer
+			//Alle Puffer leeren
+			robi.motorMaster.clearAllBuffers();
+
 			// Zurück auf Position fahren
 			Robot::MoveParams originalPosition;
-			originalPosition.x = tempPosBuf[0].x;
-			originalPosition.y = tempPosBuf[0].y;
+			originalPosition.x = pressureAlarmPos.x;
+			originalPosition.y = pressureAlarmPos.y;
 			robi.moveToPos(originalPosition);
-			while (!movementFinished(&robi))
-				robi.motorMaster.calcInterval();
 
 			// Originale Orientierung einnehmen
-			float_t delta = fmod((tempPosBuf[0].orient - robi.getRot() + 540.0),
-					360.0) - 180.0;
-			robi.moveRot(delta, DEFAULT_SPEED, DEFAULT_ACCEL);
-			while (!movementFinished(&robi))
-				robi.motorMaster.calcInterval();
+			float_t delta = fmod(
+					(pressureAlarmPos.orient - robi.getRot() + 540.0), 360.0)
+					- 180.0;
+			if (delta != 0.0f) {
+				robi.moveRot(delta, DEFAULT_SPEED, DEFAULT_ACCEL);
+				while (!movementFinished(&robi))
+					robi.motorMaster.calcInterval();
+			}
 
 			// Puffer wiederherstellen
-			robi.motorMaster.posBuf.consumerClear();
-			robi.motorMaster.moveBuf.consumerClear();
+			robi.motorMaster.clearAllBuffers();
+
 			for (int i = 0; i < cmdCnt; ++i) {
 				robi.motorMaster.moveBuf.insert(tempCmdBuf[i]);
 			}
 			for (int i = 0; i < posCnt; ++i) {
 				robi.motorMaster.posBuf.insert(tempPosBuf[i]);
 			}
-			robi.setPos(tempPosBuf[0].orient, tempPosBuf[0].x, tempPosBuf[0].y);
 		}
 		cmdCnt = posCnt = 0;
 		readFromSD = true;
@@ -425,79 +436,57 @@ void HandlePressureAlarm(void) {
 		break;
 	}
 }
-
-/**
- * @brief Handle-Funktion für erneutes Homing bei Markiervorgang
- * @param None
- * @retval None
- */
-void HandleDistanceHoming(void) {
-	switch (distSequence) {
-	case 0:
-		readFromSD = false;
-		homingRoutine = true;
-		distSequence++;
-		break;
-	case 1:
-		if (!homingRoutine) {
-			readFromSD = true;
-			distSequence = 0;
-		}
-		break;
-	}
-}
+#endif
 
 /**
  * @brief Handle-Funktion für die Homing-Routine mit Anfahrt an Basis
  * @param None
  * @retval None
  */
-void HandleHomingRoutine(void) {
+void HandleDistHomingRoutine(void) {
 	switch (homingSequence) {
 	case 0:
-		homingRoutine = true;
+		distHomingRoutine = true;
+		readFromSD = false;
 		// Bewegungspuffer abarbeiten
-		while (robi.motorMaster.calcInterval()) {
+		while (!movementFinished(&robi)) {
+			robi.motorMaster.calcInterval();
 			if (robi.printhead.isActive() != printFlag) {
 				printFlag ? robi.printhead.start() : robi.printhead.stop();
 			}
 		}
-		readFromSD = false;
+
 		robi.printhead.stop();
 		distHomingPosBuffer.x = robi.getPosX();
 		distHomingPosBuffer.y = robi.getPosY();
 		robi.moveToHome();
-		while (robi.motorMaster.calcInterval())
-			;
-		if (lowPressure) {
-			activeScreen = druck_gering_abbrechen;
-			homingSequence = 2;
-		} else
-			homingSequence = 1;
-		robi.isHomedFlag = false;
+		while (!movementFinished(&robi))
+			robi.motorMaster.calcInterval();
+		activeScreen = luft_auftanken_abbrechen;
+		Buzzer_Play_Song_Blocking(&robi.hbuzzer, air_empty,
+				(sizeof(air_empty) / sizeof(air_empty[0])),
+				BPM_SYSTEM_SOUND);
+		homingSequence = 1;
 		break;
-	case 1: // Nur Homing
-		DisplayRoutine();
+	case 1: //Luft und dann Homing
+		while (activeScreen != markieren_laeuft)
+			DisplayRoutine();
+		menuIndex = undefined;
+		robi.isHomedFlag = false;
+		homingSequence = 2;
+		break;
+	case 2: //Homing
 		if (robi.isHomedFlag)
 			homingSequence = 3;
 		break;
-	case 2: // Luft und dann Homing
-		DisplayRoutine();
-		if (!lowPressure) // Warten, bis Druck anliegt
-			if (activeScreen == markieren_laeuft) {
-				robi.isHomedFlag = false;
-				homingSequence = 1;
-			}
-		Buzzer_Play_Song(&robi.hbuzzer, air_empty,
-				(sizeof(air_empty) / sizeof(air_empty[0])),
-				BPM_SYSTEM_SOUND);
-		menuIndex = undefined;
-		break;
-	case 3:									 // Fortsetzen
+	case 3:	// Fortsetzen
 		robi.moveToPos(distHomingPosBuffer); // Zu alter Position fahren
+		while (!movementFinished(&robi))
+			robi.motorMaster.calcInterval();
 		robi.totalDistSinceHoming = 0;
 		homingSequence = 0;
-		homingRoutine = false;
+		distHomingRoutine = false;
+		readFromSD = true;
 		break;
 	}
 }
@@ -524,7 +513,8 @@ void HandleHoming(void) {
 		robi.printingFlag = false; // wird in menu.cpp wieder gesetzt
 	} else {
 		homingFailed = false;
-		readFromSD = true;
+		if (!PressureAlarm && !distHomingRoutine) //Bei Druckalarm nicht aktivieren
+			readFromSD = true;
 	}
 }
 
@@ -539,6 +529,7 @@ void HandlePrintFinished(void) {
 		robi.moveToHome();
 		while (!movementFinished(&robi))
 			robi.motorMaster.calcInterval();
+		robi.motorMaster.clearAllBuffers();
 		robi.motorMaster.motorX.disableMotor();
 		robi.motorMaster.motorY.disableMotor();
 		robi.finishedFlag = false;
@@ -619,28 +610,20 @@ int main(void) {
 		/* Druckvorgang */
 		if (robi.printingFlag) {
 
-			// lowPressure = !HAL_GPIO_ReadPin(PRESSURE_PORT, PRESSURE_PIN); verlagert in ADC Callback
-
-			// UpdateStatusBarFast(); begrenzt maximal mögliche geschw.
+			// UpdateStatusBarFast(); begrenzt maximal mögliche geschw. -> starkes Ruckeln
 
 			/* Referenzierung auslösen wenn Strecke erreicht */
-			if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING
-					|| homingRoutine) {
-				HandleHomingRoutine();
+			if (distHomingRoutine) {
+				HandleDistHomingRoutine();
 			}
 
-			/* Routine für Homing (Referenzierung) während des Markiervorgangs */
-			/*
-			 if (homingRoutine) { //aktiviert durch HandleDistanceHoming()
-			 HandleHomingRoutine();
-			 }
-			 */
-
+#ifdef USE_AIR_RUNOUT
 			/* Zu niedriger Druck */
-			if ((lowPressure && !homingRoutine) || PressureAlarm) {
+			if ((lowPressure && !distHomingRoutine) || PressureAlarm) {
 				PressureAlarm = true;
 				HandlePressureAlarm();
 			}
+#endif
 
 			/* Roboter neu referenzieren wenn gefordert */
 			if (!robi.isHomedFlag && !homingFailed && homingEnabledPressure) {
@@ -657,6 +640,8 @@ int main(void) {
 				if (robi.sd.readNextLine())
 					robi.parser.parseGCodeLineAndPushInBuffer(
 							robi.sd.lineBuffer);
+				if (robi.totalDistSinceHoming > DIST_TILL_NEW_HOMING)
+					distHomingRoutine = true;
 			}
 
 			/* Ende von Druckvorgang */

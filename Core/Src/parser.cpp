@@ -21,12 +21,6 @@
 #include <climits>
 #include <algorithm>
 
-#if MOTOR_XY_RATIO > 10000
-    #define MOTOR_RATIO (2.0 - (MOTOR_XY_RATIO * 0.0001))
-#else
-    #define MOTOR_RATIO (MOTOR_XY_RATIO * 0.0001f)
-#endif
-
 // Konstruktor
 MotorManager::MotorManager(Pin pins) :
 		motorX(pins.TIM_Motor_X, pins.TIM_DMA_ARR_X, pins.TIM_DMA_BSRR_X,

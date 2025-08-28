@@ -59,6 +59,12 @@ bool movementFinished(Robot *rob) {
 }
 
 void adjustDistWithMotorRatio() {
+#if MOTOR_XY_RATIO > 10000
+	xDist = xDist * MOTOR_RATIO;
+#else
+	yDist = yDist * MOTOR_RATIO;
+#endif
+	/*
 	float_t motorRatio = MOTOR_XY_RATIO * 0.01f;
 	if (motorRatio > 1.0f) {
 		motorRatio = 2.0f - motorRatio;
@@ -66,6 +72,7 @@ void adjustDistWithMotorRatio() {
 	} else {
 		yDist = yDist * motorRatio;
 	}
+	*/
 }
 
 HOMING_StatusTypeDef home(Robot *rob) {

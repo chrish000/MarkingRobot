@@ -41,6 +41,12 @@
 //#define INVERT_MOTOR_Y_DIR //Auskommentiern um zu aktivieren
 #define MOTOR_XY_RATIO 10014 //10014 = 100.14% (<100 -> mehr links; >100 -> mehr rechts)
 
+#if MOTOR_XY_RATIO > 10000
+    #define MOTOR_RATIO (2.0 - (MOTOR_XY_RATIO * 0.0001f))
+#else
+    #define MOTOR_RATIO (MOTOR_XY_RATIO * 0.0001f)
+#endif
+
 // Beschleunigungskurve: {Trapezoid; Bezier}
 #define ACCEL_CURVE_TRAPEZOID
 // #define ACCEL_CURVE_SINUS
